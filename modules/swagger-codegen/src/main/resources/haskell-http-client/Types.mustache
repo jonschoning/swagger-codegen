@@ -1,78 +1,76 @@
+{-# LANGUAGE CPP #-}
+{-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 {-# OPTIONS_GHC -fno-warn-unused-binds -fno-warn-unused-imports #-}
 
-module {{title}}.Types (
-{{#models}}
-{{#model}}
-  {{classname}} (..),
-  mk{{classname}},
-{{/model}}
-{{/models}}
-  ) where
+-- |
+-- Module      : {{title}}.Types
+module {{title}}.Types where
 
-import Data.List (stripPrefix)
-import Data.Maybe (fromMaybe)
-import Data.Aeson (Value, FromJSON(..), ToJSON(..), genericToJSON, genericParseJSON)
-import Data.Aeson.Types (Options(..), defaultOptions)
+import Data.Aeson (FromJSON(..), ToJSON(..))
+import Data.Aeson.Types 
+import Data.Data (Data, Typeable)
 import Data.Text (Text)
-import qualified Data.Text as T
-import qualified Data.Map as Map
 import GHC.Generics (Generic)
-import Data.Function ((&))
+import Prelude 
+
+import qualified Data.Map as Map
+import qualified Data.Text as T
+
 {{#imports}}import {{import}}
 {{/imports}}
 
 {{#models}}
 {{#model}}
 
+-- * {{classname}}
 -- | {{description}}
 
 {{^vendorExtensions.x-customNewtype}}
 {{^parent}}
-{{vendorExtensions.x-data}} {{classname}} = {{classname}}
-  { {{#vars}}{{& name}} :: {{^required}}Maybe{{/required}} {{datatype}} -- ^ {{& description}}{{#hasMore}}
+data {{classname}} = {{classname}}
+  { {{#vars}}{{name}} :: {{^required}}Maybe{{/required}} {{datatype}}{{#description}} -- ^ {{/description}}{{description}}{{#hasMore}}
   , {{/hasMore}}{{/vars}}
-  } deriving (Show, Eq, Generic)
+  } deriving (Show, Eq, Data, Typeable, Generic, Ord)
 
-mk{{classname}} :: {{#requiredVars}}{{{datatype}}} -> {{/requiredVars}}{{classname}}
-mk{{classname}} {{#requiredVars}}{{& name}} {{/requiredVars}}=
+-- | Construct a value of type {{classname}} (by applying it's required fields, if any)
+mk{{classname}}
+  :: {{#requiredVars}}{{{datatype}}} -- ^ '{{name}}'{{#description}}:{{/description}} {{description}}
+  -> {{/requiredVars}}{{classname}}
+mk{{classname}} {{#requiredVars}}{{name}} {{/requiredVars}}=
   {{classname}}
-  { {{#vars}}{{#required}}{{& name}}{{/required}}{{^required}}{{& name}} = {{#isListContainer}}Nothing{{/isListContainer}}{{#isMapContainer}}Nothing{{/isMapContainer}}{{^isContainer}}Nothing{{/isContainer}}{{/required}}{{#hasMore}}
+  { {{#vars}}{{#required}}{{name}}{{/required}}{{^required}}{{name}} = {{#isListContainer}}Nothing{{/isListContainer}}{{#isMapContainer}}Nothing{{/isMapContainer}}{{^isContainer}}Nothing{{/isContainer}}{{/required}}{{#hasMore}}
   , {{/hasMore}}{{/vars}}
   }
 
 instance FromJSON {{classname}} where
-  parseJSON = genericParseJSON (removeFieldLabelPrefix True "{{vendorExtensions.x-prefix}}")
+  parseJSON (Object o) =
+    {{classname}}
+      <$>{{#vars}} o .: "{{baseName}}" {{#hasMore}}
+      <*>{{/hasMore}}{{/vars}}
+  parseJSON _ = fail "bad {{classname}} parse"
+
 instance ToJSON {{classname}} where
-  toJSON = genericToJSON (removeFieldLabelPrefix False "{{vendorExtensions.x-prefix}}")
+  toJSON {{classname}} {..} =
+    object
+      [ {{#vars}}"{{baseName}}" .= toJSON {{name}}{{#hasMore}}
+      , {{/hasMore}}{{/vars}}
+      ]
+
 {{/parent}}
 {{#parent}}
-newtype {{classname}} = {{classname}} { un{{classname}} :: {{parent}} } deriving (Show, Eq, FromJSON, ToJSON, Generic)
+newtype {{classname}} = {{classname}} { un{{classname}} :: {{parent}} } deriving (Show, Eq, Data, Typeable, Generic, Ord, FromJSON, ToJSON)
 {{/parent}}
 {{/vendorExtensions.x-customNewtype}}
 {{#vendorExtensions.x-customNewtype}}
-newtype {{classname}} = {{classname}} {{vendorExtensions.x-customNewtype}} deriving (Show, Eq, FromJSON, ToJSON, Generic)
+newtype {{classname}} = {{classname}} {{vendorExtensions.x-customNewtype}} deriving (Show, Eq, Data, Typeable, Generic, Ord, FromJSON, ToJSON)
 {{/vendorExtensions.x-customNewtype}}
 
 {{/model}}
 {{/models}}
-
--- Remove a field label prefix during JSON parsing.
--- Also perform any replacements for special characters.
-removeFieldLabelPrefix :: Bool -> String -> Options
-removeFieldLabelPrefix forParsing prefix =
-  defaultOptions
-  {fieldLabelModifier = fromMaybe (error ("did not find prefix " ++ prefix)) . stripPrefix prefix . replaceSpecialChars}
-  where
-    replaceSpecialChars field = foldl (&) field (map mkCharReplacement specialChars)
-    specialChars =
-      [ {{#specialCharReplacements}}("{{&char}}", "{{&replacement}}"){{#hasMore}}
-      , {{/hasMore}}{{/specialCharReplacements}}
-      ]
-    mkCharReplacement (replaceStr, searchStr) = T.unpack . replacer (T.pack searchStr) (T.pack replaceStr) . T.pack
-    replacer =
-      if forParsing
-        then flip T.replace
-        else T.replace

@@ -114,6 +114,7 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
         supportingFiles.add(new SupportingFile("README.mustache", "", "README.md"));
         supportingFiles.add(new SupportingFile("stack.mustache", "", "stack.yaml"));
         supportingFiles.add(new SupportingFile("Setup.mustache", "", "Setup.hs"));
+        supportingFiles.add(new SupportingFile(".gitignore", "", ".gitignore"));
 
     /*
      * Language Specific Primitives.  These types will not trigger imports by
