@@ -7,7 +7,9 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# OPTIONS_GHC -fno-warn-unused-binds -fno-warn-unused-imports #-}
+{-# LANGUAGE KindSignatures #-}
+{-# LANGUAGE RankNTypes #-}
+{-# OPTIONS_GHC -fno-warn-name-shadowing -fno-warn-unused-matches -fno-warn-unused-binds -fno-warn-unused-imports #-}
 
 -- |
 -- Module      : SwaggerPetstore.Types
@@ -18,6 +20,8 @@ import Data.Aeson.Types
 import Data.Data (Data, Typeable)
 import Data.Text (Text)
 import GHC.Generics (Generic)
+import Control.Applicative
+import Data.Profunctor
 import Prelude 
 
 import qualified Data.Map as Map
@@ -33,16 +37,6 @@ data ApiResponse = ApiResponse
   , apiResponseType :: Maybe Text
   , apiResponseMessage :: Maybe Text
   } deriving (Show, Eq, Data, Typeable, Generic, Ord)
-
--- | Construct a value of type ApiResponse (by applying it's required fields, if any)
-mkApiResponse
-  :: ApiResponse
-mkApiResponse =
-  ApiResponse
-  { apiResponseCode = Nothing
-  , apiResponseType = Nothing
-  , apiResponseMessage = Nothing
-  }
 
 instance FromJSON ApiResponse where
   parseJSON (Object o) =
@@ -60,6 +54,18 @@ instance ToJSON ApiResponse where
       , "message" .= toJSON apiResponseMessage
       ]
 
+-- | Construct a value of type ApiResponse (by applying it's required fields, if any)
+mkApiResponse
+  :: ApiResponse
+mkApiResponse =
+  ApiResponse
+  { apiResponseCode = Nothing
+  , apiResponseType = Nothing
+  , apiResponseMessage = Nothing
+  }
+{-# INLINE mkApiResponse #-}
+
+
 
 
 -- * Category
@@ -69,15 +75,6 @@ data Category = Category
   { categoryId :: Maybe Integer
   , categoryName :: Maybe Text
   } deriving (Show, Eq, Data, Typeable, Generic, Ord)
-
--- | Construct a value of type Category (by applying it's required fields, if any)
-mkCategory
-  :: Category
-mkCategory =
-  Category
-  { categoryId = Nothing
-  , categoryName = Nothing
-  }
 
 instance FromJSON Category where
   parseJSON (Object o) =
@@ -93,6 +90,17 @@ instance ToJSON Category where
       , "name" .= toJSON categoryName
       ]
 
+-- | Construct a value of type Category (by applying it's required fields, if any)
+mkCategory
+  :: Category
+mkCategory =
+  Category
+  { categoryId = Nothing
+  , categoryName = Nothing
+  }
+{-# INLINE mkCategory #-}
+
+
 
 
 -- * Order
@@ -106,19 +114,6 @@ data Order = Order
   , orderStatus :: Maybe Text -- ^ Order Status
   , orderComplete :: Maybe Bool
   } deriving (Show, Eq, Data, Typeable, Generic, Ord)
-
--- | Construct a value of type Order (by applying it's required fields, if any)
-mkOrder
-  :: Order
-mkOrder =
-  Order
-  { orderId = Nothing
-  , orderPetId = Nothing
-  , orderQuantity = Nothing
-  , orderShipDate = Nothing
-  , orderStatus = Nothing
-  , orderComplete = Nothing
-  }
 
 instance FromJSON Order where
   parseJSON (Object o) =
@@ -142,6 +137,21 @@ instance ToJSON Order where
       , "complete" .= toJSON orderComplete
       ]
 
+-- | Construct a value of type Order (by applying it's required fields, if any)
+mkOrder
+  :: Order
+mkOrder =
+  Order
+  { orderId = Nothing
+  , orderPetId = Nothing
+  , orderQuantity = Nothing
+  , orderShipDate = Nothing
+  , orderStatus = Nothing
+  , orderComplete = Nothing
+  }
+{-# INLINE mkOrder #-}
+
+
 
 
 -- * Pet
@@ -155,21 +165,6 @@ data Pet = Pet
   , petTags :: Maybe [Tag]
   , petStatus :: Maybe Text -- ^ pet status in the store
   } deriving (Show, Eq, Data, Typeable, Generic, Ord)
-
--- | Construct a value of type Pet (by applying it's required fields, if any)
-mkPet
-  :: Text -- ^ 'petName' 
-  -> [Text] -- ^ 'petPhotoUrls' 
-  -> Pet
-mkPet petName petPhotoUrls =
-  Pet
-  { petId = Nothing
-  , petCategory = Nothing
-  , petName
-  , petPhotoUrls
-  , petTags = Nothing
-  , petStatus = Nothing
-  }
 
 instance FromJSON Pet where
   parseJSON (Object o) =
@@ -193,6 +188,31 @@ instance ToJSON Pet where
       , "status" .= toJSON petStatus
       ]
 
+-- | Construct a value of type Pet (by applying it's required fields, if any)
+mkPet
+  :: Text -- ^ 'petName' 
+  -> [Text] -- ^ 'petPhotoUrls' 
+  -> Pet
+mkPet petName petPhotoUrls =
+  Pet
+  { petId = Nothing
+  , petCategory = Nothing
+  , petName
+  , petPhotoUrls
+  , petTags = Nothing
+  , petStatus = Nothing
+  }
+{-# INLINE mkPet #-}
+
+-- | petName Lens for Pet
+petNameL :: Lens_' Pet Text
+petNameL f Pet{..} = (\petName -> Pet { petName, ..} ) <$> f petName
+{-# INLINE petNameL #-}
+-- | petPhotoUrls Lens for Pet
+petPhotoUrlsL :: Lens_' Pet [Text]
+petPhotoUrlsL f Pet{..} = (\petPhotoUrls -> Pet { petPhotoUrls, ..} ) <$> f petPhotoUrls
+{-# INLINE petPhotoUrlsL #-}
+
 
 
 -- * Tag
@@ -202,15 +222,6 @@ data Tag = Tag
   { tagId :: Maybe Integer
   , tagName :: Maybe Text
   } deriving (Show, Eq, Data, Typeable, Generic, Ord)
-
--- | Construct a value of type Tag (by applying it's required fields, if any)
-mkTag
-  :: Tag
-mkTag =
-  Tag
-  { tagId = Nothing
-  , tagName = Nothing
-  }
 
 instance FromJSON Tag where
   parseJSON (Object o) =
@@ -225,6 +236,17 @@ instance ToJSON Tag where
       [ "id" .= toJSON tagId
       , "name" .= toJSON tagName
       ]
+
+-- | Construct a value of type Tag (by applying it's required fields, if any)
+mkTag
+  :: Tag
+mkTag =
+  Tag
+  { tagId = Nothing
+  , tagName = Nothing
+  }
+{-# INLINE mkTag #-}
+
 
 
 
@@ -241,21 +263,6 @@ data User = User
   , userPhone :: Maybe Text
   , userUserStatus :: Maybe Int -- ^ User Status
   } deriving (Show, Eq, Data, Typeable, Generic, Ord)
-
--- | Construct a value of type User (by applying it's required fields, if any)
-mkUser
-  :: User
-mkUser =
-  User
-  { userId = Nothing
-  , userUsername = Nothing
-  , userFirstName = Nothing
-  , userLastName = Nothing
-  , userEmail = Nothing
-  , userPassword = Nothing
-  , userPhone = Nothing
-  , userUserStatus = Nothing
-  }
 
 instance FromJSON User where
   parseJSON (Object o) =
@@ -283,4 +290,24 @@ instance ToJSON User where
       , "userStatus" .= toJSON userUserStatus
       ]
 
+-- | Construct a value of type User (by applying it's required fields, if any)
+mkUser
+  :: User
+mkUser =
+  User
+  { userId = Nothing
+  , userUsername = Nothing
+  , userFirstName = Nothing
+  , userLastName = Nothing
+  , userEmail = Nothing
+  , userPassword = Nothing
+  , userPhone = Nothing
+  , userUserStatus = Nothing
+  }
+{-# INLINE mkUser #-}
 
+
+
+
+type Lens_' s a = Lens_ s s a a
+type Lens_ s t a b = forall (f :: * -> *). Functor f => (a -> f b) -> s -> f t

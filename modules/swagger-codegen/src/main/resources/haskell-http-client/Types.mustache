@@ -7,7 +7,9 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# OPTIONS_GHC -fno-warn-unused-binds -fno-warn-unused-imports #-}
+{-# LANGUAGE KindSignatures #-}
+{-# LANGUAGE RankNTypes #-}
+{-# OPTIONS_GHC -fno-warn-name-shadowing -fno-warn-unused-matches -fno-warn-unused-binds -fno-warn-unused-imports #-}
 
 -- |
 -- Module      : {{title}}.Types
@@ -18,6 +20,8 @@ import Data.Aeson.Types
 import Data.Data (Data, Typeable)
 import Data.Text (Text)
 import GHC.Generics (Generic)
+import Control.Applicative
+import Data.Profunctor
 import Prelude 
 
 import qualified Data.Map as Map
@@ -39,16 +43,6 @@ data {{classname}} = {{classname}}
   , {{/hasMore}}{{/vars}}
   } deriving (Show, Eq, Data, Typeable, Generic, Ord)
 
--- | Construct a value of type {{classname}} (by applying it's required fields, if any)
-mk{{classname}}
-  :: {{#requiredVars}}{{{datatype}}} -- ^ '{{name}}'{{#description}}:{{/description}} {{description}}
-  -> {{/requiredVars}}{{classname}}
-mk{{classname}} {{#requiredVars}}{{name}} {{/requiredVars}}=
-  {{classname}}
-  { {{#vars}}{{#required}}{{name}}{{/required}}{{^required}}{{name}} = {{#isListContainer}}Nothing{{/isListContainer}}{{#isMapContainer}}Nothing{{/isMapContainer}}{{^isContainer}}Nothing{{/isContainer}}{{/required}}{{#hasMore}}
-  , {{/hasMore}}{{/vars}}
-  }
-
 instance FromJSON {{classname}} where
   parseJSON (Object o) =
     {{classname}}
@@ -63,6 +57,26 @@ instance ToJSON {{classname}} where
       , {{/hasMore}}{{/vars}}
       ]
 
+-- | Construct a value of type {{classname}} (by applying it's required fields, if any)
+mk{{classname}}
+  :: {{#requiredVars}}{{{datatype}}} -- ^ '{{name}}'{{#description}}:{{/description}} {{description}}
+  -> {{/requiredVars}}{{classname}}
+mk{{classname}} {{#requiredVars}}{{name}} {{/requiredVars}}=
+  {{classname}}
+  { {{#vars}}{{#required}}{{name}}{{/required}}{{^required}}{{name}} = {{#isListContainer}}Nothing{{/isListContainer}}{{#isMapContainer}}Nothing{{/isMapContainer}}{{^isContainer}}Nothing{{/isContainer}}{{/required}}{{#hasMore}}
+  , {{/hasMore}}{{/vars}}
+  }
+{-# INLINE mk{{classname}} #-}
+
+{{#vars}}
+{{#required}}
+-- | {{name}} Lens for {{classname}}
+{{name}}L :: Lens_' {{classname}} {{datatype}}
+{{name}}L f {{classname}}{..} = (\{{name}} -> {{classname}} { {{name}}, ..} ) <$> f {{name}}
+{-# INLINE {{name}}L #-}
+{{/required}}
+{{/vars}}
+
 {{/parent}}
 {{#parent}}
 newtype {{classname}} = {{classname}} { un{{classname}} :: {{parent}} } deriving (Show, Eq, Data, Typeable, Generic, Ord, FromJSON, ToJSON)
@@ -74,3 +88,6 @@ newtype {{classname}} = {{classname}} {{vendorExtensions.x-customNewtype}} deriv
 
 {{/model}}
 {{/models}}
+
+type Lens_' s a = Lens_ s s a a
+type Lens_ s t a b = forall (f :: * -> *). Functor f => (a -> f b) -> s -> f t
