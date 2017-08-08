@@ -1,0 +1,28 @@
+name: {{ package }}
+version: '0.1.0.0'
+synopsis: Auto-generated http-client API bindings for {{package}}
+description: Please see README.md
+category: Web
+author: Author Name Here
+maintainer: author.name@email.com
+copyright: YEAR - AUTHOR
+license: UnspecifiedLicense
+homepage: https://github.com/swagger-api/swagger-codegen#readme
+dependencies:
+- base
+- aeson
+- text
+- containers
+- network-uri
+- http-api-data
+- transformers
+- mtl
+- http-client
+- http-client-tls
+- http-types
+library:
+  source-dirs: lib
+  ghc-options: -Wall
+  exposed-modules:
+  - SwaggerPetstore.API
+  - SwaggerPetstore.Types

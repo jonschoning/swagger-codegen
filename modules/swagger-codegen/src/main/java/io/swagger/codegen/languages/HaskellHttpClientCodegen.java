@@ -226,6 +226,7 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
 
         // Set the filenames to write for the API
         supportingFiles.add(new SupportingFile("haskell-http-client.cabal.mustache", "", cabalName + ".cabal"));
+        supportingFiles.add(new SupportingFile("package.mustache", "", "package.yaml"));
         supportingFiles.add(new SupportingFile("API.mustache", "lib/" + apiName, "API.hs"));
         supportingFiles.add(new SupportingFile("Types.mustache", "lib/" + apiName, "Types.hs"));
 
