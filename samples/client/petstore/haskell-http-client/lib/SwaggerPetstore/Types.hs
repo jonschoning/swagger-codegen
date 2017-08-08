@@ -21,7 +21,6 @@ import Data.Data (Data, Typeable)
 import Data.Text (Text)
 import GHC.Generics (Generic)
 import Control.Applicative
-import Data.Profunctor
 import Prelude 
 
 import qualified Data.Map as Map
