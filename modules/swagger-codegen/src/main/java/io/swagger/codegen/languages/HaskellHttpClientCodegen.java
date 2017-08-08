@@ -117,6 +117,13 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
         supportingFiles.add(new SupportingFile(".gitignore", "", ".gitignore"));
 
     /*
+     * Supporting Test Files.
+    */
+        supportingFiles.add(new SupportingFile("tests/ApproxEq.mustache", "tests", "ApproxEq.hs"));
+        supportingFiles.add(new SupportingFile("tests/Instances.mustache", "tests", "Instances.hs"));
+        supportingFiles.add(new SupportingFile("tests/PropJSON.mustache", "tests", "PropJSON.hs"));
+        supportingFiles.add(new SupportingFile("tests/Test.mustache", "tests", "Test.hs"));
+    /*
      * Language Specific Primitives.  These types will not trigger imports by
      * the client generator
      */
