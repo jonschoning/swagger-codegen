@@ -74,6 +74,13 @@ mk{{classname}} {{#requiredVars}}{{name}} {{/requiredVars}}=
 {{name}}L f {{classname}}{..} = (\{{name}} -> {{classname}} { {{name}}, ..} ) <$> f {{name}}
 {-# INLINE {{name}}L #-}
 {{/required}}
+{{^required}}
+-- | {{name}} Traversal for {{classname}}
+{{name}}T :: Traversal_' {{classname}} {{datatype}}
+{{name}}T f s = maybe (pure s) (\a -> (\b -> s { {{name}} = Just b} ) <$> f a) ({{name}} s)
+{-# INLINE {{name}}T #-}
+{{/required}}
+
 {{/vars}}
 
 {{/parent}}
@@ -88,5 +95,7 @@ newtype {{classname}} = {{classname}} {{vendorExtensions.x-customNewtype}} deriv
 {{/model}}
 {{/models}}
 
+type Traversal_' s a = Traversal_ s s a a
+type Traversal_ s t a b = forall (f :: * -> *). Applicative f => (a -> f b) -> s -> f t
 type Lens_' s a = Lens_ s s a a
 type Lens_ s t a b = forall (f :: * -> *). Functor f => (a -> f b) -> s -> f t
