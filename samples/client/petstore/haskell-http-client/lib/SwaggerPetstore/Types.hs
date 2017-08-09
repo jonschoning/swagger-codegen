@@ -28,7 +28,6 @@ import qualified Data.Vector as V
 
 
 -- * ApiResponse
--- | 
 
 data ApiResponse = ApiResponse
   { apiResponseCode :: Maybe Int
@@ -64,7 +63,6 @@ mkApiResponse =
 
 
 -- * Category
--- | 
 
 data Category = Category
   { categoryId :: Maybe Integer
@@ -96,7 +94,6 @@ mkCategory =
 
 
 -- * Order
--- | 
 
 data Order = Order
   { orderId :: Maybe Integer
@@ -144,7 +141,6 @@ mkOrder =
 
 
 -- * Pet
--- | 
 
 data Pet = Pet
   { petId :: Maybe Integer
@@ -194,7 +190,6 @@ mkPet petName petPhotoUrls =
 
 
 -- * Tag
--- | 
 
 data Tag = Tag
   { tagId :: Maybe Integer
@@ -226,7 +221,6 @@ mkTag =
 
 
 -- * User
--- | 
 
 data User = User
   { userId :: Maybe Integer

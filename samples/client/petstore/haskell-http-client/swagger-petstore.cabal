@@ -41,8 +41,8 @@ library
       SwaggerPetstore.API
       SwaggerPetstore.Types
       SwaggerPetstore.Lens
-  other-modules:
-      Paths_swagger_petstore
+-- other-modules:
+--     Paths_swagger-petstore
   default-language: Haskell2010
 
 test-suite tests
