@@ -17,6 +17,7 @@ import Data.Aeson (FromJSON(..), ToJSON(..))
 import Data.Aeson.Types 
 import Data.Data (Data, Typeable)
 import Data.Text (Text)
+import qualified Data.Vector as V
 import GHC.Generics (Generic)
 import Control.Applicative
 import Prelude 
@@ -38,17 +39,17 @@ data ApiResponse = ApiResponse
 instance FromJSON ApiResponse where
   parseJSON (Object o) =
     ApiResponse
-      <$> o .: "code" 
-      <*> o .: "type" 
-      <*> o .: "message" 
+      <$> o .:! "code" 
+      <*> o .:! "type" 
+      <*> o .:! "message" 
   parseJSON _ = fail "bad ApiResponse parse"
 
 instance ToJSON ApiResponse where
   toJSON ApiResponse {..} =
-    object
-      [ "code" .= toJSON apiResponseCode
-      , "type" .= toJSON apiResponseType
-      , "message" .= toJSON apiResponseMessage
+    omitNulls
+      [ "code" .= apiResponseCode
+      , "type" .= apiResponseType
+      , "message" .= apiResponseMessage
       ]
 
 -- | Construct a value of type 'ApiResponse' (by applying it's required fields, if any)
@@ -76,15 +77,15 @@ data Category = Category
 instance FromJSON Category where
   parseJSON (Object o) =
     Category
-      <$> o .: "id" 
-      <*> o .: "name" 
+      <$> o .:! "id" 
+      <*> o .:! "name" 
   parseJSON _ = fail "bad Category parse"
 
 instance ToJSON Category where
   toJSON Category {..} =
-    object
-      [ "id" .= toJSON categoryId
-      , "name" .= toJSON categoryName
+    omitNulls
+      [ "id" .= categoryId
+      , "name" .= categoryName
       ]
 
 -- | Construct a value of type 'Category' (by applying it's required fields, if any)
@@ -115,23 +116,23 @@ data Order = Order
 instance FromJSON Order where
   parseJSON (Object o) =
     Order
-      <$> o .: "id" 
-      <*> o .: "petId" 
-      <*> o .: "quantity" 
-      <*> o .: "shipDate" 
-      <*> o .: "status" 
-      <*> o .: "complete" 
+      <$> o .:! "id" 
+      <*> o .:! "petId" 
+      <*> o .:! "quantity" 
+      <*> o .:! "shipDate" 
+      <*> o .:! "status" 
+      <*> o .:! "complete" 
   parseJSON _ = fail "bad Order parse"
 
 instance ToJSON Order where
   toJSON Order {..} =
-    object
-      [ "id" .= toJSON orderId
-      , "petId" .= toJSON orderPetId
-      , "quantity" .= toJSON orderQuantity
-      , "shipDate" .= toJSON orderShipDate
-      , "status" .= toJSON orderStatus
-      , "complete" .= toJSON orderComplete
+    omitNulls
+      [ "id" .= orderId
+      , "petId" .= orderPetId
+      , "quantity" .= orderQuantity
+      , "shipDate" .= orderShipDate
+      , "status" .= orderStatus
+      , "complete" .= orderComplete
       ]
 
 -- | Construct a value of type 'Order' (by applying it's required fields, if any)
@@ -166,23 +167,23 @@ data Pet = Pet
 instance FromJSON Pet where
   parseJSON (Object o) =
     Pet
-      <$> o .: "id" 
-      <*> o .: "category" 
-      <*> o .: "name" 
-      <*> o .: "photoUrls" 
-      <*> o .: "tags" 
-      <*> o .: "status" 
+      <$> o .:! "id" 
+      <*> o .:! "category" 
+      <*> o .:  "name" 
+      <*> o .:  "photoUrls" 
+      <*> o .:! "tags" 
+      <*> o .:! "status" 
   parseJSON _ = fail "bad Pet parse"
 
 instance ToJSON Pet where
   toJSON Pet {..} =
-    object
-      [ "id" .= toJSON petId
-      , "category" .= toJSON petCategory
-      , "name" .= toJSON petName
-      , "photoUrls" .= toJSON petPhotoUrls
-      , "tags" .= toJSON petTags
-      , "status" .= toJSON petStatus
+    omitNulls
+      [ "id" .= petId
+      , "category" .= petCategory
+      , "name" .= petName
+      , "photoUrls" .= petPhotoUrls
+      , "tags" .= petTags
+      , "status" .= petStatus
       ]
 
 -- | Construct a value of type 'Pet' (by applying it's required fields, if any)
@@ -215,15 +216,15 @@ data Tag = Tag
 instance FromJSON Tag where
   parseJSON (Object o) =
     Tag
-      <$> o .: "id" 
-      <*> o .: "name" 
+      <$> o .:! "id" 
+      <*> o .:! "name" 
   parseJSON _ = fail "bad Tag parse"
 
 instance ToJSON Tag where
   toJSON Tag {..} =
-    object
-      [ "id" .= toJSON tagId
-      , "name" .= toJSON tagName
+    omitNulls
+      [ "id" .= tagId
+      , "name" .= tagName
       ]
 
 -- | Construct a value of type 'Tag' (by applying it's required fields, if any)
@@ -256,27 +257,27 @@ data User = User
 instance FromJSON User where
   parseJSON (Object o) =
     User
-      <$> o .: "id" 
-      <*> o .: "username" 
-      <*> o .: "firstName" 
-      <*> o .: "lastName" 
-      <*> o .: "email" 
-      <*> o .: "password" 
-      <*> o .: "phone" 
-      <*> o .: "userStatus" 
+      <$> o .:! "id" 
+      <*> o .:! "username" 
+      <*> o .:! "firstName" 
+      <*> o .:! "lastName" 
+      <*> o .:! "email" 
+      <*> o .:! "password" 
+      <*> o .:! "phone" 
+      <*> o .:! "userStatus" 
   parseJSON _ = fail "bad User parse"
 
 instance ToJSON User where
   toJSON User {..} =
-    object
-      [ "id" .= toJSON userId
-      , "username" .= toJSON userUsername
-      , "firstName" .= toJSON userFirstName
-      , "lastName" .= toJSON userLastName
-      , "email" .= toJSON userEmail
-      , "password" .= toJSON userPassword
-      , "phone" .= toJSON userPhone
-      , "userStatus" .= toJSON userUserStatus
+    omitNulls
+      [ "id" .= userId
+      , "username" .= userUsername
+      , "firstName" .= userFirstName
+      , "lastName" .= userLastName
+      , "email" .= userEmail
+      , "password" .= userPassword
+      , "phone" .= userPhone
+      , "userStatus" .= userUserStatus
       ]
 
 -- | Construct a value of type 'User' (by applying it's required fields, if any)
@@ -297,3 +298,12 @@ mkUser =
 
 
 
+
+-- * Utilities
+
+-- | Removes Null fields.  OpenAPI-Specification 2.0 does not allow Null in JSON.
+omitNulls :: [(Text, Value)] -> Value
+omitNulls = object . filter notNull
+  where
+    notNull (_, Null) = False
+    notNull _ = True

@@ -17,6 +17,7 @@ import Data.Aeson (FromJSON(..), ToJSON(..))
 import Data.Aeson.Types 
 import Data.Data (Data, Typeable)
 import Data.Text (Text)
+import qualified Data.Vector as V
 import GHC.Generics (Generic)
 import Control.Applicative
 import Prelude 
@@ -43,14 +44,14 @@ data {{classname}} = {{classname}}
 instance FromJSON {{classname}} where
   parseJSON (Object o) =
     {{classname}}
-      <$>{{#vars}} o .: "{{baseName}}" {{#hasMore}}
+      <$>{{#vars}} o {{#required}}.: {{/required}}{{^required}}.:!{{/required}} "{{baseName}}" {{#hasMore}}
       <*>{{/hasMore}}{{/vars}}
   parseJSON _ = fail "bad {{classname}} parse"
 
 instance ToJSON {{classname}} where
   toJSON {{classname}} {..} =
-    object
-      [ {{#vars}}"{{baseName}}" .= toJSON {{name}}{{#hasMore}}
+    omitNulls
+      [ {{#vars}}"{{baseName}}" .= {{name}}{{#hasMore}}
       , {{/hasMore}}{{/vars}}
       ]
 
@@ -77,3 +78,12 @@ newtype {{classname}} = {{classname}} {{vendorExtensions.x-customNewtype}} deriv
 
 {{/model}}
 {{/models}}
+
+-- * Utilities
+
+-- | Removes Null fields.  OpenAPI-Specification 2.0 does not allow Null in JSON.
+omitNulls :: [(Text, Value)] -> Value
+omitNulls = object . filter notNull
+  where
+    notNull (_, Null) = False
+    notNull _ = True
