@@ -17,13 +17,13 @@ import Data.Aeson (FromJSON(..), ToJSON(..))
 import Data.Aeson.Types 
 import Data.Data (Data, Typeable)
 import Data.Text (Text)
-import qualified Data.Vector as V
 import GHC.Generics (Generic)
 import Control.Applicative
 import Prelude 
 
 import qualified Data.Map as Map
 import qualified Data.Text as T
+import qualified Data.Vector as V
 
 
 
@@ -34,7 +34,7 @@ data ApiResponse = ApiResponse
   { apiResponseCode :: Maybe Int
   , apiResponseType :: Maybe Text
   , apiResponseMessage :: Maybe Text
-  } deriving (Show, Eq, Data, Typeable, Generic, Ord)
+  } deriving (Show, Eq, Data, Typeable, Generic)
 
 instance FromJSON ApiResponse where
   parseJSON = withObject "ApiResponse" $ \o ->
@@ -60,8 +60,6 @@ mkApiResponse =
   , apiResponseType = Nothing
   , apiResponseMessage = Nothing
   }
-{-# INLINE mkApiResponse #-}
-
 
 
 
@@ -71,7 +69,7 @@ mkApiResponse =
 data Category = Category
   { categoryId :: Maybe Integer
   , categoryName :: Maybe Text
-  } deriving (Show, Eq, Data, Typeable, Generic, Ord)
+  } deriving (Show, Eq, Data, Typeable, Generic)
 
 instance FromJSON Category where
   parseJSON = withObject "Category" $ \o ->
@@ -94,8 +92,6 @@ mkCategory =
   { categoryId = Nothing
   , categoryName = Nothing
   }
-{-# INLINE mkCategory #-}
-
 
 
 
@@ -109,7 +105,7 @@ data Order = Order
   , orderShipDate :: Maybe Integer
   , orderStatus :: Maybe Text -- ^ Order Status
   , orderComplete :: Maybe Bool
-  } deriving (Show, Eq, Data, Typeable, Generic, Ord)
+  } deriving (Show, Eq, Data, Typeable, Generic)
 
 instance FromJSON Order where
   parseJSON = withObject "Order" $ \o ->
@@ -144,8 +140,6 @@ mkOrder =
   , orderStatus = Nothing
   , orderComplete = Nothing
   }
-{-# INLINE mkOrder #-}
-
 
 
 
@@ -159,7 +153,7 @@ data Pet = Pet
   , petPhotoUrls :: [Text]
   , petTags :: Maybe [Tag]
   , petStatus :: Maybe Text -- ^ pet status in the store
-  } deriving (Show, Eq, Data, Typeable, Generic, Ord)
+  } deriving (Show, Eq, Data, Typeable, Generic)
 
 instance FromJSON Pet where
   parseJSON = withObject "Pet" $ \o ->
@@ -196,8 +190,6 @@ mkPet petName petPhotoUrls =
   , petTags = Nothing
   , petStatus = Nothing
   }
-{-# INLINE mkPet #-}
-
 
 
 
@@ -207,7 +199,7 @@ mkPet petName petPhotoUrls =
 data Tag = Tag
   { tagId :: Maybe Integer
   , tagName :: Maybe Text
-  } deriving (Show, Eq, Data, Typeable, Generic, Ord)
+  } deriving (Show, Eq, Data, Typeable, Generic)
 
 instance FromJSON Tag where
   parseJSON = withObject "Tag" $ \o ->
@@ -230,8 +222,6 @@ mkTag =
   { tagId = Nothing
   , tagName = Nothing
   }
-{-# INLINE mkTag #-}
-
 
 
 
@@ -247,7 +237,7 @@ data User = User
   , userPassword :: Maybe Text
   , userPhone :: Maybe Text
   , userUserStatus :: Maybe Int -- ^ User Status
-  } deriving (Show, Eq, Data, Typeable, Generic, Ord)
+  } deriving (Show, Eq, Data, Typeable, Generic)
 
 instance FromJSON User where
   parseJSON = withObject "User" $ \o ->
@@ -288,8 +278,6 @@ mkUser =
   , userPhone = Nothing
   , userUserStatus = Nothing
   }
-{-# INLINE mkUser #-}
-
 
 
 

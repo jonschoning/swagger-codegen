@@ -17,13 +17,13 @@ import Data.Aeson (FromJSON(..), ToJSON(..))
 import Data.Aeson.Types 
 import Data.Data (Data, Typeable)
 import Data.Text (Text)
-import qualified Data.Vector as V
 import GHC.Generics (Generic)
 import Control.Applicative
 import Prelude 
 
 import qualified Data.Map as Map
 import qualified Data.Text as T
+import qualified Data.Vector as V
 
 {{#imports}}import {{import}}
 {{/imports}}
@@ -39,7 +39,7 @@ import qualified Data.Text as T
 data {{classname}} = {{classname}}
   { {{#vars}}{{name}} :: {{^required}}Maybe {{/required}}{{datatype}}{{#description}} -- ^ {{/description}}{{description}}{{#hasMore}}
   , {{/hasMore}}{{/vars}}
-  } deriving (Show, Eq, Data, Typeable, Generic, Ord)
+  } deriving (Show, Eq, Data, Typeable, Generic)
 
 instance FromJSON {{classname}} where
   parseJSON = withObject "{{classname}}" $ \o ->
@@ -63,16 +63,16 @@ mk{{classname}} {{#requiredVars}}{{name}} {{/requiredVars}}=
   { {{#vars}}{{#required}}{{name}}{{/required}}{{^required}}{{name}} = {{#isListContainer}}Nothing{{/isListContainer}}{{#isMapContainer}}Nothing{{/isMapContainer}}{{^isContainer}}Nothing{{/isContainer}}{{/required}}{{#hasMore}}
   , {{/hasMore}}{{/vars}}
   }
-{-# INLINE mk{{classname}} #-}
-
 
 {{/parent}}
 {{#parent}}
-newtype {{classname}} = {{classname}} { un{{classname}} :: {{parent}} } deriving (Show, Eq, Data, Typeable, Generic, Ord, FromJSON, ToJSON)
+newtype {{classname}} = {{classname}} { un{{classname}} :: {{parent}} } deriving (Show, Eq, Data, Typeable, Generic, FromJSON, ToJSON)
+{-# WARNING {{classname}} "untested/unimlemented behavior" #-}
 {{/parent}}
 {{/vendorExtensions.x-customNewtype}}
 {{#vendorExtensions.x-customNewtype}}
-newtype {{classname}} = {{classname}} {{vendorExtensions.x-customNewtype}} deriving (Show, Eq, Data, Typeable, Generic, Ord, FromJSON, ToJSON)
+newtype {{classname}} = {{classname}} {{vendorExtensions.x-customNewtype}} deriving (Show, Eq, Data, Typeable, Generic, FromJSON, ToJSON)
+{-# WARNING {{classname}} "untested/unimlemented behavior" #-}
 {{/vendorExtensions.x-customNewtype}}
 
 {{/model}}
