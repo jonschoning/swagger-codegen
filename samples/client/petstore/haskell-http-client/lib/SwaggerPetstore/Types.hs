@@ -7,9 +7,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE KindSignatures #-}
-{-# LANGUAGE RankNTypes #-}
-{-# OPTIONS_GHC -fno-warn-name-shadowing -fno-warn-unused-matches -fno-warn-unused-binds -fno-warn-unused-imports #-}
+{-# OPTIONS_GHC -fno-warn-unused-matches -fno-warn-unused-binds -fno-warn-unused-imports #-}
 
 -- |
 -- Module      : SwaggerPetstore.Types
@@ -64,21 +62,6 @@ mkApiResponse =
   }
 {-# INLINE mkApiResponse #-}
 
--- | 'apiResponseCode' Traversal for 'ApiResponse'
-apiResponseCodeT :: Traversal_' ApiResponse Int
-apiResponseCodeT f s = maybe (pure s) (\a -> (\b -> s { apiResponseCode = Just b} ) <$> f a) (apiResponseCode s)
-{-# INLINE apiResponseCodeT #-}
-
--- | 'apiResponseType' Traversal for 'ApiResponse'
-apiResponseTypeT :: Traversal_' ApiResponse Text
-apiResponseTypeT f s = maybe (pure s) (\a -> (\b -> s { apiResponseType = Just b} ) <$> f a) (apiResponseType s)
-{-# INLINE apiResponseTypeT #-}
-
--- | 'apiResponseMessage' Traversal for 'ApiResponse'
-apiResponseMessageT :: Traversal_' ApiResponse Text
-apiResponseMessageT f s = maybe (pure s) (\a -> (\b -> s { apiResponseMessage = Just b} ) <$> f a) (apiResponseMessage s)
-{-# INLINE apiResponseMessageT #-}
-
 
 
 
@@ -113,16 +96,6 @@ mkCategory =
   , categoryName = Nothing
   }
 {-# INLINE mkCategory #-}
-
--- | 'categoryId' Traversal for 'Category'
-categoryIdT :: Traversal_' Category Integer
-categoryIdT f s = maybe (pure s) (\a -> (\b -> s { categoryId = Just b} ) <$> f a) (categoryId s)
-{-# INLINE categoryIdT #-}
-
--- | 'categoryName' Traversal for 'Category'
-categoryNameT :: Traversal_' Category Text
-categoryNameT f s = maybe (pure s) (\a -> (\b -> s { categoryName = Just b} ) <$> f a) (categoryName s)
-{-# INLINE categoryNameT #-}
 
 
 
@@ -174,36 +147,6 @@ mkOrder =
   , orderComplete = Nothing
   }
 {-# INLINE mkOrder #-}
-
--- | 'orderId' Traversal for 'Order'
-orderIdT :: Traversal_' Order Integer
-orderIdT f s = maybe (pure s) (\a -> (\b -> s { orderId = Just b} ) <$> f a) (orderId s)
-{-# INLINE orderIdT #-}
-
--- | 'orderPetId' Traversal for 'Order'
-orderPetIdT :: Traversal_' Order Integer
-orderPetIdT f s = maybe (pure s) (\a -> (\b -> s { orderPetId = Just b} ) <$> f a) (orderPetId s)
-{-# INLINE orderPetIdT #-}
-
--- | 'orderQuantity' Traversal for 'Order'
-orderQuantityT :: Traversal_' Order Int
-orderQuantityT f s = maybe (pure s) (\a -> (\b -> s { orderQuantity = Just b} ) <$> f a) (orderQuantity s)
-{-# INLINE orderQuantityT #-}
-
--- | 'orderShipDate' Traversal for 'Order'
-orderShipDateT :: Traversal_' Order Integer
-orderShipDateT f s = maybe (pure s) (\a -> (\b -> s { orderShipDate = Just b} ) <$> f a) (orderShipDate s)
-{-# INLINE orderShipDateT #-}
-
--- | 'orderStatus' Traversal for 'Order'
-orderStatusT :: Traversal_' Order Text
-orderStatusT f s = maybe (pure s) (\a -> (\b -> s { orderStatus = Just b} ) <$> f a) (orderStatus s)
-{-# INLINE orderStatusT #-}
-
--- | 'orderComplete' Traversal for 'Order'
-orderCompleteT :: Traversal_' Order Bool
-orderCompleteT f s = maybe (pure s) (\a -> (\b -> s { orderComplete = Just b} ) <$> f a) (orderComplete s)
-{-# INLINE orderCompleteT #-}
 
 
 
@@ -258,36 +201,6 @@ mkPet petName petPhotoUrls =
   }
 {-# INLINE mkPet #-}
 
--- | 'petId' Traversal for 'Pet'
-petIdT :: Traversal_' Pet Integer
-petIdT f s = maybe (pure s) (\a -> (\b -> s { petId = Just b} ) <$> f a) (petId s)
-{-# INLINE petIdT #-}
-
--- | 'petCategory' Traversal for 'Pet'
-petCategoryT :: Traversal_' Pet Category
-petCategoryT f s = maybe (pure s) (\a -> (\b -> s { petCategory = Just b} ) <$> f a) (petCategory s)
-{-# INLINE petCategoryT #-}
-
--- | 'petName' Lens for 'Pet'
-petNameL :: Lens_' Pet Text
-petNameL f Pet{..} = (\petName -> Pet { petName, ..} ) <$> f petName
-{-# INLINE petNameL #-}
-
--- | 'petPhotoUrls' Lens for 'Pet'
-petPhotoUrlsL :: Lens_' Pet [Text]
-petPhotoUrlsL f Pet{..} = (\petPhotoUrls -> Pet { petPhotoUrls, ..} ) <$> f petPhotoUrls
-{-# INLINE petPhotoUrlsL #-}
-
--- | 'petTags' Traversal for 'Pet'
-petTagsT :: Traversal_' Pet [Tag]
-petTagsT f s = maybe (pure s) (\a -> (\b -> s { petTags = Just b} ) <$> f a) (petTags s)
-{-# INLINE petTagsT #-}
-
--- | 'petStatus' Traversal for 'Pet'
-petStatusT :: Traversal_' Pet Text
-petStatusT f s = maybe (pure s) (\a -> (\b -> s { petStatus = Just b} ) <$> f a) (petStatus s)
-{-# INLINE petStatusT #-}
-
 
 
 
@@ -322,16 +235,6 @@ mkTag =
   , tagName = Nothing
   }
 {-# INLINE mkTag #-}
-
--- | 'tagId' Traversal for 'Tag'
-tagIdT :: Traversal_' Tag Integer
-tagIdT f s = maybe (pure s) (\a -> (\b -> s { tagId = Just b} ) <$> f a) (tagId s)
-{-# INLINE tagIdT #-}
-
--- | 'tagName' Traversal for 'Tag'
-tagNameT :: Traversal_' Tag Text
-tagNameT f s = maybe (pure s) (\a -> (\b -> s { tagName = Just b} ) <$> f a) (tagName s)
-{-# INLINE tagNameT #-}
 
 
 
@@ -392,52 +295,5 @@ mkUser =
   }
 {-# INLINE mkUser #-}
 
--- | 'userId' Traversal for 'User'
-userIdT :: Traversal_' User Integer
-userIdT f s = maybe (pure s) (\a -> (\b -> s { userId = Just b} ) <$> f a) (userId s)
-{-# INLINE userIdT #-}
-
--- | 'userUsername' Traversal for 'User'
-userUsernameT :: Traversal_' User Text
-userUsernameT f s = maybe (pure s) (\a -> (\b -> s { userUsername = Just b} ) <$> f a) (userUsername s)
-{-# INLINE userUsernameT #-}
-
--- | 'userFirstName' Traversal for 'User'
-userFirstNameT :: Traversal_' User Text
-userFirstNameT f s = maybe (pure s) (\a -> (\b -> s { userFirstName = Just b} ) <$> f a) (userFirstName s)
-{-# INLINE userFirstNameT #-}
-
--- | 'userLastName' Traversal for 'User'
-userLastNameT :: Traversal_' User Text
-userLastNameT f s = maybe (pure s) (\a -> (\b -> s { userLastName = Just b} ) <$> f a) (userLastName s)
-{-# INLINE userLastNameT #-}
-
--- | 'userEmail' Traversal for 'User'
-userEmailT :: Traversal_' User Text
-userEmailT f s = maybe (pure s) (\a -> (\b -> s { userEmail = Just b} ) <$> f a) (userEmail s)
-{-# INLINE userEmailT #-}
-
--- | 'userPassword' Traversal for 'User'
-userPasswordT :: Traversal_' User Text
-userPasswordT f s = maybe (pure s) (\a -> (\b -> s { userPassword = Just b} ) <$> f a) (userPassword s)
-{-# INLINE userPasswordT #-}
-
--- | 'userPhone' Traversal for 'User'
-userPhoneT :: Traversal_' User Text
-userPhoneT f s = maybe (pure s) (\a -> (\b -> s { userPhone = Just b} ) <$> f a) (userPhone s)
-{-# INLINE userPhoneT #-}
-
--- | 'userUserStatus' Traversal for 'User'
-userUserStatusT :: Traversal_' User Int
-userUserStatusT f s = maybe (pure s) (\a -> (\b -> s { userUserStatus = Just b} ) <$> f a) (userUserStatus s)
-{-# INLINE userUserStatusT #-}
 
 
-
-
--- * Lens Helpers
-
-type Traversal_' s a = Traversal_ s s a a
-type Traversal_ s t a b = forall (f :: * -> *). Applicative f => (a -> f b) -> s -> f t
-type Lens_' s a = Lens_ s s a a
-type Lens_ s t a b = forall (f :: * -> *). Functor f => (a -> f b) -> s -> f t

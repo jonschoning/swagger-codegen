@@ -7,9 +7,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE KindSignatures #-}
-{-# LANGUAGE RankNTypes #-}
-{-# OPTIONS_GHC -fno-warn-name-shadowing -fno-warn-unused-matches -fno-warn-unused-binds -fno-warn-unused-imports #-}
+{-# OPTIONS_GHC -fno-warn-unused-matches -fno-warn-unused-binds -fno-warn-unused-imports #-}
 
 -- |
 -- Module      : {{title}}.Types
@@ -67,21 +65,6 @@ mk{{classname}} {{#requiredVars}}{{name}} {{/requiredVars}}=
   }
 {-# INLINE mk{{classname}} #-}
 
-{{#vars}}
-{{#required}}
--- | '{{name}}' Lens for '{{classname}}'
-{{name}}L :: Lens_' {{classname}} {{datatype}}
-{{name}}L f {{classname}}{..} = (\{{name}} -> {{classname}} { {{name}}, ..} ) <$> f {{name}}
-{-# INLINE {{name}}L #-}
-{{/required}}
-{{^required}}
--- | '{{name}}' Traversal for '{{classname}}'
-{{name}}T :: Traversal_' {{classname}} {{datatype}}
-{{name}}T f s = maybe (pure s) (\a -> (\b -> s { {{name}} = Just b} ) <$> f a) ({{name}} s)
-{-# INLINE {{name}}T #-}
-{{/required}}
-
-{{/vars}}
 
 {{/parent}}
 {{#parent}}
@@ -94,10 +77,3 @@ newtype {{classname}} = {{classname}} {{vendorExtensions.x-customNewtype}} deriv
 
 {{/model}}
 {{/models}}
-
--- * Lens Helpers
-
-type Traversal_' s a = Traversal_ s s a a
-type Traversal_ s t a b = forall (f :: * -> *). Applicative f => (a -> f b) -> s -> f t
-type Lens_' s a = Lens_ s s a a
-type Lens_ s t a b = forall (f :: * -> *). Functor f => (a -> f b) -> s -> f t
