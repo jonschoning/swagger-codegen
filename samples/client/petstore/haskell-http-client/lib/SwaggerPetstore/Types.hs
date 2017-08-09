@@ -37,12 +37,11 @@ data ApiResponse = ApiResponse
   } deriving (Show, Eq, Data, Typeable, Generic, Ord)
 
 instance FromJSON ApiResponse where
-  parseJSON (Object o) =
+  parseJSON = withObject "ApiResponse" $ \o ->
     ApiResponse
       <$> o .:! "code" 
       <*> o .:! "type" 
       <*> o .:! "message" 
-  parseJSON _ = fail "bad ApiResponse parse"
 
 instance ToJSON ApiResponse where
   toJSON ApiResponse {..} =
@@ -75,11 +74,10 @@ data Category = Category
   } deriving (Show, Eq, Data, Typeable, Generic, Ord)
 
 instance FromJSON Category where
-  parseJSON (Object o) =
+  parseJSON = withObject "Category" $ \o ->
     Category
       <$> o .:! "id" 
       <*> o .:! "name" 
-  parseJSON _ = fail "bad Category parse"
 
 instance ToJSON Category where
   toJSON Category {..} =
@@ -114,7 +112,7 @@ data Order = Order
   } deriving (Show, Eq, Data, Typeable, Generic, Ord)
 
 instance FromJSON Order where
-  parseJSON (Object o) =
+  parseJSON = withObject "Order" $ \o ->
     Order
       <$> o .:! "id" 
       <*> o .:! "petId" 
@@ -122,7 +120,6 @@ instance FromJSON Order where
       <*> o .:! "shipDate" 
       <*> o .:! "status" 
       <*> o .:! "complete" 
-  parseJSON _ = fail "bad Order parse"
 
 instance ToJSON Order where
   toJSON Order {..} =
@@ -165,7 +162,7 @@ data Pet = Pet
   } deriving (Show, Eq, Data, Typeable, Generic, Ord)
 
 instance FromJSON Pet where
-  parseJSON (Object o) =
+  parseJSON = withObject "Pet" $ \o ->
     Pet
       <$> o .:! "id" 
       <*> o .:! "category" 
@@ -173,7 +170,6 @@ instance FromJSON Pet where
       <*> o .:  "photoUrls" 
       <*> o .:! "tags" 
       <*> o .:! "status" 
-  parseJSON _ = fail "bad Pet parse"
 
 instance ToJSON Pet where
   toJSON Pet {..} =
@@ -214,11 +210,10 @@ data Tag = Tag
   } deriving (Show, Eq, Data, Typeable, Generic, Ord)
 
 instance FromJSON Tag where
-  parseJSON (Object o) =
+  parseJSON = withObject "Tag" $ \o ->
     Tag
       <$> o .:! "id" 
       <*> o .:! "name" 
-  parseJSON _ = fail "bad Tag parse"
 
 instance ToJSON Tag where
   toJSON Tag {..} =
@@ -255,7 +250,7 @@ data User = User
   } deriving (Show, Eq, Data, Typeable, Generic, Ord)
 
 instance FromJSON User where
-  parseJSON (Object o) =
+  parseJSON = withObject "User" $ \o ->
     User
       <$> o .:! "id" 
       <*> o .:! "username" 
@@ -265,7 +260,6 @@ instance FromJSON User where
       <*> o .:! "password" 
       <*> o .:! "phone" 
       <*> o .:! "userStatus" 
-  parseJSON _ = fail "bad User parse"
 
 instance ToJSON User where
   toJSON User {..} =

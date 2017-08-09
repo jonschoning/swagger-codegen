@@ -399,7 +399,7 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
         }
 
         // Create newtypes for things with non-object types
-        String dataOrNewtype = "data";
+        //String dataOrNewtype = "data";
         // check if it's a ModelImpl before casting 
         if (!(mod instanceof ModelImpl)) {
             return model;
@@ -413,7 +413,7 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
 
         // Provide the prefix as a vendor extension, so that it can be used in the ToJSON and FromJSON instances.
         model.vendorExtensions.put("x-prefix", prefix);
-        model.vendorExtensions.put("x-data", dataOrNewtype);
+        //model.vendorExtensions.put("x-data", dataOrNewtype);
 
         return model;
     }

@@ -42,11 +42,10 @@ data {{classname}} = {{classname}}
   } deriving (Show, Eq, Data, Typeable, Generic, Ord)
 
 instance FromJSON {{classname}} where
-  parseJSON (Object o) =
+  parseJSON = withObject "{{classname}}" $ \o ->
     {{classname}}
       <$>{{#vars}} o {{#required}}.: {{/required}}{{^required}}.:!{{/required}} "{{baseName}}" {{#hasMore}}
       <*>{{/hasMore}}{{/vars}}
-  parseJSON _ = fail "bad {{classname}} parse"
 
 instance ToJSON {{classname}} where
   toJSON {{classname}} {..} =
