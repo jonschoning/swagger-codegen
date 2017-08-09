@@ -341,72 +341,16 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
 
 
 
-//    @Override
-//    public CodegenOperation fromOperation(String resourcePath, String httpMethod, Operation operation, Map<String, Model> definitions, Swagger swagger) {
-//        CodegenOperation op = super.fromOperation(resourcePath, httpMethod, operation, definitions, swagger);
-//
-//        List<String> path = new ArrayList<String>();
-//        List<String> type = new ArrayList<String>();
-//
-//        // Query parameters appended to routes
-//        for (CodegenParameter param : op.queryParams) {
-//            String paramType = param.dataType;
-//            if (param.isListContainer) {
-//                paramType = makeQueryListType(paramType, param.collectionFormat);
-//            }
-//            path.add("QueryParam \"" + param.baseName + "\" " + paramType);
-//            type.add("Maybe " + param.dataType);
-//        }
-//
-//        // Either body or form data parameters appended to route
-//        // As far as I know, you cannot have two ReqBody routes.
-//        // Is it possible to have body params AND have form params?
-//        String bodyType = null;
-//        if (op.getHasBodyParam()) {
-//            for (CodegenParameter param : op.bodyParams) {
-//                path.add("ReqBody '[JSON] " + param.dataType);
-//                bodyType = param.dataType;
-//            }
-//        } else if(op.getHasFormParams()) {
-//            // Use the FormX data type, where X is the conglomerate of all things being passed
-//            String formName = "Form" + camelize(op.operationId);
-//            bodyType = formName;
-//            path.add("ReqBody '[FormUrlEncoded] " + formName);
-//        }
-//        if(bodyType != null) {
-//            type.add(bodyType);
-//        }
-//
-//        // Special headers appended to route
-//        for (CodegenParameter param : op.headerParams) {
-//            path.add("Header \"" + param.baseName + "\" " + param.dataType);
-//
-//            String paramType = param.dataType;
-//            if (param.isListContainer) {
-//                paramType = makeQueryListType(paramType, param.collectionFormat);
-//            }
-//            type.add("Maybe " + paramType);
-//        }
-//
-//        // Add the HTTP method and return type
-//        String returnType = op.returnType;
-//        if (returnType == null || returnType.equals("null")) {
-//            returnType = "()";
-//        }
-//        if (returnType.indexOf(" ") >= 0) {
-//            returnType = "(" + returnType + ")";
-//        }
-//        path.add("Verb '" + op.httpMethod.toUpperCase() + " 200 '[JSON] " + returnType);
-//        type.add("m " + returnType);
-//
-//        op.vendorExtensions.put("x-routeType", joinStrings(" :> ", path));
-//        op.vendorExtensions.put("x-clientType", joinStrings(" -> ", type));
-//        op.vendorExtensions.put("x-formName", "Form" + camelize(op.operationId));
-//        for(CodegenParameter param : op.formParams) {
-//            param.vendorExtensions.put("x-formPrefix", camelize(op.operationId, true));
-//        }
-//        return op;
-//    }
+    @Override
+    public CodegenOperation fromOperation(String resourcePath, String httpMethod, Operation operation, Map<String, Model> definitions, Swagger swagger) {
+        CodegenOperation op = super.fromOperation(resourcePath, httpMethod, operation, definitions, swagger);
+
+        op.vendorExtensions.put("x-formName", "Form" + camelize(op.operationId));
+        for(CodegenParameter param : op.formParams) {
+            param.vendorExtensions.put("x-formPrefix", camelize(op.operationId, true));
+        }
+        return op;
+    }
 
     private String fixOperatorChars(String string) {
         StringBuilder sb = new StringBuilder();
