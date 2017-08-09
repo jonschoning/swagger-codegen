@@ -27,33 +27,35 @@ import Data.Monoid ((<>))
 import Data.Text (Text)
 import GHC.Exts (IsString(..))
 import GHC.Generics (Generic)
-import Web.FormUrlEncoded
-import Web.HttpApiData
+import Web.FormUrlEncoded as WF
+import Web.HttpApiData as WH
 
 import qualified Data.Map as Map
 import qualified Data.Text as T
 
 
+-- | FormData for operation updatePetWithForm
 data FormUpdatePetWithForm = FormUpdatePetWithForm
-  { updatePetWithFormName :: Text
-  , updatePetWithFormStatus :: Text
+  { updatePetWithFormName :: Maybe Text -- ^ Updated name of the pet
+  , updatePetWithFormStatus :: Maybe Text -- ^ Updated status of the pet
   } deriving (Show, Eq, Generic)
 
 instance FromForm FormUpdatePetWithForm where
-  fromForm inputs = FormUpdatePetWithForm <$> parseUnique "name" inputs <*> parseUnique "status" inputs
+  fromForm inputs = FormUpdatePetWithForm <$> WF.parseMaybe "name" inputs <*> WF.parseMaybe "status" inputs
 
 instance ToForm FormUpdatePetWithForm where
   toForm value =
     [ ("name", toQueryParam $ updatePetWithFormName value)
     , ("status", toQueryParam $ updatePetWithFormStatus value)
     ]
+-- | FormData for operation uploadFile
 data FormUploadFile = FormUploadFile
-  { uploadFileAdditionalMetadata :: Text
-  , uploadFileFile :: FilePath
+  { uploadFileAdditionalMetadata :: Maybe Text -- ^ Additional data to pass to server
+  , uploadFileFile :: Maybe FilePath -- ^ file to upload
   } deriving (Show, Eq, Generic)
 
 instance FromForm FormUploadFile where
-  fromForm inputs = FormUploadFile <$> parseUnique "additionalMetadata" inputs <*> parseUnique "file" inputs
+  fromForm inputs = FormUploadFile <$> WF.parseMaybe "additionalMetadata" inputs <*> WF.parseMaybe "file" inputs
 
 instance ToForm FormUploadFile where
   toForm value =

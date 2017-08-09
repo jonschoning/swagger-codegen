@@ -53,7 +53,7 @@ instance ToJSON ApiResponse where
       , "message" .= toJSON apiResponseMessage
       ]
 
--- | Construct a value of type ApiResponse (by applying it's required fields, if any)
+-- | Construct a value of type 'ApiResponse' (by applying it's required fields, if any)
 mkApiResponse
   :: ApiResponse
 mkApiResponse =
@@ -64,17 +64,17 @@ mkApiResponse =
   }
 {-# INLINE mkApiResponse #-}
 
--- | apiResponseCode Traversal for ApiResponse
+-- | 'apiResponseCode' Traversal for 'ApiResponse'
 apiResponseCodeT :: Traversal_' ApiResponse Int
 apiResponseCodeT f s = maybe (pure s) (\a -> (\b -> s { apiResponseCode = Just b} ) <$> f a) (apiResponseCode s)
 {-# INLINE apiResponseCodeT #-}
 
--- | apiResponseType Traversal for ApiResponse
+-- | 'apiResponseType' Traversal for 'ApiResponse'
 apiResponseTypeT :: Traversal_' ApiResponse Text
 apiResponseTypeT f s = maybe (pure s) (\a -> (\b -> s { apiResponseType = Just b} ) <$> f a) (apiResponseType s)
 {-# INLINE apiResponseTypeT #-}
 
--- | apiResponseMessage Traversal for ApiResponse
+-- | 'apiResponseMessage' Traversal for 'ApiResponse'
 apiResponseMessageT :: Traversal_' ApiResponse Text
 apiResponseMessageT f s = maybe (pure s) (\a -> (\b -> s { apiResponseMessage = Just b} ) <$> f a) (apiResponseMessage s)
 {-# INLINE apiResponseMessageT #-}
@@ -104,7 +104,7 @@ instance ToJSON Category where
       , "name" .= toJSON categoryName
       ]
 
--- | Construct a value of type Category (by applying it's required fields, if any)
+-- | Construct a value of type 'Category' (by applying it's required fields, if any)
 mkCategory
   :: Category
 mkCategory =
@@ -114,12 +114,12 @@ mkCategory =
   }
 {-# INLINE mkCategory #-}
 
--- | categoryId Traversal for Category
+-- | 'categoryId' Traversal for 'Category'
 categoryIdT :: Traversal_' Category Integer
 categoryIdT f s = maybe (pure s) (\a -> (\b -> s { categoryId = Just b} ) <$> f a) (categoryId s)
 {-# INLINE categoryIdT #-}
 
--- | categoryName Traversal for Category
+-- | 'categoryName' Traversal for 'Category'
 categoryNameT :: Traversal_' Category Text
 categoryNameT f s = maybe (pure s) (\a -> (\b -> s { categoryName = Just b} ) <$> f a) (categoryName s)
 {-# INLINE categoryNameT #-}
@@ -161,7 +161,7 @@ instance ToJSON Order where
       , "complete" .= toJSON orderComplete
       ]
 
--- | Construct a value of type Order (by applying it's required fields, if any)
+-- | Construct a value of type 'Order' (by applying it's required fields, if any)
 mkOrder
   :: Order
 mkOrder =
@@ -175,32 +175,32 @@ mkOrder =
   }
 {-# INLINE mkOrder #-}
 
--- | orderId Traversal for Order
+-- | 'orderId' Traversal for 'Order'
 orderIdT :: Traversal_' Order Integer
 orderIdT f s = maybe (pure s) (\a -> (\b -> s { orderId = Just b} ) <$> f a) (orderId s)
 {-# INLINE orderIdT #-}
 
--- | orderPetId Traversal for Order
+-- | 'orderPetId' Traversal for 'Order'
 orderPetIdT :: Traversal_' Order Integer
 orderPetIdT f s = maybe (pure s) (\a -> (\b -> s { orderPetId = Just b} ) <$> f a) (orderPetId s)
 {-# INLINE orderPetIdT #-}
 
--- | orderQuantity Traversal for Order
+-- | 'orderQuantity' Traversal for 'Order'
 orderQuantityT :: Traversal_' Order Int
 orderQuantityT f s = maybe (pure s) (\a -> (\b -> s { orderQuantity = Just b} ) <$> f a) (orderQuantity s)
 {-# INLINE orderQuantityT #-}
 
--- | orderShipDate Traversal for Order
+-- | 'orderShipDate' Traversal for 'Order'
 orderShipDateT :: Traversal_' Order Integer
 orderShipDateT f s = maybe (pure s) (\a -> (\b -> s { orderShipDate = Just b} ) <$> f a) (orderShipDate s)
 {-# INLINE orderShipDateT #-}
 
--- | orderStatus Traversal for Order
+-- | 'orderStatus' Traversal for 'Order'
 orderStatusT :: Traversal_' Order Text
 orderStatusT f s = maybe (pure s) (\a -> (\b -> s { orderStatus = Just b} ) <$> f a) (orderStatus s)
 {-# INLINE orderStatusT #-}
 
--- | orderComplete Traversal for Order
+-- | 'orderComplete' Traversal for 'Order'
 orderCompleteT :: Traversal_' Order Bool
 orderCompleteT f s = maybe (pure s) (\a -> (\b -> s { orderComplete = Just b} ) <$> f a) (orderComplete s)
 {-# INLINE orderCompleteT #-}
@@ -214,8 +214,8 @@ orderCompleteT f s = maybe (pure s) (\a -> (\b -> s { orderComplete = Just b} ) 
 data Pet = Pet
   { petId :: Maybe Integer
   , petCategory :: Maybe Category
-  , petName ::  Text
-  , petPhotoUrls ::  [Text]
+  , petName :: Text
+  , petPhotoUrls :: [Text]
   , petTags :: Maybe [Tag]
   , petStatus :: Maybe Text -- ^ pet status in the store
   } deriving (Show, Eq, Data, Typeable, Generic, Ord)
@@ -242,7 +242,7 @@ instance ToJSON Pet where
       , "status" .= toJSON petStatus
       ]
 
--- | Construct a value of type Pet (by applying it's required fields, if any)
+-- | Construct a value of type 'Pet' (by applying it's required fields, if any)
 mkPet
   :: Text -- ^ 'petName' 
   -> [Text] -- ^ 'petPhotoUrls' 
@@ -258,32 +258,32 @@ mkPet petName petPhotoUrls =
   }
 {-# INLINE mkPet #-}
 
--- | petId Traversal for Pet
+-- | 'petId' Traversal for 'Pet'
 petIdT :: Traversal_' Pet Integer
 petIdT f s = maybe (pure s) (\a -> (\b -> s { petId = Just b} ) <$> f a) (petId s)
 {-# INLINE petIdT #-}
 
--- | petCategory Traversal for Pet
+-- | 'petCategory' Traversal for 'Pet'
 petCategoryT :: Traversal_' Pet Category
 petCategoryT f s = maybe (pure s) (\a -> (\b -> s { petCategory = Just b} ) <$> f a) (petCategory s)
 {-# INLINE petCategoryT #-}
 
--- | petName Lens for Pet
+-- | 'petName' Lens for 'Pet'
 petNameL :: Lens_' Pet Text
 petNameL f Pet{..} = (\petName -> Pet { petName, ..} ) <$> f petName
 {-# INLINE petNameL #-}
 
--- | petPhotoUrls Lens for Pet
+-- | 'petPhotoUrls' Lens for 'Pet'
 petPhotoUrlsL :: Lens_' Pet [Text]
 petPhotoUrlsL f Pet{..} = (\petPhotoUrls -> Pet { petPhotoUrls, ..} ) <$> f petPhotoUrls
 {-# INLINE petPhotoUrlsL #-}
 
--- | petTags Traversal for Pet
+-- | 'petTags' Traversal for 'Pet'
 petTagsT :: Traversal_' Pet [Tag]
 petTagsT f s = maybe (pure s) (\a -> (\b -> s { petTags = Just b} ) <$> f a) (petTags s)
 {-# INLINE petTagsT #-}
 
--- | petStatus Traversal for Pet
+-- | 'petStatus' Traversal for 'Pet'
 petStatusT :: Traversal_' Pet Text
 petStatusT f s = maybe (pure s) (\a -> (\b -> s { petStatus = Just b} ) <$> f a) (petStatus s)
 {-# INLINE petStatusT #-}
@@ -313,7 +313,7 @@ instance ToJSON Tag where
       , "name" .= toJSON tagName
       ]
 
--- | Construct a value of type Tag (by applying it's required fields, if any)
+-- | Construct a value of type 'Tag' (by applying it's required fields, if any)
 mkTag
   :: Tag
 mkTag =
@@ -323,12 +323,12 @@ mkTag =
   }
 {-# INLINE mkTag #-}
 
--- | tagId Traversal for Tag
+-- | 'tagId' Traversal for 'Tag'
 tagIdT :: Traversal_' Tag Integer
 tagIdT f s = maybe (pure s) (\a -> (\b -> s { tagId = Just b} ) <$> f a) (tagId s)
 {-# INLINE tagIdT #-}
 
--- | tagName Traversal for Tag
+-- | 'tagName' Traversal for 'Tag'
 tagNameT :: Traversal_' Tag Text
 tagNameT f s = maybe (pure s) (\a -> (\b -> s { tagName = Just b} ) <$> f a) (tagName s)
 {-# INLINE tagNameT #-}
@@ -376,7 +376,7 @@ instance ToJSON User where
       , "userStatus" .= toJSON userUserStatus
       ]
 
--- | Construct a value of type User (by applying it's required fields, if any)
+-- | Construct a value of type 'User' (by applying it's required fields, if any)
 mkUser
   :: User
 mkUser =
@@ -392,48 +392,50 @@ mkUser =
   }
 {-# INLINE mkUser #-}
 
--- | userId Traversal for User
+-- | 'userId' Traversal for 'User'
 userIdT :: Traversal_' User Integer
 userIdT f s = maybe (pure s) (\a -> (\b -> s { userId = Just b} ) <$> f a) (userId s)
 {-# INLINE userIdT #-}
 
--- | userUsername Traversal for User
+-- | 'userUsername' Traversal for 'User'
 userUsernameT :: Traversal_' User Text
 userUsernameT f s = maybe (pure s) (\a -> (\b -> s { userUsername = Just b} ) <$> f a) (userUsername s)
 {-# INLINE userUsernameT #-}
 
--- | userFirstName Traversal for User
+-- | 'userFirstName' Traversal for 'User'
 userFirstNameT :: Traversal_' User Text
 userFirstNameT f s = maybe (pure s) (\a -> (\b -> s { userFirstName = Just b} ) <$> f a) (userFirstName s)
 {-# INLINE userFirstNameT #-}
 
--- | userLastName Traversal for User
+-- | 'userLastName' Traversal for 'User'
 userLastNameT :: Traversal_' User Text
 userLastNameT f s = maybe (pure s) (\a -> (\b -> s { userLastName = Just b} ) <$> f a) (userLastName s)
 {-# INLINE userLastNameT #-}
 
--- | userEmail Traversal for User
+-- | 'userEmail' Traversal for 'User'
 userEmailT :: Traversal_' User Text
 userEmailT f s = maybe (pure s) (\a -> (\b -> s { userEmail = Just b} ) <$> f a) (userEmail s)
 {-# INLINE userEmailT #-}
 
--- | userPassword Traversal for User
+-- | 'userPassword' Traversal for 'User'
 userPasswordT :: Traversal_' User Text
 userPasswordT f s = maybe (pure s) (\a -> (\b -> s { userPassword = Just b} ) <$> f a) (userPassword s)
 {-# INLINE userPasswordT #-}
 
--- | userPhone Traversal for User
+-- | 'userPhone' Traversal for 'User'
 userPhoneT :: Traversal_' User Text
 userPhoneT f s = maybe (pure s) (\a -> (\b -> s { userPhone = Just b} ) <$> f a) (userPhone s)
 {-# INLINE userPhoneT #-}
 
--- | userUserStatus Traversal for User
+-- | 'userUserStatus' Traversal for 'User'
 userUserStatusT :: Traversal_' User Int
 userUserStatusT f s = maybe (pure s) (\a -> (\b -> s { userUserStatus = Just b} ) <$> f a) (userUserStatus s)
 {-# INLINE userUserStatusT #-}
 
 
 
+
+-- * Lens Helpers
 
 type Traversal_' s a = Traversal_ s s a a
 type Traversal_ s t a b = forall (f :: * -> *). Applicative f => (a -> f b) -> s -> f t

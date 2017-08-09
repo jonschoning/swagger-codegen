@@ -38,7 +38,7 @@ import qualified Data.Text as T
 {{^vendorExtensions.x-customNewtype}}
 {{^parent}}
 data {{classname}} = {{classname}}
-  { {{#vars}}{{name}} :: {{^required}}Maybe{{/required}} {{datatype}}{{#description}} -- ^ {{/description}}{{description}}{{#hasMore}}
+  { {{#vars}}{{name}} :: {{^required}}Maybe {{/required}}{{datatype}}{{#description}} -- ^ {{/description}}{{description}}{{#hasMore}}
   , {{/hasMore}}{{/vars}}
   } deriving (Show, Eq, Data, Typeable, Generic, Ord)
 
@@ -56,7 +56,7 @@ instance ToJSON {{classname}} where
       , {{/hasMore}}{{/vars}}
       ]
 
--- | Construct a value of type {{classname}} (by applying it's required fields, if any)
+-- | Construct a value of type '{{classname}}' (by applying it's required fields, if any)
 mk{{classname}}
   :: {{#requiredVars}}{{{datatype}}} -- ^ '{{name}}'{{#description}}:{{/description}} {{description}}
   -> {{/requiredVars}}{{classname}}
@@ -69,13 +69,13 @@ mk{{classname}} {{#requiredVars}}{{name}} {{/requiredVars}}=
 
 {{#vars}}
 {{#required}}
--- | {{name}} Lens for {{classname}}
+-- | '{{name}}' Lens for '{{classname}}'
 {{name}}L :: Lens_' {{classname}} {{datatype}}
 {{name}}L f {{classname}}{..} = (\{{name}} -> {{classname}} { {{name}}, ..} ) <$> f {{name}}
 {-# INLINE {{name}}L #-}
 {{/required}}
 {{^required}}
--- | {{name}} Traversal for {{classname}}
+-- | '{{name}}' Traversal for '{{classname}}'
 {{name}}T :: Traversal_' {{classname}} {{datatype}}
 {{name}}T f s = maybe (pure s) (\a -> (\b -> s { {{name}} = Just b} ) <$> f a) ({{name}} s)
 {-# INLINE {{name}}T #-}
@@ -94,6 +94,8 @@ newtype {{classname}} = {{classname}} {{vendorExtensions.x-customNewtype}} deriv
 
 {{/model}}
 {{/models}}
+
+-- * Lens Helpers
 
 type Traversal_' s a = Traversal_ s s a a
 type Traversal_ s t a b = forall (f :: * -> *). Applicative f => (a -> f b) -> s -> f t

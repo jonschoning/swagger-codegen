@@ -27,20 +27,21 @@ import Data.Monoid ((<>))
 import Data.Text (Text)
 import GHC.Exts (IsString(..))
 import GHC.Generics (Generic)
-import Web.FormUrlEncoded
-import Web.HttpApiData
+import Web.FormUrlEncoded as WF
+import Web.HttpApiData as WH
 
 import qualified Data.Map as Map
 import qualified Data.Text as T
 
 {{#apiInfo}}{{#apis}}{{#operations}}{{#operation}}{{#hasFormParams}}
+-- | FormData for operation {{operationId}}
 data {{vendorExtensions.x-formName}} = {{vendorExtensions.x-formName}}
-  { {{#formParams}}{{vendorExtensions.x-formPrefix}}{{vendorExtensions.x-formParamName}} :: {{dataType}}{{#hasMore}}
+  { {{#formParams}}{{vendorExtensions.x-formPrefix}}{{vendorExtensions.x-formParamName}} :: {{^required}}Maybe {{/required}}{{dataType}}{{#description}} -- ^ {{/description}}{{description}}{{#hasMore}}
   , {{/hasMore}}{{/formParams}}
   } deriving (Show, Eq, Generic)
 
 instance FromForm {{vendorExtensions.x-formName}} where
-  fromForm inputs = {{vendorExtensions.x-formName}} <$> {{#formParams}}parseUnique "{{baseName}}" inputs{{#hasMore}} <*> {{/hasMore}}{{/formParams}}
+  fromForm inputs = {{vendorExtensions.x-formName}} <$> {{#formParams}}{{#required}}WF.parseUnique{{/required}}{{^required}}WF.parseMaybe{{/required}} "{{baseName}}" inputs{{#hasMore}} <*> {{/hasMore}}{{/formParams}}
 
 instance ToForm {{vendorExtensions.x-formName}} where
   toForm value =
