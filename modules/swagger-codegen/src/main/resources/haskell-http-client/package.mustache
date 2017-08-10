@@ -1,7 +1,28 @@
 name: {{package}}
 version: '0.1.0.0'
-synopsis: Auto-generated http-client API bindings for {{package}}
-description: Please see README.md
+synopsis: Auto-generated {{package}} API Client
+description: ! '
+
+    Client library for calling the {{package}} API based on http-client.
+
+
+    {{#appDescription}}{{{appDescriptionEscaped}}}{{/appDescription}}
+
+
+    host: {{host}}
+
+
+    base path: {{basePath}}
+
+
+    apiVersion: {{apiVersion}}
+
+
+    swagger version: {{swaggerVersion}}
+
+
+    OpenAPI-Specification: https://github.com/OAI/OpenAPI-Specification/blob/master/versions/{{swaggerVersion}}.md
+'
 category: Web
 author: Author Name Here
 maintainer: author.name@email.com

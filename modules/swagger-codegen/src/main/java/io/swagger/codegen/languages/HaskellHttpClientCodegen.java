@@ -242,6 +242,13 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
         additionalProperties.put("title", apiName);
         additionalProperties.put("titleLower", firstLetterToLower(apiName));
         additionalProperties.put("package", cabalName);
+        additionalProperties.put("requestType", apiName + "Request");
+        additionalProperties.put("swaggerVersion", swagger.getSwagger());
+
+        additionalProperties.put("appDescriptionEscaped", swagger.getInfo().getDescription()
+            .replace("'","''")
+            .replace(("{"),"")
+            .replace("}",""));
 
         List<Map<String, Object>> replacements = new ArrayList<>();
         Object[] replacementChars = specialCharReplacements.keySet().toArray();

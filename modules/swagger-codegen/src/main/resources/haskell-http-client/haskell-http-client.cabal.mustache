@@ -4,8 +4,19 @@
 
 name:           {{package}}
 version:        0.1.0.0
-synopsis:       Auto-generated http-client API bindings for {{package}}
-description:    Please see README.md
+synopsis:       Auto-generated {{package}} API Client
+description:    .
+                Client library for calling the {{package}} API based on http-client.
+                .
+                {{#appDescription}}{{{appDescriptionEscaped}}}{{/appDescription}}
+                .
+                base path: {{basePath}}
+                .
+                apiVersion: {{apiVersion}}
+                .
+                swagger version: {{swaggerVersion}}
+                .
+                OpenAPI-Specification: https://github.com/OAI/OpenAPI-Specification/blob/master/versions/{{swaggerVersion}}.md
 category:       Web
 homepage:       https://github.com/swagger-api/swagger-codegen#readme
 author:         Author Name Here
@@ -41,8 +52,6 @@ library
       {{title}}.API
       {{title}}.Types
       {{title}}.Lens
--- other-modules:
---     Paths_{{package}}
   default-language: Haskell2010
 
 test-suite tests

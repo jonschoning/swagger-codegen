@@ -25,13 +25,36 @@ import qualified Data.Map as Map
 import qualified Data.Text as T
 import qualified Data.Vector as V
 
+import qualified Data.ByteString.Char8 as BS8
+import qualified Data.ByteString.Lazy.Char8 as BSL
+
+import           Network.HTTP.Client
+import qualified Network.HTTP.Types.Method as NHTM
+
 {{#imports}}import {{import}}
 {{/imports}}
+
+-- * Request Params
+
+data {{requestType}} = {{requestType}}
+  { rMethod  :: NHTM.Method   -- ^ Method of {{requestType}}
+  , endpoint :: Text     -- ^ Endpoint of {{requestType}}
+  , params   :: [Params] -- ^ Request params of {{requestType}}
+  }
+data Params
+  = Query TupleBS8
+  | Body BSL.ByteString
+  deriving (Show)
+
+-- | Type alias for query parameters
+type TupleBS8 = (BS8.ByteString, BS8.ByteString)
+
+-- * Models
 
 {{#models}}
 {{#model}}
 
--- * {{classname}}
+-- ** {{classname}}
 {{#description}}-- | {{description}}{{/description}}{{#parent}}
 -- {{^description}}|{{/description}}
 -- Parent: '{{parent}}'{{/parent}}

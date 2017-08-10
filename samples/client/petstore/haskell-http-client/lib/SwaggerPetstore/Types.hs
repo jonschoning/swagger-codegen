@@ -25,9 +25,32 @@ import qualified Data.Map as Map
 import qualified Data.Text as T
 import qualified Data.Vector as V
 
+import qualified Data.ByteString.Char8 as BS8
+import qualified Data.ByteString.Lazy.Char8 as BSL
+
+import           Network.HTTP.Client
+import qualified Network.HTTP.Types.Method as NHTM
 
 
--- * ApiResponse
+-- * Request Params
+
+data SwaggerPetstoreRequest = SwaggerPetstoreRequest
+  { rMethod  :: NHTM.Method   -- ^ Method of SwaggerPetstoreRequest
+  , endpoint :: Text     -- ^ Endpoint of SwaggerPetstoreRequest
+  , params   :: [Params] -- ^ Request params of SwaggerPetstoreRequest
+  }
+data Params
+  = Query TupleBS8
+  | Body BSL.ByteString
+  deriving (Show)
+
+-- | Type alias for query parameters
+type TupleBS8 = (BS8.ByteString, BS8.ByteString)
+
+-- * Models
+
+
+-- ** ApiResponse
 
 data ApiResponse = ApiResponse
   { apiResponseCode :: Maybe Int
@@ -62,7 +85,7 @@ mkApiResponse =
 
 
 
--- * Category
+-- ** Category
 
 data Category = Category
   { categoryId :: Maybe Integer
@@ -93,7 +116,7 @@ mkCategory =
 
 
 
--- * Order
+-- ** Order
 
 data Order = Order
   { orderId :: Maybe Integer
@@ -140,7 +163,7 @@ mkOrder =
 
 
 
--- * Pet
+-- ** Pet
 
 data Pet = Pet
   { petId :: Maybe Integer
@@ -189,7 +212,7 @@ mkPet petName petPhotoUrls =
 
 
 
--- * Tag
+-- ** Tag
 
 data Tag = Tag
   { tagId :: Maybe Integer
@@ -220,7 +243,7 @@ mkTag =
 
 
 
--- * User
+-- ** User
 
 data User = User
   { userId :: Maybe Integer
