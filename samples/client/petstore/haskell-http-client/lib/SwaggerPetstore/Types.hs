@@ -1,16 +1,10 @@
-{-# LANGUAGE CPP #-}
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE DeriveGeneric #-}
-{-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards #-}
-{-# LANGUAGE ScopedTypeVariables #-}
 {-# OPTIONS_GHC -fno-warn-unused-matches -fno-warn-unused-binds -fno-warn-unused-imports #-}
 
--- |
--- Module      : SwaggerPetstore.Types
 module SwaggerPetstore.Types where
 
 import Data.Aeson (FromJSON(..), ToJSON(..))
@@ -39,10 +33,17 @@ data SwaggerPetstoreRequest = SwaggerPetstoreRequest
   , endpoint :: Text     -- ^ Endpoint of SwaggerPetstoreRequest
   , params   :: [Params] -- ^ Request params of SwaggerPetstoreRequest
   }
+  deriving (Show)
+
 data Params
   = Query TupleBS8
   | Body BSL.ByteString
   deriving (Show)
+
+data ResultFormatType
+  = FormatJson
+  | FormatXml
+  deriving (Show, Eq)
 
 -- | Type alias for query parameters
 type TupleBS8 = (BS8.ByteString, BS8.ByteString)
@@ -298,7 +299,7 @@ mkUser =
 
 
 
--- * Utilities
+-- * Utils
 
 -- | Removes Null fields.  OpenAPI-Specification 2.0 does not allow Null in JSON.
 omitNulls :: [(Text, Value)] -> Value

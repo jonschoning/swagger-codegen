@@ -243,6 +243,7 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
         additionalProperties.put("titleLower", firstLetterToLower(apiName));
         additionalProperties.put("package", cabalName);
         additionalProperties.put("requestType", apiName + "Request");
+        additionalProperties.put("configType", apiName + "Config");
         additionalProperties.put("swaggerVersion", swagger.getSwagger());
 
         additionalProperties.put("appDescriptionEscaped", swagger.getInfo().getDescription()

@@ -1,17 +1,6 @@
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE DeriveTraversable #-}
-{-# LANGUAGE DeriveFunctor #-}
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE DataKinds #-}
-{-# LANGUAGE CPP #-}
-{-# LANGUAGE OverloadedLists #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE DeriveDataTypeable #-}
-{-# LANGUAGE DeriveGeneric #-}
-{-# LANGUAGE KindSignatures #-}
+{-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE RecordWildCards #-}
-
 {-# OPTIONS_GHC -fno-warn-unused-binds -fno-warn-unused-imports #-}
 
 module SwaggerPetstore.API where
@@ -30,66 +19,131 @@ import GHC.Generics (Generic)
 import Web.FormUrlEncoded as WF
 import Web.HttpApiData as WH
 
+import Control.Monad.Logger
+
 import qualified Data.Map as Map
 import qualified Data.Text as T
 
+import qualified Data.ByteString.Char8 as BS8
+import qualified Data.ByteString.Lazy.Char8 as BSL
 
--- | FormData for operation updatePetWithForm
-data FormUpdatePetWithForm = FormUpdatePetWithForm
-  { updatePetWithFormName :: Maybe Text -- ^ Updated name of the pet
-  , updatePetWithFormStatus :: Maybe Text -- ^ Updated status of the pet
-  } deriving (Show, Eq, Generic)
+import           Network.HTTP.Client
+import           Network.HTTP.Client.TLS
+import qualified Network.HTTP.Types.Method as NHTM
 
-instance FromForm FormUpdatePetWithForm where
-  fromForm inputs = FormUpdatePetWithForm <$> WF.parseMaybe "name" inputs <*> WF.parseMaybe "status" inputs
+-- * Config
 
-instance ToForm FormUpdatePetWithForm where
-  toForm value =
-    [ ("name", toQueryParam $ updatePetWithFormName value)
-    , ("status", toQueryParam $ updatePetWithFormStatus value)
-    ]
--- | FormData for operation uploadFile
-data FormUploadFile = FormUploadFile
-  { uploadFileAdditionalMetadata :: Maybe Text -- ^ Additional data to pass to server
-  , uploadFileFile :: Maybe FilePath -- ^ file to upload
-  } deriving (Show, Eq, Generic)
+data SwaggerPetstoreConfig = SwaggerPetstoreConfig
+  { host  :: Text
+  , execLoggingT :: ExecLoggingT
+  , filterLoggingT :: LogSource -> LogLevel -> Bool
+  }
 
-instance FromForm FormUploadFile where
-  fromForm inputs = FormUploadFile <$> WF.parseMaybe "additionalMetadata" inputs <*> WF.parseMaybe "file" inputs
+mkSwaggerPetstoreConfig :: SwaggerPetstoreConfig
+mkSwaggerPetstoreConfig =
+  SwaggerPetstoreConfig
+  { host = "http://petstore.swagger.io/v2"
+  , execLoggingT = runNullLoggingT
+  , filterLoggingT = infoLevelFilter
+  }
 
-instance ToForm FormUploadFile where
-  toForm value =
-    [ ("additionalMetadata", toQueryParam $ uploadFileAdditionalMetadata value)
-    , ("file", toQueryParam $ uploadFileFile value)
-    ]
+withStdoutLogging :: SwaggerPetstoreConfig -> SwaggerPetstoreConfig
+withStdoutLogging p = p { execLoggingT = runStdoutLoggingT}
 
--- | List of elements parsed from a query.
-newtype QueryList (p :: CollectionFormat) a = QueryList
-  { fromQueryList :: [a]
-  } deriving (Functor, Applicative, Monad, Foldable, Traversable)
+withStderrLogging :: SwaggerPetstoreConfig -> SwaggerPetstoreConfig
+withStderrLogging p = p { execLoggingT = runStderrLoggingT}
 
--- | Formats in which a list can be encoded into a HTTP path.
-data CollectionFormat
-  = CommaSeparated -- ^ CSV format for multiple parameters.
-  | SpaceSeparated -- ^ Also called "SSV"
-  | TabSeparated -- ^ Also called "TSV"
-  | PipeSeparated -- ^ `value1|value2|value2`
-  | MultiParamArray -- ^ Using multiple GET parameters, e.g. `foo=bar&foo=baz`. Only for GET params.
+withNoLogging :: SwaggerPetstoreConfig -> SwaggerPetstoreConfig
+withNoLogging p = p { execLoggingT = runNullLoggingT}
 
-instance FromHttpApiData a => FromHttpApiData (QueryList 'CommaSeparated a) where parseQueryParam = parseSeparatedQueryList ','
-instance FromHttpApiData a => FromHttpApiData (QueryList 'TabSeparated a) where parseQueryParam = parseSeparatedQueryList '\t'
-instance FromHttpApiData a => FromHttpApiData (QueryList 'SpaceSeparated a) where parseQueryParam = parseSeparatedQueryList ' '
-instance FromHttpApiData a => FromHttpApiData (QueryList 'PipeSeparated a) where parseQueryParam = parseSeparatedQueryList '|'
-instance FromHttpApiData a => FromHttpApiData (QueryList 'MultiParamArray a) where parseQueryParam = error "unimplemented FromHttpApiData for MultiParamArray collection format"
+-- * Dispatch
 
-instance ToHttpApiData a => ToHttpApiData (QueryList 'CommaSeparated a) where toQueryParam = formatSeparatedQueryList ','
-instance ToHttpApiData a => ToHttpApiData (QueryList 'TabSeparated a) where toQueryParam = formatSeparatedQueryList '\t'
-instance ToHttpApiData a => ToHttpApiData (QueryList 'SpaceSeparated a) where toQueryParam = formatSeparatedQueryList ' '
-instance ToHttpApiData a => ToHttpApiData (QueryList 'PipeSeparated a) where toQueryParam = formatSeparatedQueryList '|'
-instance ToHttpApiData a => ToHttpApiData (QueryList 'MultiParamArray a) where toQueryParam = error "unimplemented ToHttpApiData for MultiParamArray collection format"
+dispatch' :: SwaggerPetstoreConfig
+          -> SwaggerPetstoreRequest
+          -> IO (Response BSL.ByteString)
+dispatch' SwaggerPetstoreConfig {..} SwaggerPetstoreRequest {..} = do
+  manager <- newManager tlsManagerSettings
+  initReq <- parseRequest $ T.unpack $ T.append host endpoint
+  let reqBody | rMethod == NHTM.methodGet = mempty
+              | otherwise = filterBody params
+      reqQuery  = paramsToByteString $ filterQuery params
+      req = initReq { method = rMethod
+                    , requestBody = RequestBodyLBS reqBody
+                    , queryString = reqQuery
+                    }
+  httpLbs req manager
 
-parseSeparatedQueryList :: FromHttpApiData a => Char -> Text -> Either Text (QueryList p a)
-parseSeparatedQueryList char = fmap QueryList . mapM parseQueryParam . T.split (== char)
+dispatchJson
+  :: (FromJSON a)
+  => SwaggerPetstoreConfig
+  -> SwaggerPetstoreRequest
+  -> IO (Either SwaggerPetstoreError a)
+dispatchJson config request = do
+  response <- dispatch' config request
+  let result = eitherDecode $ responseBody response
+  case result of
+    Left s -> return (Left (SwaggerPetstoreError s response))
+    (Right r) -> return (Right r)
 
-formatSeparatedQueryList :: ToHttpApiData a => Char ->  QueryList p a -> Text
-formatSeparatedQueryList char = T.intercalate (T.singleton char) . map toQueryParam . fromQueryList
+
+-- * Error
+
+data SwaggerPetstoreError =
+  SwaggerPetstoreError {
+    parseError   :: String
+  , reponseError :: Response BSL.ByteString
+  } deriving (Eq, Show)
+
+-- * Logging
+
+type ExecLoggingT = forall m. MonadIO m =>
+                              forall a. LoggingT m a -> m a
+
+-- ** Null Logger
+
+nullLogger :: Loc -> LogSource -> LogLevel -> LogStr -> IO ()
+nullLogger _ _ _ _ = return ()
+
+runNullLoggingT :: LoggingT m a -> m a
+runNullLoggingT = (`runLoggingT` nullLogger)
+
+-- ** Logging Filters
+
+errorLevelFilter :: LogSource -> LogLevel -> Bool
+errorLevelFilter = minLevelFilter LevelError
+
+infoLevelFilter :: LogSource -> LogLevel -> Bool
+infoLevelFilter = minLevelFilter LevelInfo
+
+debugLevelFilter :: LogSource -> LogLevel -> Bool
+debugLevelFilter = minLevelFilter LevelDebug
+
+minLevelFilter :: LogLevel -> LogSource -> LogLevel -> Bool
+minLevelFilter l _ l' = l' >= l
+
+
+-- * Util    
+
+-- | Conversion of a key value pair to a query parameterized string
+paramsToByteString
+    :: (Monoid m, IsString m)
+    => [(m, m)]
+    -> m
+paramsToByteString []           = mempty
+paramsToByteString ((x,y) : []) = x <> "=" <> y
+paramsToByteString ((x,y) : xs) =
+    mconcat [ x, "=", y, "&" ] <> paramsToByteString xs
+
+-- | Find the body from the list of [Params TupleBS8 BSL.ByteString]
+filterBody :: [Params] -> BSL.ByteString
+filterBody [] = ""
+filterBody xs = case [c | Body c <- xs] of
+               [] -> ""
+               [c] -> c
+               _ -> error "Bad input"
+
+-- | Find the query parameters from the list of
+-- [Params TupleBS8 BSL.ByteString]
+filterQuery :: [Params] -> [(BS8.ByteString, BS8.ByteString)]
+filterQuery [] = []
+filterQuery xs = [b | Query b <- xs]
