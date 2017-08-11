@@ -16,6 +16,7 @@ import GHC.Exts (IsString(..))
 
 import qualified Data.Map as Map
 import qualified Data.Text as T
+import qualified Data.Vector as V
 
 import qualified Data.ByteString.Char8 as BS8
 import qualified Data.ByteString.Lazy.Char8 as BSL
@@ -23,3 +24,33 @@ import qualified Data.ByteString.Lazy.Char8 as BSL
 import           Network.HTTP.Client
 import           Network.HTTP.Client.TLS
 import qualified Network.HTTP.Types.Method as NHTM
+
+import Prelude 
+
+-- * Request Params
+
+data {{requestType}} = {{requestType}}
+  { rMethod  :: NHTM.Method   -- ^ Method of {{requestType}}
+  , endpoint :: Text     -- ^ Endpoint of {{requestType}}
+  , params   :: [Params] -- ^ Request params of {{requestType}}
+  }
+  deriving (Show)
+
+mk{{requestType}} :: NHTM.Method
+                  -> Text
+                  -> [Params]
+                  -> {{requestType}}
+mk{{requestType}} m e p = {{requestType}} m e p
+
+data Params
+  = Query TupleBS8
+  | Body BSL.ByteString
+  deriving (Show)
+
+data ResultFormatType
+  = FormatJson
+  | FormatXml
+  deriving (Show, Eq)
+
+-- | Type alias for query parameters
+type TupleBS8 = (BS8.ByteString, BS8.ByteString)

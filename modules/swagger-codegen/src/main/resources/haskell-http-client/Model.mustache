@@ -17,7 +17,6 @@ import Data.Data (Data, Typeable)
 import Data.Text (Text)
 import GHC.Generics (Generic)
 import Control.Applicative
-import Prelude 
 
 import qualified Data.Map as Map
 import qualified Data.Text as T
@@ -29,30 +28,10 @@ import qualified Data.ByteString.Lazy.Char8 as BSL
 import           Network.HTTP.Client
 import qualified Network.HTTP.Types.Method as NHTM
 
+import Prelude 
+
 {{#imports}}import {{import}}
 {{/imports}}
-
--- * Request Params
-
-data {{requestType}} = {{requestType}}
-  { rMethod  :: NHTM.Method   -- ^ Method of {{requestType}}
-  , endpoint :: Text     -- ^ Endpoint of {{requestType}}
-  , params   :: [Params] -- ^ Request params of {{requestType}}
-  }
-  deriving (Show)
-
-data Params
-  = Query TupleBS8
-  | Body BSL.ByteString
-  deriving (Show)
-
-data ResultFormatType
-  = FormatJson
-  | FormatXml
-  deriving (Show, Eq)
-
--- | Type alias for query parameters
-type TupleBS8 = (BS8.ByteString, BS8.ByteString)
 
 -- * Models
 
@@ -72,7 +51,7 @@ data {{classname}} = {{classname}}
 instance FromJSON {{classname}} where
   parseJSON = withObject "{{classname}}" $ \o ->
     {{classname}}
-      <$>{{#vars}} o {{#required}}.: {{/required}}{{^required}}.:!{{/required}} "{{baseName}}" {{#hasMore}}
+      <$>{{#vars}} o {{#required}}.: {{/required}}{{^required}}{{#noJsonNulls}}.:!{{/noJsonNulls}}{{^noJsonNulls}}.:?{{/noJsonNulls}}{{/required}} "{{baseName}}" {{#hasMore}}
       <*>{{/hasMore}}{{/vars}}
 
 instance ToJSON {{classname}} where

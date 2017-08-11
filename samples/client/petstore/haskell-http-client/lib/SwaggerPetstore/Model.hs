@@ -17,7 +17,6 @@ import Data.Data (Data, Typeable)
 import Data.Text (Text)
 import GHC.Generics (Generic)
 import Control.Applicative
-import Prelude 
 
 import qualified Data.Map as Map
 import qualified Data.Text as T
@@ -29,28 +28,8 @@ import qualified Data.ByteString.Lazy.Char8 as BSL
 import           Network.HTTP.Client
 import qualified Network.HTTP.Types.Method as NHTM
 
+import Prelude 
 
--- * Request Params
-
-data SwaggerPetstoreRequest = SwaggerPetstoreRequest
-  { rMethod  :: NHTM.Method   -- ^ Method of SwaggerPetstoreRequest
-  , endpoint :: Text     -- ^ Endpoint of SwaggerPetstoreRequest
-  , params   :: [Params] -- ^ Request params of SwaggerPetstoreRequest
-  }
-  deriving (Show)
-
-data Params
-  = Query TupleBS8
-  | Body BSL.ByteString
-  deriving (Show)
-
-data ResultFormatType
-  = FormatJson
-  | FormatXml
-  deriving (Show, Eq)
-
--- | Type alias for query parameters
-type TupleBS8 = (BS8.ByteString, BS8.ByteString)
 
 -- * Models
 
@@ -66,9 +45,9 @@ data ApiResponse = ApiResponse
 instance FromJSON ApiResponse where
   parseJSON = withObject "ApiResponse" $ \o ->
     ApiResponse
-      <$> o .:! "code" 
-      <*> o .:! "type" 
-      <*> o .:! "message" 
+      <$> o .:? "code" 
+      <*> o .:? "type" 
+      <*> o .:? "message" 
 
 instance ToJSON ApiResponse where
   toJSON ApiResponse {..} =
@@ -100,8 +79,8 @@ data Category = Category
 instance FromJSON Category where
   parseJSON = withObject "Category" $ \o ->
     Category
-      <$> o .:! "id" 
-      <*> o .:! "name" 
+      <$> o .:? "id" 
+      <*> o .:? "name" 
 
 instance ToJSON Category where
   toJSON Category {..} =
@@ -135,12 +114,12 @@ data Order = Order
 instance FromJSON Order where
   parseJSON = withObject "Order" $ \o ->
     Order
-      <$> o .:! "id" 
-      <*> o .:! "petId" 
-      <*> o .:! "quantity" 
-      <*> o .:! "shipDate" 
-      <*> o .:! "status" 
-      <*> o .:! "complete" 
+      <$> o .:? "id" 
+      <*> o .:? "petId" 
+      <*> o .:? "quantity" 
+      <*> o .:? "shipDate" 
+      <*> o .:? "status" 
+      <*> o .:? "complete" 
 
 instance ToJSON Order where
   toJSON Order {..} =
@@ -182,12 +161,12 @@ data Pet = Pet
 instance FromJSON Pet where
   parseJSON = withObject "Pet" $ \o ->
     Pet
-      <$> o .:! "id" 
-      <*> o .:! "category" 
+      <$> o .:? "id" 
+      <*> o .:? "category" 
       <*> o .:  "name" 
       <*> o .:  "photoUrls" 
-      <*> o .:! "tags" 
-      <*> o .:! "status" 
+      <*> o .:? "tags" 
+      <*> o .:? "status" 
 
 instance ToJSON Pet where
   toJSON Pet {..} =
@@ -227,8 +206,8 @@ data Tag = Tag
 instance FromJSON Tag where
   parseJSON = withObject "Tag" $ \o ->
     Tag
-      <$> o .:! "id" 
-      <*> o .:! "name" 
+      <$> o .:? "id" 
+      <*> o .:? "name" 
 
 instance ToJSON Tag where
   toJSON Tag {..} =
@@ -264,14 +243,14 @@ data User = User
 instance FromJSON User where
   parseJSON = withObject "User" $ \o ->
     User
-      <$> o .:! "id" 
-      <*> o .:! "username" 
-      <*> o .:! "firstName" 
-      <*> o .:! "lastName" 
-      <*> o .:! "email" 
-      <*> o .:! "password" 
-      <*> o .:! "phone" 
-      <*> o .:! "userStatus" 
+      <$> o .:? "id" 
+      <*> o .:? "username" 
+      <*> o .:? "firstName" 
+      <*> o .:? "lastName" 
+      <*> o .:? "email" 
+      <*> o .:? "password" 
+      <*> o .:? "phone" 
+      <*> o .:? "userStatus" 
 
 instance ToJSON User where
   toJSON User {..} =

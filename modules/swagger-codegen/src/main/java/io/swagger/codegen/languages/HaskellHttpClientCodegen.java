@@ -35,6 +35,7 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
     protected String apiVersion = "0.0.1";
     protected String GENERATE_LENSES = "generateLenses";
     protected String DERIVING = "deriving";
+    protected String NO_JSON_NULLS = "noJsonNulls";
 //    protected String MODEL_IMPORTS = "modelImports";
 //    protected String MODEL_EXTENSIONS = "modelExtensions";
     private static final Pattern LEADING_UNDERSCORE = Pattern.compile("^_+");
@@ -184,6 +185,7 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
         //cliOptions.add(new CliOption(CodegenConstants.MODEL_PACKAGE, CodegenConstants.MODEL_PACKAGE_DESC));
         //cliOptions.add(new CliOption(CodegenConstants.API_PACKAGE, CodegenConstants.API_PACKAGE_DESC));
 
+        cliOptions.add(new CliOption(NO_JSON_NULLS, "fail when encountering JSON Null during model decoding"));
         cliOptions.add(new CliOption(GENERATE_LENSES, "Generate Lens optics for Models"));
         cliOptions.add(new CliOption(DERIVING, "Additional classes to include in the deriving() clause of Models"));
 //        cliOptions.add(new CliOption(MODEL_IMPORTS, "Additional imports in the Models file"));
