@@ -1,11 +1,15 @@
+{-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DeriveDataTypeable #-}
+{-# LANGUAGE DeriveFoldable #-}
 {-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DeriveTraversable #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# OPTIONS_GHC -fno-warn-unused-matches -fno-warn-unused-binds -fno-warn-unused-imports #-}
 
-module {{title}}.Types where
+module {{title}}.Model where
 
 import Data.Aeson (FromJSON(..), ToJSON(..))
 import Data.Aeson.Types 
@@ -63,7 +67,7 @@ type TupleBS8 = (BS8.ByteString, BS8.ByteString)
 data {{classname}} = {{classname}}
   { {{#vars}}{{name}} :: {{^required}}Maybe {{/required}}{{datatype}}{{#description}} -- ^ {{/description}}{{description}}{{#hasMore}}
   , {{/hasMore}}{{/vars}}
-  } deriving (Show, Eq, Data, Typeable, Generic)
+  } deriving (Show,Eq{{#deriving}},{{deriving}}{{/deriving}})
 
 instance FromJSON {{classname}} where
   parseJSON = withObject "{{classname}}" $ \o ->

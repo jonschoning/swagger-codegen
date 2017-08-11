@@ -10,7 +10,7 @@ import qualified Data.HashMap.Strict as HM
 import qualified Data.Set as Set
 
 import ApproxEq
-import SwaggerPetstore.Types
+import SwaggerPetstore.Model
 
 instance Arbitrary ApiResponse where
   arbitrary = ApiResponse <$> arbitrary <*> arbitrary <*> arbitrary 

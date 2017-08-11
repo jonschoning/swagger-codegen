@@ -7,9 +7,6 @@ version:        0.1.0.0
 synopsis:       Auto-generated swagger-petstore API Client
 description:    .
                 Client library for calling the swagger-petstore API based on http-client.
-                .
-                This is a sample server Petstore server.  You can find out more about Swagger at [http://swagger.io](http://swagger.io) or on [irc.freenode.net, #swagger](http://swagger.io/irc/).  For this sample, you can use the api key `special-key` to test the authorization filters.
-                .
                 host: petstore.swagger.io
                 .
                 base path: http://petstore.swagger.io/v2
@@ -52,7 +49,8 @@ library
     , monad-logger >=0.3 && <0.4
   exposed-modules:
       SwaggerPetstore.API
-      SwaggerPetstore.Types
+      SwaggerPetstore.Client
+      SwaggerPetstore.Model
       SwaggerPetstore.Lens
   other-modules:
       Paths_swagger_petstore

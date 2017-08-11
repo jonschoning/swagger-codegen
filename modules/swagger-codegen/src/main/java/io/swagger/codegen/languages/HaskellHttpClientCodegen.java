@@ -13,11 +13,30 @@ import io.swagger.models.properties.Property;
 import java.util.*;
 import java.util.regex.Pattern;
 
+import org.apache.commons.io.FileUtils;
+
+import io.swagger.codegen.CliOption;
+import io.swagger.codegen.CodegenConstants;
+import io.swagger.codegen.CodegenModel;
+import io.swagger.codegen.CodegenOperation;
+import io.swagger.codegen.CodegenProperty;
+import io.swagger.codegen.SupportingFile;
+import io.swagger.util.Json;
+import java.io.IOException;
+import java.io.File;
+import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.text.WordUtils;
+
 public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenConfig {
 
     // source folder where to write the files
     protected String sourceFolder = "src";
     protected String apiVersion = "0.0.1";
+    protected String GENERATE_LENSES = "generateLenses";
+    protected String DERIVING = "deriving";
+//    protected String MODEL_IMPORTS = "modelImports";
+//    protected String MODEL_EXTENSIONS = "modelExtensions";
     private static final Pattern LEADING_UNDERSCORE = Pattern.compile("^_+");
 
     /**
@@ -162,8 +181,13 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
         importMapping.clear();
         importMapping.put("Map", "qualified Data.Map as Map");
 
-        cliOptions.add(new CliOption(CodegenConstants.MODEL_PACKAGE, CodegenConstants.MODEL_PACKAGE_DESC));
-        cliOptions.add(new CliOption(CodegenConstants.API_PACKAGE, CodegenConstants.API_PACKAGE_DESC));
+        //cliOptions.add(new CliOption(CodegenConstants.MODEL_PACKAGE, CodegenConstants.MODEL_PACKAGE_DESC));
+        //cliOptions.add(new CliOption(CodegenConstants.API_PACKAGE, CodegenConstants.API_PACKAGE_DESC));
+
+        cliOptions.add(new CliOption(GENERATE_LENSES, "Generate Lens optics for Models"));
+        cliOptions.add(new CliOption(DERIVING, "Additional classes to include in the deriving() clause of Models"));
+//        cliOptions.add(new CliOption(MODEL_IMPORTS, "Additional imports in the Models file"));
+//        cliOptions.add(new CliOption(MODEL_EXTENSIONS, "Additional extensions in the Models file"));
     }
 
     /**
@@ -201,6 +225,23 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
     }
 
     @Override
+    public void processOpts() {
+        super.processOpts();
+        if (additionalProperties.containsKey(DERIVING)) {
+            String deriving = (String)additionalProperties.get(DERIVING);
+            additionalProperties.put(DERIVING, StringUtils.join(deriving.split(" "),","));
+        }
+//        if (additionalProperties.containsKey(MODEL_EXTENSIONS)) {
+//            String model_extensions = (String)additionalProperties.get(MODEL_EXTENSIONS);
+//            additionalProperties.put(MODEL_EXTENSIONS, model_extensions.split(" "));
+//        }
+//        if (additionalProperties.containsKey(DERIVING)) {
+//            String model_imports = (String)additionalProperties.get(MODEL_IMPORTS);
+//            additionalProperties.put(DERIVING, model_imports.split(" "));
+//        }
+    }
+
+    @Override
     public void preprocessSwagger(Swagger swagger) {
         // From the title, compute a reasonable name for the package and the API
         String title = swagger.getInfo().getTitle();
@@ -222,21 +263,25 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
         for (String word : words) {
             wordsLower.add(word.toLowerCase());
         }
-        String cabalName = joinStrings("-", wordsLower);
+        String cabalName = StringUtils.join(wordsLower,"-");
 
         // The API name is made by appending the capitalized words of the title
         List<String> wordsCaps = new ArrayList<String>();
         for (String word : words) {
             wordsCaps.add(firstLetterToUpper(word));
         }
-        String apiName = joinStrings("", wordsCaps);
+        String apiName = StringUtils.join(wordsCaps,"");
 
         // Set the filenames to write for the API
         supportingFiles.add(new SupportingFile("haskell-http-client.cabal.mustache", "", cabalName + ".cabal"));
         supportingFiles.add(new SupportingFile("package.mustache", "", "package.yaml"));
         supportingFiles.add(new SupportingFile("API.mustache", "lib/" + apiName, "API.hs"));
-        supportingFiles.add(new SupportingFile("Types.mustache", "lib/" + apiName, "Types.hs"));
-        supportingFiles.add(new SupportingFile("Lens.mustache", "lib/" + apiName, "Lens.hs"));
+        supportingFiles.add(new SupportingFile("Client.mustache", "lib/" + apiName, "Client.hs"));
+        supportingFiles.add(new SupportingFile("Model.mustache", "lib/" + apiName, "Model.hs"));
+
+        if (additionalProperties.containsKey(GENERATE_LENSES)) {
+            supportingFiles.add(new SupportingFile("Lens.mustache", "lib/" + apiName, "Lens.hs"));
+        }
 
 
         additionalProperties.put("title", apiName);
@@ -245,11 +290,6 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
         additionalProperties.put("requestType", apiName + "Request");
         additionalProperties.put("configType", apiName + "Config");
         additionalProperties.put("swaggerVersion", swagger.getSwagger());
-
-        additionalProperties.put("appDescriptionEscaped", swagger.getInfo().getDescription()
-            .replace("'","''")
-            .replace(("{"),"")
-            .replace("}",""));
 
         List<Map<String, Object>> replacements = new ArrayList<>();
         Object[] replacementChars = specialCharReplacements.keySet().toArray();
@@ -262,6 +302,14 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
             replacements.add(o);
         }
         additionalProperties.put("specialCharReplacements", replacements);
+
+        //copy input swagger to output folder
+        try {
+            String swaggerJson = Json.pretty(swagger);
+            FileUtils.writeStringToFile(new File(outputFolder + File.separator + "swagger.json"), swaggerJson);
+        } catch (IOException e) {
+            throw new RuntimeException(e.getMessage(), e.getCause());
+        }
 
         super.preprocessSwagger(swagger);
     }
@@ -334,21 +382,6 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
             return null;
         }
     }
-
-
-    // Intersperse a separator string between a list of strings, like String.join.
-    private String joinStrings(String sep, List<String> ss) {
-        StringBuilder sb = new StringBuilder();
-        for (String s : ss) {
-            if (sb.length() > 0) {
-                sb.append(sep);
-            }
-            sb.append(s);
-        }
-        return sb.toString();
-    }
-
-
 
     @Override
     public CodegenOperation fromOperation(String resourcePath, String httpMethod, Operation operation, Map<String, Model> definitions, Swagger swagger) {

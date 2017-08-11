@@ -8,8 +8,6 @@ synopsis:       Auto-generated {{package}} API Client
 description:    .
                 Client library for calling the {{package}} API based on http-client.
                 .
-                {{#appDescription}}{{{appDescriptionEscaped}}}{{/appDescription}}
-                .
                 base path: {{basePath}}
                 .
                 apiVersion: {{apiVersion}}
@@ -50,8 +48,9 @@ library
     , monad-logger >=0.3 && <0.4
   exposed-modules:
       {{title}}.API
-      {{title}}.Types
-      {{title}}.Lens
+      {{title}}.Client
+      {{title}}.Model
+      {{#generateLenses}}{{title}}.Lens{{/generateLenses}}
   default-language: Haskell2010
 
 test-suite tests

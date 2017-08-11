@@ -1,11 +1,15 @@
+{-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DeriveDataTypeable #-}
+{-# LANGUAGE DeriveFoldable #-}
 {-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DeriveTraversable #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# OPTIONS_GHC -fno-warn-unused-matches -fno-warn-unused-binds -fno-warn-unused-imports #-}
 
-module SwaggerPetstore.Types where
+module SwaggerPetstore.Model where
 
 import Data.Aeson (FromJSON(..), ToJSON(..))
 import Data.Aeson.Types 
@@ -57,7 +61,7 @@ data ApiResponse = ApiResponse
   { apiResponseCode :: Maybe Int
   , apiResponseType :: Maybe Text
   , apiResponseMessage :: Maybe Text
-  } deriving (Show, Eq, Data, Typeable, Generic)
+  } deriving (Show,Eq)
 
 instance FromJSON ApiResponse where
   parseJSON = withObject "ApiResponse" $ \o ->
@@ -91,7 +95,7 @@ mkApiResponse =
 data Category = Category
   { categoryId :: Maybe Integer
   , categoryName :: Maybe Text
-  } deriving (Show, Eq, Data, Typeable, Generic)
+  } deriving (Show,Eq)
 
 instance FromJSON Category where
   parseJSON = withObject "Category" $ \o ->
@@ -126,7 +130,7 @@ data Order = Order
   , orderShipDate :: Maybe Integer
   , orderStatus :: Maybe Text -- ^ Order Status
   , orderComplete :: Maybe Bool
-  } deriving (Show, Eq, Data, Typeable, Generic)
+  } deriving (Show,Eq)
 
 instance FromJSON Order where
   parseJSON = withObject "Order" $ \o ->
@@ -173,7 +177,7 @@ data Pet = Pet
   , petPhotoUrls :: [Text]
   , petTags :: Maybe [Tag]
   , petStatus :: Maybe Text -- ^ pet status in the store
-  } deriving (Show, Eq, Data, Typeable, Generic)
+  } deriving (Show,Eq)
 
 instance FromJSON Pet where
   parseJSON = withObject "Pet" $ \o ->
@@ -218,7 +222,7 @@ mkPet petName petPhotoUrls =
 data Tag = Tag
   { tagId :: Maybe Integer
   , tagName :: Maybe Text
-  } deriving (Show, Eq, Data, Typeable, Generic)
+  } deriving (Show,Eq)
 
 instance FromJSON Tag where
   parseJSON = withObject "Tag" $ \o ->
@@ -255,7 +259,7 @@ data User = User
   , userPassword :: Maybe Text
   , userPhone :: Maybe Text
   , userUserStatus :: Maybe Int -- ^ User Status
-  } deriving (Show, Eq, Data, Typeable, Generic)
+  } deriving (Show,Eq)
 
 instance FromJSON User where
   parseJSON = withObject "User" $ \o ->

@@ -10,7 +10,7 @@ import Control.Applicative
 import Data.Text (Text)
 import Prelude 
 
-import SwaggerPetstore.Types
+import SwaggerPetstore.Model
 
 -- * Type Aliases
 

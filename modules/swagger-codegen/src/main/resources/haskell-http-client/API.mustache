@@ -5,21 +5,14 @@
 
 module {{title}}.API where
 
-import {{title}}.Types
+import {{title}}.Model
 
-import Control.Monad.Except (ExceptT)
 import Control.Monad.IO.Class
 import Data.Aeson 
 import Data.Aeson.Types 
 import Data.Function ((&))
-import Data.Monoid ((<>))
 import Data.Text (Text)
 import GHC.Exts (IsString(..))
-import GHC.Generics (Generic)
-import Web.FormUrlEncoded as WF
-import Web.HttpApiData as WH
-
-import Control.Monad.Logger
 
 import qualified Data.Map as Map
 import qualified Data.Text as T
@@ -30,120 +23,3 @@ import qualified Data.ByteString.Lazy.Char8 as BSL
 import           Network.HTTP.Client
 import           Network.HTTP.Client.TLS
 import qualified Network.HTTP.Types.Method as NHTM
-
--- * Config
-
-data {{configType}} = {{configType}}
-  { host  :: Text
-  , execLoggingT :: ExecLoggingT
-  , filterLoggingT :: LogSource -> LogLevel -> Bool
-  }
-
-mk{{configType}} :: {{configType}}
-mk{{configType}} =
-  {{configType}}
-  { host = "{{basePath}}"
-  , execLoggingT = runNullLoggingT
-  , filterLoggingT = infoLevelFilter
-  }
-
-withStdoutLogging :: {{configType}} -> {{configType}}
-withStdoutLogging p = p { execLoggingT = runStdoutLoggingT}
-
-withStderrLogging :: {{configType}} -> {{configType}}
-withStderrLogging p = p { execLoggingT = runStderrLoggingT}
-
-withNoLogging :: {{configType}} -> {{configType}}
-withNoLogging p = p { execLoggingT = runNullLoggingT}
-
--- * Dispatch
-
-dispatch' :: {{configType}}
-          -> {{requestType}}
-          -> IO (Response BSL.ByteString)
-dispatch' {{configType}} {..} {{requestType}} {..} = do
-  manager <- newManager tlsManagerSettings
-  initReq <- parseRequest $ T.unpack $ T.append host endpoint
-  let reqBody | rMethod == NHTM.methodGet = mempty
-              | otherwise = filterBody params
-      reqQuery  = paramsToByteString $ filterQuery params
-      req = initReq { method = rMethod
-                    , requestBody = RequestBodyLBS reqBody
-                    , queryString = reqQuery
-                    }
-  httpLbs req manager
-
-dispatchJson
-  :: (FromJSON a)
-  => {{configType}}
-  -> {{requestType}}
-  -> IO (Either {{title}}Error a)
-dispatchJson config request = do
-  response <- dispatch' config request
-  let result = eitherDecode $ responseBody response
-  case result of
-    Left s -> return (Left ({{title}}Error s response))
-    (Right r) -> return (Right r)
-
-
--- * Error
-
-data {{title}}Error =
-  {{title}}Error {
-    parseError   :: String
-  , reponseError :: Response BSL.ByteString
-  } deriving (Eq, Show)
-
--- * Logging
-
-type ExecLoggingT = forall m. MonadIO m =>
-                              forall a. LoggingT m a -> m a
-
--- ** Null Logger
-
-nullLogger :: Loc -> LogSource -> LogLevel -> LogStr -> IO ()
-nullLogger _ _ _ _ = return ()
-
-runNullLoggingT :: LoggingT m a -> m a
-runNullLoggingT = (`runLoggingT` nullLogger)
-
--- ** Logging Filters
-
-errorLevelFilter :: LogSource -> LogLevel -> Bool
-errorLevelFilter = minLevelFilter LevelError
-
-infoLevelFilter :: LogSource -> LogLevel -> Bool
-infoLevelFilter = minLevelFilter LevelInfo
-
-debugLevelFilter :: LogSource -> LogLevel -> Bool
-debugLevelFilter = minLevelFilter LevelDebug
-
-minLevelFilter :: LogLevel -> LogSource -> LogLevel -> Bool
-minLevelFilter l _ l' = l' >= l
-
-
--- * Util    
-
--- | Conversion of a key value pair to a query parameterized string
-paramsToByteString
-    :: (Monoid m, IsString m)
-    => [(m, m)]
-    -> m
-paramsToByteString []           = mempty
-paramsToByteString ((x,y) : []) = x <> "=" <> y
-paramsToByteString ((x,y) : xs) =
-    mconcat [ x, "=", y, "&" ] <> paramsToByteString xs
-
--- | Find the body from the list of [Params TupleBS8 BSL.ByteString]
-filterBody :: [Params] -> BSL.ByteString
-filterBody [] = ""
-filterBody xs = case [c | Body c <- xs] of
-               [] -> ""
-               [c] -> c
-               _ -> error "Bad input"
-
--- | Find the query parameters from the list of
--- [Params TupleBS8 BSL.ByteString]
-filterQuery :: [Params] -> [(BS8.ByteString, BS8.ByteString)]
-filterQuery [] = []
-filterQuery xs = [b | Query b <- xs]

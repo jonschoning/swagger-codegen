@@ -5,10 +5,6 @@ description: ! '
 
     Client library for calling the {{package}} API based on http-client.
 
-
-    {{#appDescription}}{{{appDescriptionEscaped}}}{{/appDescription}}
-
-
     host: {{host}}
 
 
@@ -39,8 +35,9 @@ library:
   ghc-options: -Wall
   exposed-modules:
   - {{title}}.API
-  - {{title}}.Types
-  - {{title}}.Lens
+  - {{title}}.Client
+  - {{title}}.Model
+  {{#generateLenses}}- {{title}}.Lens{{/generateLenses}}
   dependencies:
   - aeson >=0.11.1 && <2.0
   - bytestring >=0.10.0 && <0.11

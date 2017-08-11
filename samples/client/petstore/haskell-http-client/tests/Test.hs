@@ -12,7 +12,7 @@ import Test.Hspec.QuickCheck (prop)
 import PropJSON
 import Instances ()
 
-import SwaggerPetstore.Types
+import SwaggerPetstore.Model
 
 main :: IO ()
 main =
