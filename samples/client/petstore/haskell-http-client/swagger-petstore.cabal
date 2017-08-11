@@ -25,6 +25,10 @@ license:        UnspecifiedLicense
 build-type:     Simple
 cabal-version:  >= 1.10
 
+extra-source-files:
+    README.md
+    swagger.json
+
 library
   hs-source-dirs:
       lib

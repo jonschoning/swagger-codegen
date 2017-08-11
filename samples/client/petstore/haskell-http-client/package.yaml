@@ -25,6 +25,9 @@ maintainer: author.name@email.com
 copyright: YEAR - AUTHOR
 license: UnspecifiedLicense
 homepage: https://github.com/swagger-api/swagger-codegen#readme
+extra-source-files:
+- README.md
+- swagger.json
 dependencies:
 - base >=4.6 && <5.0
 - transformers >=0.4.0.0
