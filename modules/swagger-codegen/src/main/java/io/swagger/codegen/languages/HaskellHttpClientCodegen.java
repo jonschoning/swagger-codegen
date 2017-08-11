@@ -266,6 +266,7 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
             wordsLower.add(word.toLowerCase());
         }
         String cabalName = StringUtils.join(wordsLower,"-");
+        String pathsName = StringUtils.join(wordsLower,"_");
 
         // The API name is made by appending the capitalized words of the title
         List<String> wordsCaps = new ArrayList<String>();
@@ -294,6 +295,7 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
         additionalProperties.put("title", apiName);
         additionalProperties.put("titleLower", firstLetterToLower(apiName));
         additionalProperties.put("package", cabalName);
+        additionalProperties.put("pathsName", pathsName);
         additionalProperties.put("requestType", apiName + "Request");
         additionalProperties.put("configType", apiName + "Config");
         additionalProperties.put("swaggerVersion", swagger.getSwagger());

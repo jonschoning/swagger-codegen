@@ -156,8 +156,8 @@ mkOrder =
 data Pet = Pet
   { petId :: Maybe Integer -- ^ "id"
   , petCategory :: Maybe Category -- ^ "category"
-  , petName :: Text -- ^ "name" - __(Required)__
-  , petPhotoUrls :: [Text] -- ^ "photoUrls" - __(Required)__
+  , petName :: Text -- ^ "name" - Required
+  , petPhotoUrls :: [Text] -- ^ "photoUrls" - Required
   , petTags :: Maybe [Tag] -- ^ "tags"
   , petStatus :: Maybe Text -- ^ "status" - pet status in the store
   } deriving (Show,Eq)
