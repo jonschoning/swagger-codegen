@@ -12,13 +12,6 @@ import qualified Data.Set as Set
 import ApproxEq
 import {{title}}.Model
 
-{{#models}}
-{{#model}}
-instance Arbitrary {{classname}} where
-  arbitrary = {{classname}} <$> {{#vars}}arbitrary {{#hasMore}}<*> {{/hasMore}}{{/vars}}
-
-{{/model}}
-{{/models}}
 instance Arbitrary Text where
   arbitrary = pack <$> arbitrary
 
@@ -44,3 +37,17 @@ hasNoDups = go Set.empty
 
 instance ApproxEq Day where
   (=~) = (==)
+
+-- * Models
+ 
+{{#models}}
+{{#model}}
+instance Arbitrary {{classname}} where
+  arbitrary =
+    {{classname}}
+    <$> {{#vars}}arbitrary -- {{name}} :: {{^required}}Maybe {{/required}}{{datatype}}
+    {{#hasMore}}<*> {{/hasMore}}{{/vars}}
+
+{{/model}}
+{{/models}}
+

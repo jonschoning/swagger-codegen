@@ -12,24 +12,6 @@ import qualified Data.Set as Set
 import ApproxEq
 import SwaggerPetstore.Model
 
-instance Arbitrary ApiResponse where
-  arbitrary = ApiResponse <$> arbitrary <*> arbitrary <*> arbitrary 
-
-instance Arbitrary Category where
-  arbitrary = Category <$> arbitrary <*> arbitrary 
-
-instance Arbitrary Order where
-  arbitrary = Order <$> arbitrary <*> arbitrary <*> arbitrary <*> arbitrary <*> arbitrary <*> arbitrary 
-
-instance Arbitrary Pet where
-  arbitrary = Pet <$> arbitrary <*> arbitrary <*> arbitrary <*> arbitrary <*> arbitrary <*> arbitrary 
-
-instance Arbitrary Tag where
-  arbitrary = Tag <$> arbitrary <*> arbitrary 
-
-instance Arbitrary User where
-  arbitrary = User <$> arbitrary <*> arbitrary <*> arbitrary <*> arbitrary <*> arbitrary <*> arbitrary <*> arbitrary <*> arbitrary 
-
 instance Arbitrary Text where
   arbitrary = pack <$> arbitrary
 
@@ -55,3 +37,64 @@ hasNoDups = go Set.empty
 
 instance ApproxEq Day where
   (=~) = (==)
+
+-- * Models
+ 
+instance Arbitrary ApiResponse where
+  arbitrary =
+    ApiResponse
+    <$> arbitrary -- apiResponseCode :: Maybe Int
+    <*> arbitrary -- apiResponseType :: Maybe Text
+    <*> arbitrary -- apiResponseMessage :: Maybe Text
+    
+
+instance Arbitrary Category where
+  arbitrary =
+    Category
+    <$> arbitrary -- categoryId :: Maybe Integer
+    <*> arbitrary -- categoryName :: Maybe Text
+    
+
+instance Arbitrary Order where
+  arbitrary =
+    Order
+    <$> arbitrary -- orderId :: Maybe Integer
+    <*> arbitrary -- orderPetId :: Maybe Integer
+    <*> arbitrary -- orderQuantity :: Maybe Int
+    <*> arbitrary -- orderShipDate :: Maybe Integer
+    <*> arbitrary -- orderStatus :: Maybe Text
+    <*> arbitrary -- orderComplete :: Maybe Bool
+    
+
+instance Arbitrary Pet where
+  arbitrary =
+    Pet
+    <$> arbitrary -- petId :: Maybe Integer
+    <*> arbitrary -- petCategory :: Maybe Category
+    <*> arbitrary -- petName :: Text
+    <*> arbitrary -- petPhotoUrls :: [Text]
+    <*> arbitrary -- petTags :: Maybe [Tag]
+    <*> arbitrary -- petStatus :: Maybe Text
+    
+
+instance Arbitrary Tag where
+  arbitrary =
+    Tag
+    <$> arbitrary -- tagId :: Maybe Integer
+    <*> arbitrary -- tagName :: Maybe Text
+    
+
+instance Arbitrary User where
+  arbitrary =
+    User
+    <$> arbitrary -- userId :: Maybe Integer
+    <*> arbitrary -- userUsername :: Maybe Text
+    <*> arbitrary -- userFirstName :: Maybe Text
+    <*> arbitrary -- userLastName :: Maybe Text
+    <*> arbitrary -- userEmail :: Maybe Text
+    <*> arbitrary -- userPassword :: Maybe Text
+    <*> arbitrary -- userPhone :: Maybe Text
+    <*> arbitrary -- userUserStatus :: Maybe Int
+    
+
+
