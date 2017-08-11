@@ -1,3 +1,7 @@
+{-|
+Module : {{title}}.Model
+-}
+
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE DeriveFoldable #-}
@@ -44,7 +48,7 @@ import Prelude
 -- Parent: '{{parent}}'{{/parent}}
 {{^vendorExtensions.x-customNewtype}}
 data {{classname}} = {{classname}}
-  { {{#vars}}{{name}} :: {{^required}}Maybe {{/required}}{{datatype}}{{#description}} -- ^ {{/description}}{{description}}{{#hasMore}}
+  { {{#vars}}{{name}} :: {{^required}}Maybe {{/required}}{{datatype}} -- ^ "{{baseName}}"{{#required}} - Required{{/required}}{{#readOnly}} - ReadOnly{{/readOnly}}{{#description}} - {{description}}{{/description}}{{#hasMore}}
   , {{/hasMore}}{{/vars}}
   } deriving (Show,Eq{{#deriving}},{{deriving}}{{/deriving}})
 

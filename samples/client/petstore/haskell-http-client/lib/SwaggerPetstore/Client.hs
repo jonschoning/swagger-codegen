@@ -1,3 +1,7 @@
+{-|
+Module : SwaggerPetstore.Client
+-}
+
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE RecordWildCards #-}

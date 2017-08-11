@@ -34,6 +34,7 @@ library:
   source-dirs: lib
   ghc-options: -Wall
   exposed-modules:
+  - SwaggerPetstore
   - SwaggerPetstore.API
   - SwaggerPetstore.Client
   - SwaggerPetstore.Model

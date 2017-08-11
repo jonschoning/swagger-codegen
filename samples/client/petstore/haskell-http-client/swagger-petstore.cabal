@@ -48,6 +48,7 @@ library
     , random >=1.1
     , monad-logger >=0.3 && <0.4
   exposed-modules:
+      SwaggerPetstore
       SwaggerPetstore.API
       SwaggerPetstore.Client
       SwaggerPetstore.Model

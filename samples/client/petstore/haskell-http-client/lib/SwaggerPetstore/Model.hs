@@ -1,3 +1,7 @@
+{-|
+Module : SwaggerPetstore.Model
+-}
+
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE DeriveFoldable #-}
@@ -37,9 +41,9 @@ import Prelude
 -- ** ApiResponse
 
 data ApiResponse = ApiResponse
-  { apiResponseCode :: Maybe Int
-  , apiResponseType :: Maybe Text
-  , apiResponseMessage :: Maybe Text
+  { apiResponseCode :: Maybe Int -- ^ "code"
+  , apiResponseType :: Maybe Text -- ^ "type"
+  , apiResponseMessage :: Maybe Text -- ^ "message"
   } deriving (Show,Eq)
 
 instance FromJSON ApiResponse where
@@ -72,8 +76,8 @@ mkApiResponse =
 -- ** Category
 
 data Category = Category
-  { categoryId :: Maybe Integer
-  , categoryName :: Maybe Text
+  { categoryId :: Maybe Integer -- ^ "id"
+  , categoryName :: Maybe Text -- ^ "name"
   } deriving (Show,Eq)
 
 instance FromJSON Category where
@@ -103,12 +107,12 @@ mkCategory =
 -- ** Order
 
 data Order = Order
-  { orderId :: Maybe Integer
-  , orderPetId :: Maybe Integer
-  , orderQuantity :: Maybe Int
-  , orderShipDate :: Maybe Integer
-  , orderStatus :: Maybe Text -- ^ Order Status
-  , orderComplete :: Maybe Bool
+  { orderId :: Maybe Integer -- ^ "id"
+  , orderPetId :: Maybe Integer -- ^ "petId"
+  , orderQuantity :: Maybe Int -- ^ "quantity"
+  , orderShipDate :: Maybe Integer -- ^ "shipDate"
+  , orderStatus :: Maybe Text -- ^ "status" - Order Status
+  , orderComplete :: Maybe Bool -- ^ "complete"
   } deriving (Show,Eq)
 
 instance FromJSON Order where
@@ -150,12 +154,12 @@ mkOrder =
 -- ** Pet
 
 data Pet = Pet
-  { petId :: Maybe Integer
-  , petCategory :: Maybe Category
-  , petName :: Text
-  , petPhotoUrls :: [Text]
-  , petTags :: Maybe [Tag]
-  , petStatus :: Maybe Text -- ^ pet status in the store
+  { petId :: Maybe Integer -- ^ "id"
+  , petCategory :: Maybe Category -- ^ "category"
+  , petName :: Text -- ^ "name" - __(Required)__
+  , petPhotoUrls :: [Text] -- ^ "photoUrls" - __(Required)__
+  , petTags :: Maybe [Tag] -- ^ "tags"
+  , petStatus :: Maybe Text -- ^ "status" - pet status in the store
   } deriving (Show,Eq)
 
 instance FromJSON Pet where
@@ -199,8 +203,8 @@ mkPet petName petPhotoUrls =
 -- ** Tag
 
 data Tag = Tag
-  { tagId :: Maybe Integer
-  , tagName :: Maybe Text
+  { tagId :: Maybe Integer -- ^ "id"
+  , tagName :: Maybe Text -- ^ "name"
   } deriving (Show,Eq)
 
 instance FromJSON Tag where
@@ -230,14 +234,14 @@ mkTag =
 -- ** User
 
 data User = User
-  { userId :: Maybe Integer
-  , userUsername :: Maybe Text
-  , userFirstName :: Maybe Text
-  , userLastName :: Maybe Text
-  , userEmail :: Maybe Text
-  , userPassword :: Maybe Text
-  , userPhone :: Maybe Text
-  , userUserStatus :: Maybe Int -- ^ User Status
+  { userId :: Maybe Integer -- ^ "id"
+  , userUsername :: Maybe Text -- ^ "username"
+  , userFirstName :: Maybe Text -- ^ "firstName"
+  , userLastName :: Maybe Text -- ^ "lastName"
+  , userEmail :: Maybe Text -- ^ "email"
+  , userPassword :: Maybe Text -- ^ "password"
+  , userPhone :: Maybe Text -- ^ "phone"
+  , userUserStatus :: Maybe Int -- ^ "userStatus" - User Status
   } deriving (Show,Eq)
 
 instance FromJSON User where

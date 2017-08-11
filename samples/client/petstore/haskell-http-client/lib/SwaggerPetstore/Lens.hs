@@ -1,3 +1,7 @@
+{-|
+Module : SwaggerPetstore.Lens
+-}
+
 {-# LANGUAGE KindSignatures #-}
 {-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE RankNTypes #-}
