@@ -233,14 +233,6 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
             String deriving = (String)additionalProperties.get(DERIVING);
             additionalProperties.put(DERIVING, StringUtils.join(deriving.split(" "),","));
         }
-//        if (additionalProperties.containsKey(MODEL_EXTENSIONS)) {
-//            String model_extensions = (String)additionalProperties.get(MODEL_EXTENSIONS);
-//            additionalProperties.put(MODEL_EXTENSIONS, model_extensions.split(" "));
-//        }
-//        if (additionalProperties.containsKey(DERIVING)) {
-//            String model_imports = (String)additionalProperties.get(MODEL_IMPORTS);
-//            additionalProperties.put(DERIVING, model_imports.split(" "));
-//        }
     }
 
     @Override
@@ -396,10 +388,13 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
     public CodegenOperation fromOperation(String resourcePath, String httpMethod, Operation operation, Map<String, Model> definitions, Swagger swagger) {
         CodegenOperation op = super.fromOperation(resourcePath, httpMethod, operation, definitions, swagger);
 
-        op.baseName = op.operationId;
+        op.vendorExtensions.put("x-baseOperationId", op.operationId);
+        op.vendorExtensions.put("x-haddockPath", String.format("%s %s", op.httpMethod, op.path.replace("/","\\/")));
         op.operationId = toHsVarName(op.operationId);
 
-        for (CodegenParameter param : op.allParams) { }
+        for (CodegenParameter param : op.allParams) {
+           if(!param.required)  { op.vendorExtensions.put("x-hasOptionalParams", true); }
+        }
         for (CodegenParameter param : op.bodyParams) { }
         if(op.getHasPathParams()) {
             String remainingPath = op.path;

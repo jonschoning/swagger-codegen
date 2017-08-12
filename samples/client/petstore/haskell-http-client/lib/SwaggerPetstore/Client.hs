@@ -68,7 +68,7 @@ dispatch' :: SwaggerPetstoreConfig
           -> IO (Response BSL.ByteString)
 dispatch' SwaggerPetstoreConfig {..} SwaggerPetstoreRequest {..} = do
   manager <- newManager tlsManagerSettings
-  initReq <- parseRequest $ T.unpack $ T.append host endpoint
+  initReq <- parseRequest $ T.unpack $ T.append host (T.concat endpoint)
   let reqBody | rMethod == NHTM.methodGet = mempty
               | otherwise = filterBody params
       reqQuery  = paramsToByteString $ filterQuery params
@@ -140,7 +140,7 @@ paramsToByteString ((x,y) : xs) =
     mconcat [ x, "=", y, "&" ] <> paramsToByteString xs
 
 -- | Find the body from the list of [Params TupleBS8 BSL.ByteString]
-filterBody :: [Params] -> BSL.ByteString
+filterBody :: [EncodedParam] -> BSL.ByteString
 filterBody [] = ""
 filterBody xs = case [c | Body c <- xs] of
                [] -> ""
@@ -149,6 +149,6 @@ filterBody xs = case [c | Body c <- xs] of
 
 -- | Find the query parameters from the list of
 -- [Params TupleBS8 BSL.ByteString]
-filterQuery :: [Params] -> [(BS8.ByteString, BS8.ByteString)]
+filterQuery :: [EncodedParam] -> [TupleBS8]
 filterQuery [] = []
 filterQuery xs = [b | Query b <- xs]

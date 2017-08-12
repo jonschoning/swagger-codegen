@@ -48,9 +48,9 @@ import Prelude
 -- Parent: '{{parent}}'{{/parent}}
 {{^vendorExtensions.x-customNewtype}}
 data {{classname}} = {{classname}}
-  { {{#vars}}{{name}} :: {{^required}}Maybe {{/required}}{{datatype}} -- ^ "{{baseName}}"{{#required}} - Required{{/required}}{{#readOnly}} - ReadOnly{{/readOnly}}{{#description}} - {{description}}{{/description}}{{#hasMore}}
+  { {{#vars}}{{name}} :: {{^required}}Maybe {{/required}}{{datatype}} -- ^ {{#required}}/Required/ {{/required}}{{#readOnly}}/ReadOnly/ {{/readOnly}}"{{baseName}}"{{#description}} - {{description}}{{/description}}{{#hasMore}}
   , {{/hasMore}}{{/vars}}
-  } deriving (Show,Eq{{#deriving}},{{deriving}}{{/deriving}})
+  } deriving (Show,Eq,Typeable{{#deriving}},{{deriving}}{{/deriving}})
 
 instance FromJSON {{classname}} where
   parseJSON = withObject "{{classname}}" $ \o ->
@@ -67,7 +67,7 @@ instance ToJSON {{classname}} where
 
 -- | Construct a value of type '{{classname}}' (by applying it's required fields, if any)
 mk{{classname}}
-  :: {{#requiredVars}}{{{datatype}}} -- ^ '{{name}}'{{#description}}:{{/description}} {{description}}
+  :: {{#requiredVars}}{{{datatype}}} -- ^ '{{name}}'{{#description}}:{{/description}} {{{description}}}
   -> {{/requiredVars}}{{classname}}
 mk{{classname}} {{#requiredVars}}{{name}} {{/requiredVars}}=
   {{classname}}

@@ -31,24 +31,64 @@ import qualified Network.HTTP.Types.Method as NHTM
 
 import Prelude 
 
--- * Request Params
+-- * Operations
+{{#apiInfo}}{{#apis}}{{#operations}}
+
+{{#operation}}
+-- ** {{operationId}}
+-- | {{{vendorExtensions.x-haddockPath}}}
+-- {{#summary}}
+-- {{{.}}}
+-- {{/summary}}{{#notes}}
+-- {{{.}}}
+-- {{/notes}}{{#hasAuthMethods}}
+-- AuthMethod: {{#authMethods}}{{{name}}}{{#hasMore}}, {{/hasMore}}{{/authMethods}}
+-- {{/hasAuthMethods}}{{#hasConsumes}}
+-- Consumes: {{#consumes}}{{{mediaType}}}{{#hasMore}}, {{/hasMore}}{{/consumes}}
+-- {{/hasConsumes}}{{#hasProduces}}
+-- Produces: {{#produces}}{{{mediaType}}}{{#hasMore}}, {{/hasMore}}{{/produces}}
+-- {{/hasProduces}}{{#vendorExtensions.x-hasOptionalParams}}
+-- Optional Params:
+-- {{#allParams}}{{^required}}
+-- * {{#readOnly}}/ReadOnly/ {{/readOnly}}"{{{baseName}}}" :: '{{dataType}}' {{#description}} - {{{description}}}{{/description}}
+-- {{/required}}{{/allParams}}{{/vendorExtensions.x-hasOptionalParams}}
+{{operationId}} 
+  :: {{#allParams}}{{#required}}{{{dataType}}} -- ^ "{{{paramName}}}"{{#description}} - {{/description}} {{{description}}}
+  -> {{/required}}{{/allParams}}{{vendorExtensions.x-returnType}}
+{{operationId}} {{#allParams}}{{#required}}{{{paramName}}} {{/required}}{{/allParams}}= undefined
+  where
+    request = mk{{requestType}} "{{httpMethod}}" url params
+    url = [{{#pathParams}}{{#vendorExtensions.x-pathPrefix}}"{{.}}",{{/vendorExtensions.x-pathPrefix}}toPath {{{paramName}}}{{#hasMore}},{{/hasMore}}{{/pathParams}}{{#vendorExtensions.x-pathSuffix}}{{#vendorExtensions.x-hasPathParams}},{{/vendorExtensions.x-hasPathParams}}"{{.}}"{{/vendorExtensions.x-pathSuffix}}]
+    params = []{{#isDeprecated}}
+{-# DEPRECATED {{operationId}} "" #-}{{/isDeprecated}}
+
+{{/operation}}
+{{/operations}}{{/apis}}{{/apiInfo}}
+
+-- * {{requestType}}
 
 data {{requestType}} = {{requestType}}
   { rMethod  :: NHTM.Method   -- ^ Method of {{requestType}}
-  , endpoint :: Text     -- ^ Endpoint of {{requestType}}
-  , params   :: [Params] -- ^ Request params of {{requestType}}
+  , endpoint :: [Text]     -- ^ Endpoint of {{requestType}}
+  , params   :: [EncodedParam] -- ^ Encoded params of {{requestType}}
   }
   deriving (Show)
 
 mk{{requestType}} :: NHTM.Method
                   -> [Text]
-                  -> [Params]
+                  -> [EncodedParam]
                   -> {{requestType}}
 mk{{requestType}} m e p = {{requestType}} m e p
 
-data Params
+-- | Type alias for query parameters
+type TupleBS8 = (BS8.ByteString, BS8.ByteString)
+
+-- * EncodedParam
+
+data EncodedParam
   = Query TupleBS8
   | Body BSL.ByteString
+  | Header TupleBS8
   deriving (Show)
 
 data ResultFormatType
@@ -56,29 +96,4 @@ data ResultFormatType
   | FormatXml
   deriving (Show, Eq)
 
--- | Type alias for query parameters
-type TupleBS8 = (BS8.ByteString, BS8.ByteString)
-
 toPath _ = "toPath"
-
--- * Operations
-{{#apiInfo}}{{#apis}}{{#operations}}
-
-{{#operation}}
--- | {{httpMethod}} {{path}}
--- {{baseName}}
-{{#summary}}-- {{.}}{{/summary}}
-{{#notes}}-- {{.}}{{/notes}}{{#allParams}}
--- {{baseName}} :: {{^required}}/Optional/ {{/required}}{{dataType}} {{#required}} - Required{{/required}}{{#readOnly}} - ReadOnly{{/readOnly}}{{#description}} - {{description}}{{/description}}{{/allParams}}
-{{operationId}} 
-  :: {{#allParams}}{{#required}}{{{dataType}}} -- ^ '{{{paramName}}}'{{#description}}:{{/description}} {{description}}
-  -> {{/required}}{{/allParams}}{{vendorExtensions.x-returnType}}
-{{operationId}} {{#allParams}}{{#required}}{{{paramName}}} {{/required}}{{/allParams}}= request
-  where
-    request = mk{{requestType}} "{{httpMethod}}" url params
-    url = [{{#pathParams}}{{#vendorExtensions.x-pathPrefix}}"{{.}}",{{/vendorExtensions.x-pathPrefix}}toPath {{{paramName}}}{{#hasMore}},{{/hasMore}}{{/pathParams}}{{#vendorExtensions.x-pathSuffix}}{{#vendorExtensions.x-hasPathParams}},{{/vendorExtensions.x-hasPathParams}}"{{.}}"{{/vendorExtensions.x-pathSuffix}}]
-    params = []{{#isDeprecated}}
-{-# DEPRECATED {{operationId}} #-}{{/isDeprecated}}
-
-{{/operation}}
-{{/operations}}{{/apis}}{{/apiInfo}}

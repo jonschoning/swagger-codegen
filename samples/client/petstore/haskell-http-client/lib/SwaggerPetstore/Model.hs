@@ -44,7 +44,7 @@ data ApiResponse = ApiResponse
   { apiResponseCode :: Maybe Int -- ^ "code"
   , apiResponseType :: Maybe Text -- ^ "type"
   , apiResponseMessage :: Maybe Text -- ^ "message"
-  } deriving (Show,Eq)
+  } deriving (Show,Eq,Typeable)
 
 instance FromJSON ApiResponse where
   parseJSON = withObject "ApiResponse" $ \o ->
@@ -78,7 +78,7 @@ mkApiResponse =
 data Category = Category
   { categoryId :: Maybe Integer -- ^ "id"
   , categoryName :: Maybe Text -- ^ "name"
-  } deriving (Show,Eq)
+  } deriving (Show,Eq,Typeable)
 
 instance FromJSON Category where
   parseJSON = withObject "Category" $ \o ->
@@ -113,7 +113,7 @@ data Order = Order
   , orderShipDate :: Maybe Integer -- ^ "shipDate"
   , orderStatus :: Maybe Text -- ^ "status" - Order Status
   , orderComplete :: Maybe Bool -- ^ "complete"
-  } deriving (Show,Eq)
+  } deriving (Show,Eq,Typeable)
 
 instance FromJSON Order where
   parseJSON = withObject "Order" $ \o ->
@@ -156,11 +156,11 @@ mkOrder =
 data Pet = Pet
   { petId :: Maybe Integer -- ^ "id"
   , petCategory :: Maybe Category -- ^ "category"
-  , petName :: Text -- ^ "name" - Required
-  , petPhotoUrls :: [Text] -- ^ "photoUrls" - Required
+  , petName :: Text -- ^ /Required/ "name"
+  , petPhotoUrls :: [Text] -- ^ /Required/ "photoUrls"
   , petTags :: Maybe [Tag] -- ^ "tags"
   , petStatus :: Maybe Text -- ^ "status" - pet status in the store
-  } deriving (Show,Eq)
+  } deriving (Show,Eq,Typeable)
 
 instance FromJSON Pet where
   parseJSON = withObject "Pet" $ \o ->
@@ -205,7 +205,7 @@ mkPet petName petPhotoUrls =
 data Tag = Tag
   { tagId :: Maybe Integer -- ^ "id"
   , tagName :: Maybe Text -- ^ "name"
-  } deriving (Show,Eq)
+  } deriving (Show,Eq,Typeable)
 
 instance FromJSON Tag where
   parseJSON = withObject "Tag" $ \o ->
@@ -242,7 +242,7 @@ data User = User
   , userPassword :: Maybe Text -- ^ "password"
   , userPhone :: Maybe Text -- ^ "phone"
   , userUserStatus :: Maybe Int -- ^ "userStatus" - User Status
-  } deriving (Show,Eq)
+  } deriving (Show,Eq,Typeable)
 
 instance FromJSON User where
   parseJSON = withObject "User" $ \o ->
