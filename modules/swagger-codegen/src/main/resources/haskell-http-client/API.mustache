@@ -54,8 +54,8 @@ import Prelude
 -- {{/required}}{{/allParams}}{{/vendorExtensions.x-hasOptionalParams}}
 {{operationId}} 
   :: {{#allParams}}{{#required}}{{{dataType}}} -- ^ "{{{paramName}}}"{{#description}} - {{/description}} {{{description}}}
-  -> {{/required}}{{/allParams}}{{vendorExtensions.x-returnType}}
-{{operationId}} {{#allParams}}{{#required}}{{{paramName}}} {{/required}}{{/allParams}}= undefined
+  -> {{/required}}{{/allParams}}{{requestType}} {{vendorExtensions.x-returnType}}
+{{operationId}} {{#allParams}}{{#required}}{{{paramName}}} {{/required}}{{/allParams}}= request
   where
     request = mk{{requestType}} "{{httpMethod}}" url params
     url = [{{#pathParams}}{{#vendorExtensions.x-pathPrefix}}"{{.}}",{{/vendorExtensions.x-pathPrefix}}toPath {{{paramName}}}{{#hasMore}},{{/hasMore}}{{/pathParams}}{{#vendorExtensions.x-pathSuffix}}{{#vendorExtensions.x-hasPathParams}},{{/vendorExtensions.x-hasPathParams}}"{{.}}"{{/vendorExtensions.x-pathSuffix}}]
@@ -67,7 +67,7 @@ import Prelude
 
 -- * {{requestType}}
 
-data {{requestType}} = {{requestType}}
+data {{requestType}} r = {{requestType}}
   { rMethod  :: NHTM.Method   -- ^ Method of {{requestType}}
   , endpoint :: [Text]     -- ^ Endpoint of {{requestType}}
   , params   :: [EncodedParam] -- ^ Encoded params of {{requestType}}
@@ -77,7 +77,7 @@ data {{requestType}} = {{requestType}}
 mk{{requestType}} :: NHTM.Method
                   -> [Text]
                   -> [EncodedParam]
-                  -> {{requestType}}
+                  -> {{requestType}} r
 mk{{requestType}} m e p = {{requestType}} m e p
 
 -- | Type alias for query parameters

@@ -49,8 +49,8 @@ import Prelude
 -- 
 addPet 
   :: Pet -- ^ "body" -  Pet object that needs to be added to the store
-  -> ()
-addPet body = undefined
+  -> SwaggerPetstoreRequest ()
+addPet body = request
   where
     request = mkSwaggerPetstoreRequest "POST" url params
     url = ["/pet"]
@@ -73,8 +73,8 @@ addPet body = undefined
 -- 
 deletePet 
   :: Integer -- ^ "petId" -  Pet id to delete
-  -> ()
-deletePet petId = undefined
+  -> SwaggerPetstoreRequest ()
+deletePet petId = request
   where
     request = mkSwaggerPetstoreRequest "DELETE" url params
     url = ["/pet/",toPath petId]
@@ -93,8 +93,8 @@ deletePet petId = undefined
 -- 
 findPetsByStatus 
   :: [Text] -- ^ "status" -  Status values that need to be considered for filter
-  -> [Pet]
-findPetsByStatus status = undefined
+  -> SwaggerPetstoreRequest [Pet]
+findPetsByStatus status = request
   where
     request = mkSwaggerPetstoreRequest "GET" url params
     url = ["/pet/findByStatus"]
@@ -113,8 +113,8 @@ findPetsByStatus status = undefined
 -- 
 findPetsByTags 
   :: [Text] -- ^ "tags" -  Tags to filter by
-  -> [Pet]
-findPetsByTags tags = undefined
+  -> SwaggerPetstoreRequest [Pet]
+findPetsByTags tags = request
   where
     request = mkSwaggerPetstoreRequest "GET" url params
     url = ["/pet/findByTags"]
@@ -134,8 +134,8 @@ findPetsByTags tags = undefined
 -- 
 getPetById 
   :: Integer -- ^ "petId" -  ID of pet to return
-  -> Pet
-getPetById petId = undefined
+  -> SwaggerPetstoreRequest Pet
+getPetById petId = request
   where
     request = mkSwaggerPetstoreRequest "GET" url params
     url = ["/pet/",toPath petId]
@@ -156,8 +156,8 @@ getPetById petId = undefined
 -- 
 updatePet 
   :: Pet -- ^ "body" -  Pet object that needs to be added to the store
-  -> ()
-updatePet body = undefined
+  -> SwaggerPetstoreRequest ()
+updatePet body = request
   where
     request = mkSwaggerPetstoreRequest "PUT" url params
     url = ["/pet"]
@@ -184,8 +184,8 @@ updatePet body = undefined
 -- 
 updatePetWithForm 
   :: Integer -- ^ "petId" -  ID of pet that needs to be updated
-  -> ()
-updatePetWithForm petId = undefined
+  -> SwaggerPetstoreRequest ()
+updatePetWithForm petId = request
   where
     request = mkSwaggerPetstoreRequest "POST" url params
     url = ["/pet/",toPath petId]
@@ -212,8 +212,8 @@ updatePetWithForm petId = undefined
 -- 
 uploadFile 
   :: Integer -- ^ "petId" -  ID of pet to update
-  -> ApiResponse
-uploadFile petId = undefined
+  -> SwaggerPetstoreRequest ApiResponse
+uploadFile petId = request
   where
     request = mkSwaggerPetstoreRequest "POST" url params
     url = ["/pet/",toPath petId,"/uploadImage"]
@@ -232,8 +232,8 @@ uploadFile petId = undefined
 -- 
 deleteOrder 
   :: Integer -- ^ "orderId" -  ID of the order that needs to be deleted
-  -> ()
-deleteOrder orderId = undefined
+  -> SwaggerPetstoreRequest ()
+deleteOrder orderId = request
   where
     request = mkSwaggerPetstoreRequest "DELETE" url params
     url = ["/store/order/",toPath orderId]
@@ -251,8 +251,8 @@ deleteOrder orderId = undefined
 -- Produces: application/json
 -- 
 getInventory 
-  :: (Map.Map String Int)
-getInventory = undefined
+  :: SwaggerPetstoreRequest (Map.Map String Int)
+getInventory = request
   where
     request = mkSwaggerPetstoreRequest "GET" url params
     url = ["/store/inventory"]
@@ -269,8 +269,8 @@ getInventory = undefined
 -- 
 getOrderById 
   :: Integer -- ^ "orderId" -  ID of pet that needs to be fetched
-  -> Order
-getOrderById orderId = undefined
+  -> SwaggerPetstoreRequest Order
+getOrderById orderId = request
   where
     request = mkSwaggerPetstoreRequest "GET" url params
     url = ["/store/order/",toPath orderId]
@@ -287,8 +287,8 @@ getOrderById orderId = undefined
 -- 
 placeOrder 
   :: Order -- ^ "body" -  order placed for purchasing the pet
-  -> Order
-placeOrder body = undefined
+  -> SwaggerPetstoreRequest Order
+placeOrder body = request
   where
     request = mkSwaggerPetstoreRequest "POST" url params
     url = ["/store/order"]
@@ -307,8 +307,8 @@ placeOrder body = undefined
 -- 
 createUser 
   :: User -- ^ "body" -  Created user object
-  -> ()
-createUser body = undefined
+  -> SwaggerPetstoreRequest ()
+createUser body = request
   where
     request = mkSwaggerPetstoreRequest "POST" url params
     url = ["/user"]
@@ -325,8 +325,8 @@ createUser body = undefined
 -- 
 createUsersWithArrayInput 
   :: [User] -- ^ "body" -  List of user object
-  -> ()
-createUsersWithArrayInput body = undefined
+  -> SwaggerPetstoreRequest ()
+createUsersWithArrayInput body = request
   where
     request = mkSwaggerPetstoreRequest "POST" url params
     url = ["/user/createWithArray"]
@@ -343,8 +343,8 @@ createUsersWithArrayInput body = undefined
 -- 
 createUsersWithListInput 
   :: [User] -- ^ "body" -  List of user object
-  -> ()
-createUsersWithListInput body = undefined
+  -> SwaggerPetstoreRequest ()
+createUsersWithListInput body = request
   where
     request = mkSwaggerPetstoreRequest "POST" url params
     url = ["/user/createWithList"]
@@ -361,8 +361,8 @@ createUsersWithListInput body = undefined
 -- 
 deleteUser 
   :: Text -- ^ "username" -  The name that needs to be deleted
-  -> ()
-deleteUser username = undefined
+  -> SwaggerPetstoreRequest ()
+deleteUser username = request
   where
     request = mkSwaggerPetstoreRequest "DELETE" url params
     url = ["/user/",toPath username]
@@ -379,8 +379,8 @@ deleteUser username = undefined
 -- 
 getUserByName 
   :: Text -- ^ "username" -  The name that needs to be fetched. Use user1 for testing. 
-  -> User
-getUserByName username = undefined
+  -> SwaggerPetstoreRequest User
+getUserByName username = request
   where
     request = mkSwaggerPetstoreRequest "GET" url params
     url = ["/user/",toPath username]
@@ -398,8 +398,8 @@ getUserByName username = undefined
 loginUser 
   :: Text -- ^ "username" -  The user name for login
   -> Text -- ^ "password" -  The password for login in clear text
-  -> Text
-loginUser username password = undefined
+  -> SwaggerPetstoreRequest Text
+loginUser username password = request
   where
     request = mkSwaggerPetstoreRequest "GET" url params
     url = ["/user/login"]
@@ -415,8 +415,8 @@ loginUser username password = undefined
 -- Produces: application/xml, application/json
 -- 
 logoutUser 
-  :: ()
-logoutUser = undefined
+  :: SwaggerPetstoreRequest ()
+logoutUser = request
   where
     request = mkSwaggerPetstoreRequest "GET" url params
     url = ["/user/logout"]
@@ -434,8 +434,8 @@ logoutUser = undefined
 updateUser 
   :: Text -- ^ "username" -  name that need to be updated
   -> User -- ^ "body" -  Updated user object
-  -> ()
-updateUser username body = undefined
+  -> SwaggerPetstoreRequest ()
+updateUser username body = request
   where
     request = mkSwaggerPetstoreRequest "PUT" url params
     url = ["/user/",toPath username]
@@ -445,7 +445,7 @@ updateUser username body = undefined
 
 -- * SwaggerPetstoreRequest
 
-data SwaggerPetstoreRequest = SwaggerPetstoreRequest
+data SwaggerPetstoreRequest r = SwaggerPetstoreRequest
   { rMethod  :: NHTM.Method   -- ^ Method of SwaggerPetstoreRequest
   , endpoint :: [Text]     -- ^ Endpoint of SwaggerPetstoreRequest
   , params   :: [EncodedParam] -- ^ Encoded params of SwaggerPetstoreRequest
@@ -455,7 +455,7 @@ data SwaggerPetstoreRequest = SwaggerPetstoreRequest
 mkSwaggerPetstoreRequest :: NHTM.Method
                   -> [Text]
                   -> [EncodedParam]
-                  -> SwaggerPetstoreRequest
+                  -> SwaggerPetstoreRequest r
 mkSwaggerPetstoreRequest m e p = SwaggerPetstoreRequest m e p
 
 -- | Type alias for query parameters

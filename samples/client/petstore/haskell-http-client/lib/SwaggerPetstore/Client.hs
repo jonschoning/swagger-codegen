@@ -23,6 +23,7 @@ import GHC.Exts (IsString(..))
 import GHC.Generics (Generic)
 import Web.FormUrlEncoded as WF
 import Web.HttpApiData as WH
+import Control.Monad.Catch (MonadThrow)
 
 import Control.Monad.Logger
 
@@ -63,26 +64,19 @@ withNoLogging p = p { execLoggingT = runNullLoggingT}
 
 -- * Dispatch
 
-dispatch' :: SwaggerPetstoreConfig
-          -> SwaggerPetstoreRequest
-          -> IO (Response BSL.ByteString)
-dispatch' SwaggerPetstoreConfig {..} SwaggerPetstoreRequest {..} = do
+dispatch' :: SwaggerPetstoreConfig -- ^ config
+          -> SwaggerPetstoreRequest r -- ^ request
+          -> IO (Response BSL.ByteString) -- ^ response
+dispatch' config request = do
+  (InitRequest req) <- toInitRequest config request
   manager <- newManager tlsManagerSettings
-  initReq <- parseRequest $ T.unpack $ T.append host (T.concat endpoint)
-  let reqBody | rMethod == NHTM.methodGet = mempty
-              | otherwise = filterBody params
-      reqQuery  = paramsToByteString $ filterQuery params
-      req = initReq { method = rMethod
-                    , requestBody = RequestBodyLBS reqBody
-                    , queryString = reqQuery
-                    }
   httpLbs req manager
 
 dispatchJson
-  :: (FromJSON a)
-  => SwaggerPetstoreConfig
-  -> SwaggerPetstoreRequest
-  -> IO (Either SwaggerPetstoreError a)
+  :: (FromJSON r)
+  => SwaggerPetstoreConfig -- ^ config
+  -> SwaggerPetstoreRequest r -- ^ request
+  -> IO (Either SwaggerPetstoreError r) -- ^ response
 dispatchJson config request = do
   response <- dispatch' config request
   let result = eitherDecode $ responseBody response
@@ -90,6 +84,27 @@ dispatchJson config request = do
     Left s -> return (Left (SwaggerPetstoreError s response))
     (Right r) -> return (Right r)
 
+-- * toInitRequest
+
+-- | wraps an http-client 'Request' with the return type parameter "r"
+newtype InitRequest r = InitRequest { unInitRequest :: Request }
+
+-- |  Build an http-client 'Request' record from the supplied config and request
+toInitRequest
+    :: MonadThrow m
+    => SwaggerPetstoreConfig -- ^ config
+    -> SwaggerPetstoreRequest r -- ^ request
+    -> m (InitRequest r) -- ^ initialized request
+toInitRequest SwaggerPetstoreConfig {..} SwaggerPetstoreRequest {..} = do
+  parsedReq <- parseRequest $ T.unpack $ T.append host (T.concat endpoint)
+  let reqBody | rMethod == NHTM.methodGet = mempty
+              | otherwise = filterBody params
+      reqQuery  = paramsToByteString $ filterQuery params
+      initReq = parsedReq { method = rMethod
+                          , requestBody = RequestBodyLBS reqBody
+                          , queryString = reqQuery
+                          }
+  return (InitRequest initReq)
 
 -- * Error
 
