@@ -397,18 +397,14 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
         CodegenOperation op = super.fromOperation(resourcePath, httpMethod, operation, definitions, swagger);
 
         op.baseName = op.operationId;
-        op.operationId = toVarName(camelize(fixOperatorChars(fixModelChars(op.operationId)), true));
+        op.operationId = toHsVarName(op.operationId);
 
-        for (CodegenParameter param : op.allParams) {
-            param.paramName = toVarName(camelize(fixOperatorChars(fixModelChars(param.paramName)), true));
-        }
-        for (CodegenParameter param : op.bodyParams) {
-            param.paramName = toVarName(camelize(fixOperatorChars(fixModelChars(param.paramName)), true));
-        }
+        for (CodegenParameter param : op.allParams) { }
+        for (CodegenParameter param : op.bodyParams) { }
         if(op.getHasPathParams()) {
             String remainingPath = op.path;
             for (CodegenParameter param : op.pathParams) {
-                param.paramName = toVarName(camelize(fixOperatorChars(fixModelChars(param.paramName)), true));
+                param.paramName = toHsVarName(param.paramName);
                 String[] pieces = remainingPath.split("\\{"+param.baseName+"\\}");
                 if(pieces.length == 0) throw new RuntimeException("paramName {"+param.baseName+"} not in path " + op.path);
                 if(pieces.length > 2) throw new RuntimeException("paramName {"+param.baseName+"} found multiple times in path " + op.path);
@@ -431,15 +427,9 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
             op.vendorExtensions.put("x-hasPathParams", false);
             op.vendorExtensions.put("x-pathSuffix", op.path);
         }
-        for (CodegenParameter param : op.queryParams) {
-            param.paramName = toVarName(camelize(fixOperatorChars(fixModelChars(param.paramName)), true));
-        }
-        for (CodegenParameter param : op.headerParams) {
-            param.paramName = toVarName(camelize(fixOperatorChars(fixModelChars(param.paramName)), true));
-        }
-        for (CodegenParameter param : op.formParams) {
-            param.paramName = toVarName(camelize(fixOperatorChars(fixModelChars(param.paramName)), true));
-        }
+        for (CodegenParameter param : op.queryParams) { }
+        for (CodegenParameter param : op.headerParams) { }
+        for (CodegenParameter param : op.formParams) { }
 
         String returnType = op.returnType;
         if (returnType == null || returnType.equals("null")) {
@@ -450,10 +440,11 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
         }
         op.vendorExtensions.put("x-returnType", returnType);
 
-//        for(CodegenParameter param : op.formParams) {
-//            param.vendorExtensions.put("x-formPrefix", camelize(op.operationId, true));
-//        }
         return op;
+    }
+
+    private String toHsVarName(String paramName) {
+        return toVarName(camelize(fixOperatorChars(fixModelChars(paramName)), true));
     }
 
     private String fixOperatorChars(String string) {
@@ -520,7 +511,7 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
     @Override
     public CodegenParameter fromParameter(Parameter param, Set<String> imports) {
         CodegenParameter p = super.fromParameter(param, imports);
-        p.paramName = camelize(p.baseName);
+        p.paramName = toHsVarName(p.baseName);
         p.dataType = fixModelChars(p.dataType);
         return p;
     }

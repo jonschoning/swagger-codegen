@@ -41,7 +41,7 @@ data {{requestType}} = {{requestType}}
   deriving (Show)
 
 mk{{requestType}} :: NHTM.Method
-                  -> Text
+                  -> [Text]
                   -> [Params]
                   -> {{requestType}}
 mk{{requestType}} m e p = {{requestType}} m e p
@@ -65,17 +65,18 @@ toPath _ = "toPath"
 {{#apiInfo}}{{#apis}}{{#operations}}
 
 {{#operation}}
--- | {{path}}
+-- | {{httpMethod}} {{path}}
+-- {{baseName}}
 {{#summary}}-- {{.}}{{/summary}}
 {{#notes}}-- {{.}}{{/notes}}{{#allParams}}
--- {{baseName}} :: {{^required}}Maybe {{/required}}{{dataType}} {{#required}} - Required{{/required}}{{#readOnly}} - ReadOnly{{/readOnly}}{{#description}} - {{description}}{{/description}}{{/allParams}}
+-- {{baseName}} :: {{^required}}/Optional/ {{/required}}{{dataType}} {{#required}} - Required{{/required}}{{#readOnly}} - ReadOnly{{/readOnly}}{{#description}} - {{description}}{{/description}}{{/allParams}}
 {{operationId}} 
   :: {{#allParams}}{{#required}}{{{dataType}}} -- ^ '{{{paramName}}}'{{#description}}:{{/description}} {{description}}
   -> {{/required}}{{/allParams}}{{vendorExtensions.x-returnType}}
 {{operationId}} {{#allParams}}{{#required}}{{{paramName}}} {{/required}}{{/allParams}}= request
   where
     request = mk{{requestType}} "{{httpMethod}}" url params
-    url = T.concat [{{#pathParams}}{{#vendorExtensions.x-pathPrefix}}"{{.}}",{{/vendorExtensions.x-pathPrefix}}toPath {{{paramName}}}{{#hasMore}},{{/hasMore}}{{/pathParams}}{{#vendorExtensions.x-pathSuffix}}{{#vendorExtensions.x-hasPathParams}},{{/vendorExtensions.x-hasPathParams}}"{{.}}"{{/vendorExtensions.x-pathSuffix}}]
+    url = [{{#pathParams}}{{#vendorExtensions.x-pathPrefix}}"{{.}}",{{/vendorExtensions.x-pathPrefix}}toPath {{{paramName}}}{{#hasMore}},{{/hasMore}}{{/pathParams}}{{#vendorExtensions.x-pathSuffix}}{{#vendorExtensions.x-hasPathParams}},{{/vendorExtensions.x-hasPathParams}}"{{.}}"{{/vendorExtensions.x-pathSuffix}}]
     params = []{{#isDeprecated}}
 {-# DEPRECATED {{operationId}} #-}{{/isDeprecated}}
 
