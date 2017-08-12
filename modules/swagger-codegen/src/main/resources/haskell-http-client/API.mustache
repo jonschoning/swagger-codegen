@@ -58,3 +58,26 @@ data ResultFormatType
 
 -- | Type alias for query parameters
 type TupleBS8 = (BS8.ByteString, BS8.ByteString)
+
+toPath _ = "toPath"
+
+-- * Operations
+{{#apiInfo}}{{#apis}}{{#operations}}
+
+{{#operation}}
+-- | {{path}}
+{{#summary}}-- {{.}}{{/summary}}
+{{#notes}}-- {{.}}{{/notes}}{{#allParams}}
+-- {{baseName}} :: {{^required}}Maybe {{/required}}{{dataType}} {{#required}} - Required{{/required}}{{#readOnly}} - ReadOnly{{/readOnly}}{{#description}} - {{description}}{{/description}}{{/allParams}}
+{{operationId}} 
+  :: {{#allParams}}{{#required}}{{{dataType}}} -- ^ '{{{paramName}}}'{{#description}}:{{/description}} {{description}}
+  -> {{/required}}{{/allParams}}{{vendorExtensions.x-returnType}}
+{{operationId}} {{#allParams}}{{#required}}{{{paramName}}} {{/required}}{{/allParams}}= request
+  where
+    request = mk{{requestType}} "{{httpMethod}}" url params
+    url = T.concat [{{#pathParams}}{{#vendorExtensions.x-pathPrefix}}"{{.}}",{{/vendorExtensions.x-pathPrefix}}toPath {{{paramName}}}{{#hasMore}},{{/hasMore}}{{/pathParams}}{{#vendorExtensions.x-pathSuffix}}{{#vendorExtensions.x-hasPathParams}},{{/vendorExtensions.x-hasPathParams}}"{{.}}"{{/vendorExtensions.x-pathSuffix}}]
+    params = []{{#isDeprecated}}
+{-# DEPRECATED {{operationId}} #-}{{/isDeprecated}}
+
+{{/operation}}
+{{/operations}}{{/apis}}{{/apiInfo}}

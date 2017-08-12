@@ -7,7 +7,7 @@ module Main where
 
 import Data.Typeable (Proxy(..))
 import Test.Hspec
-import Test.Hspec.QuickCheck (prop)
+import Test.Hspec.QuickCheck
 
 import PropJSON
 import Instances ()
@@ -16,7 +16,7 @@ import SwaggerPetstore.Model
 
 main :: IO ()
 main =
-  hspec $
+  hspec $ modifyMaxSize (const 10) $
   do describe "JSON instances" $
        do propJSONEq (Proxy :: Proxy ApiResponse)
           propJSONEq (Proxy :: Proxy Category)

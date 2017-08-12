@@ -396,10 +396,63 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
     public CodegenOperation fromOperation(String resourcePath, String httpMethod, Operation operation, Map<String, Model> definitions, Swagger swagger) {
         CodegenOperation op = super.fromOperation(resourcePath, httpMethod, operation, definitions, swagger);
 
-        op.vendorExtensions.put("x-formName", "Form" + camelize(op.operationId));
-        for(CodegenParameter param : op.formParams) {
-            param.vendorExtensions.put("x-formPrefix", camelize(op.operationId, true));
+        op.baseName = op.operationId;
+        op.operationId = toVarName(camelize(fixOperatorChars(fixModelChars(op.operationId)), true));
+
+        for (CodegenParameter param : op.allParams) {
+            param.paramName = toVarName(camelize(fixOperatorChars(fixModelChars(param.paramName)), true));
         }
+        for (CodegenParameter param : op.bodyParams) {
+            param.paramName = toVarName(camelize(fixOperatorChars(fixModelChars(param.paramName)), true));
+        }
+        if(op.getHasPathParams()) {
+            String remainingPath = op.path;
+            for (CodegenParameter param : op.pathParams) {
+                param.paramName = toVarName(camelize(fixOperatorChars(fixModelChars(param.paramName)), true));
+                String[] pieces = remainingPath.split("\\{"+param.baseName+"\\}");
+                if(pieces.length == 0) throw new RuntimeException("paramName {"+param.baseName+"} not in path " + op.path);
+                if(pieces.length > 2) throw new RuntimeException("paramName {"+param.baseName+"} found multiple times in path " + op.path);
+                if(pieces.length == 2) {
+                    param.vendorExtensions.put("x-pathPrefix", pieces[0]);
+                    remainingPath = pieces[1];
+                } else {
+                    if(remainingPath.startsWith("{"+param.baseName+"}")) {
+                        remainingPath = pieces[0];
+                    }
+                    else {
+                        param.vendorExtensions.put("x-pathPrefix", pieces[0]);
+                        remainingPath = "";
+                    }
+                }
+            }
+            op.vendorExtensions.put("x-hasPathParams", true);
+            if(remainingPath.length() > 0) { op.vendorExtensions.put("x-pathSuffix", remainingPath); }
+        } else {
+            op.vendorExtensions.put("x-hasPathParams", false);
+            op.vendorExtensions.put("x-pathSuffix", op.path);
+        }
+        for (CodegenParameter param : op.queryParams) {
+            param.paramName = toVarName(camelize(fixOperatorChars(fixModelChars(param.paramName)), true));
+        }
+        for (CodegenParameter param : op.headerParams) {
+            param.paramName = toVarName(camelize(fixOperatorChars(fixModelChars(param.paramName)), true));
+        }
+        for (CodegenParameter param : op.formParams) {
+            param.paramName = toVarName(camelize(fixOperatorChars(fixModelChars(param.paramName)), true));
+        }
+
+        String returnType = op.returnType;
+        if (returnType == null || returnType.equals("null")) {
+            returnType = "()";
+        }
+        if (returnType.indexOf(" ") >= 0) {
+            returnType = "(" + returnType + ")";
+        }
+        op.vendorExtensions.put("x-returnType", returnType);
+
+//        for(CodegenParameter param : op.formParams) {
+//            param.vendorExtensions.put("x-formPrefix", camelize(op.operationId, true));
+//        }
         return op;
     }
 
@@ -448,22 +501,18 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
             prop.name = toVarName(prefix + camelize(fixOperatorChars(prop.name)));
         }
 
-        // Create newtypes for things with non-object types
         //String dataOrNewtype = "data";
         // check if it's a ModelImpl before casting 
         if (!(mod instanceof ModelImpl)) {
             return model;
         }
 
-        String modelType = ((ModelImpl)  mod).getType();
-        if(modelType != "object" && typeMapping.containsKey(modelType)) {
-            String newtype = typeMapping.get(modelType);
-            model.vendorExtensions.put("x-customNewtype", newtype);
-        }
-
-        // Provide the prefix as a vendor extension, so that it can be used in the ToJSON and FromJSON instances.
-        model.vendorExtensions.put("x-prefix", prefix);
-        //model.vendorExtensions.put("x-data", dataOrNewtype);
+          // Create newtypes for things with non-object types
+//        String modelType = ((ModelImpl)  mod).getType();
+//        if(modelType != "object" && typeMapping.containsKey(modelType)) {
+//            String newtype = typeMapping.get(modelType);
+//            model.vendorExtensions.put("x-customNewtype", newtype);
+//        }
 
         return model;
     }
@@ -471,7 +520,7 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
     @Override
     public CodegenParameter fromParameter(Parameter param, Set<String> imports) {
         CodegenParameter p = super.fromParameter(param, imports);
-        p.vendorExtensions.put("x-formParamName", camelize(p.baseName));
+        p.paramName = camelize(p.baseName);
         p.dataType = fixModelChars(p.dataType);
         return p;
     }
