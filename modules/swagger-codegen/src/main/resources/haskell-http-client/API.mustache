@@ -5,6 +5,7 @@ Module : {{title}}.API
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 {-# OPTIONS_GHC -fno-warn-unused-binds -fno-warn-unused-imports #-}
 
 module {{title}}.API where
@@ -54,7 +55,7 @@ import Prelude
 -- {{/required}}{{/allParams}}{{/vendorExtensions.x-hasOptionalParams}}
 {{operationId}} 
   :: {{#allParams}}{{#required}}{{{dataType}}} -- ^ "{{{paramName}}}"{{#description}} - {{/description}} {{{description}}}
-  -> {{/required}}{{/allParams}}{{requestType}} {{vendorExtensions.x-returnType}}
+  -> {{/required}}{{/allParams}}{{requestType}} {{{vendorExtensions.x-operationType}}} {{vendorExtensions.x-returnType}}
 {{operationId}} {{#allParams}}{{#required}}{{{paramName}}} {{/required}}{{/allParams}}= request
   where
     request = mk{{requestType}} "{{httpMethod}}" url params
@@ -62,12 +63,13 @@ import Prelude
     params = []{{#isDeprecated}}
 {-# DEPRECATED {{operationId}} "" #-}{{/isDeprecated}}
 
+data {{{vendorExtensions.x-operationType}}}
 {{/operation}}
 {{/operations}}{{/apis}}{{/apiInfo}}
 
 -- * {{requestType}}
-
-data {{requestType}} r = {{requestType}}
+-- | Represents a request. The "req" type variable is the request type. The "res" type variable is the response type.
+data {{requestType}} req res = {{requestType}}
   { rMethod  :: NHTM.Method   -- ^ Method of {{requestType}}
   , endpoint :: [Text]     -- ^ Endpoint of {{requestType}}
   , params   :: [EncodedParam] -- ^ Encoded params of {{requestType}}
@@ -77,14 +79,44 @@ data {{requestType}} r = {{requestType}}
 mk{{requestType}} :: NHTM.Method
                   -> [Text]
                   -> [EncodedParam]
-                  -> {{requestType}} r
+                  -> {{requestType}} req res
 mk{{requestType}} m e p = {{requestType}} m e p
 
 -- | Type alias for query parameters
 type TupleBS8 = (BS8.ByteString, BS8.ByteString)
 
--- * EncodedParam
+-- * Params
 
+-- ** HasOptionalParam
+-- | Designates the optional parameters of a request
+class (ToEncodedParam param) => HasOptionalParam request param where
+
+-- ** addOptionalParam
+-- | Add an optional parameter to a request
+addOptionalParam
+  :: HasOptionalParam req param
+  => {{requestType}} req res -> param -> {{requestType}} req res
+addOptionalParam request param =
+  request
+  { params = toEncodedParam param (params request)
+  }
+
+-- ** (-&-)
+-- | infix operator \/ alias for 'addOptionalParam'
+-- Add an optional parameter to a request
+(-&-)
+  :: HasOptionalParam req param
+  => {{requestType}} req res -> param -> {{requestType}} req res
+request -&- param = addOptionalParam request param
+{-# INLINE (-&-) #-}
+
+-- ** ToEncodedParam
+-- | Encodes request parameters to their "wire" encoding
+class ToEncodedParam param where
+  toEncodedParam :: param -> [EncodedParam] -> [EncodedParam]
+
+-- ** EncodedParam
+-- | The "wire" encoding of a param
 data EncodedParam
   = Query TupleBS8
   | Body BSL.ByteString

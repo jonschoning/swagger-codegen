@@ -391,6 +391,7 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
         op.vendorExtensions.put("x-baseOperationId", op.operationId);
         op.vendorExtensions.put("x-haddockPath", String.format("%s %s", op.httpMethod, op.path.replace("/","\\/")));
         op.operationId = toHsVarName(op.operationId);
+        op.vendorExtensions.put("x-operationType", camelize(op.operationId));
 
         for (CodegenParameter param : op.allParams) {
            if(!param.required)  { op.vendorExtensions.put("x-hasOptionalParams", true); }

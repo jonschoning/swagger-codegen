@@ -65,7 +65,7 @@ withNoLogging p = p { execLoggingT = runNullLoggingT}
 -- * Dispatch
 
 dispatch' :: SwaggerPetstoreConfig -- ^ config
-          -> SwaggerPetstoreRequest r -- ^ request
+          -> SwaggerPetstoreRequest req res -- ^ request
           -> IO (Response BSL.ByteString) -- ^ response
 dispatch' config request = do
   (InitRequest req) <- toInitRequest config request
@@ -73,10 +73,10 @@ dispatch' config request = do
   httpLbs req manager
 
 dispatchJson
-  :: (FromJSON r)
+  :: (FromJSON res)
   => SwaggerPetstoreConfig -- ^ config
-  -> SwaggerPetstoreRequest r -- ^ request
-  -> IO (Either SwaggerPetstoreError r) -- ^ response
+  -> SwaggerPetstoreRequest req res -- ^ request
+  -> IO (Either SwaggerPetstoreError res) -- ^ response
 dispatchJson config request = do
   response <- dispatch' config request
   let result = eitherDecode $ responseBody response
@@ -84,7 +84,7 @@ dispatchJson config request = do
     Left s -> return (Left (SwaggerPetstoreError s response))
     (Right r) -> return (Right r)
 
--- * toInitRequest
+-- * InitRequest
 
 -- | wraps an http-client 'Request' with the return type parameter "r"
 newtype InitRequest r = InitRequest { unInitRequest :: Request }
@@ -93,7 +93,7 @@ newtype InitRequest r = InitRequest { unInitRequest :: Request }
 toInitRequest
     :: MonadThrow m
     => SwaggerPetstoreConfig -- ^ config
-    -> SwaggerPetstoreRequest r -- ^ request
+    -> SwaggerPetstoreRequest req res -- ^ request
     -> m (InitRequest r) -- ^ initialized request
 toInitRequest SwaggerPetstoreConfig {..} SwaggerPetstoreRequest {..} = do
   parsedReq <- parseRequest $ T.unpack $ T.append host (T.concat endpoint)

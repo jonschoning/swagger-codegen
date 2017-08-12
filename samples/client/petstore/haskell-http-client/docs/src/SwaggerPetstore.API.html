@@ -5,474 +5,521 @@ Module : SwaggerPetstore.API
 </span><a name="line-5"></a><span class="hs-pragma">{-# LANGUAGE OverloadedStrings #-}</span><span>
 </span><a name="line-6"></a><span class="hs-pragma">{-# LANGUAGE RankNTypes #-}</span><span>
 </span><a name="line-7"></a><span class="hs-pragma">{-# LANGUAGE RecordWildCards #-}</span><span>
-</span><a name="line-8"></a><span class="hs-pragma">{-# OPTIONS_GHC -fno-warn-unused-binds -fno-warn-unused-imports #-}</span><span>
-</span><a name="line-9"></a><span>
-</span><a name="line-10"></a><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">SwaggerPetstore</span><span class="hs-operator">.</span><span class="hs-identifier">API</span><span> </span><span class="hs-keyword">where</span><span>
-</span><a name="line-11"></a><span>
-</span><a name="line-12"></a><span class="hs-keyword">import</span><span> </span><a href="SwaggerPetstore.Model.html"><span class="hs-identifier">SwaggerPetstore</span><span class="hs-operator">.</span><span class="hs-identifier">Model</span></a><span>
-</span><a name="line-13"></a><span>
-</span><a name="line-14"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Control</span><span class="hs-operator">.</span><span class="hs-identifier">Monad</span><span class="hs-operator">.</span><span class="hs-identifier">IO</span><span class="hs-operator">.</span><span class="hs-identifier">Class</span><span>
-</span><a name="line-15"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Data</span><span class="hs-operator">.</span><span class="hs-identifier">Aeson</span><span> </span><span>
-</span><a name="line-16"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Data</span><span class="hs-operator">.</span><span class="hs-identifier">Aeson</span><span class="hs-operator">.</span><span class="hs-identifier">Types</span><span> </span><span>
-</span><a name="line-17"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Data</span><span class="hs-operator">.</span><span class="hs-identifier">Function</span><span> </span><span class="hs-special">(</span><span class="hs-special">(</span><span class="hs-operator hs-var">&amp;</span><span class="hs-special">)</span><span class="hs-special">)</span><span>
-</span><a name="line-18"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Data</span><span class="hs-operator">.</span><span class="hs-identifier">Text</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-type">Text</span><span class="hs-special">)</span><span>
-</span><a name="line-19"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">GHC</span><span class="hs-operator">.</span><span class="hs-identifier">Exts</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-type">IsString</span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">)</span><span>
-</span><a name="line-20"></a><span>
-</span><a name="line-21"></a><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-identifier">Data</span><span class="hs-operator">.</span><span class="hs-identifier">Map</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="hs-identifier">Map</span><span>
-</span><a name="line-22"></a><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-identifier">Data</span><span class="hs-operator">.</span><span class="hs-identifier">Text</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="hs-identifier">T</span><span>
-</span><a name="line-23"></a><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-identifier">Data</span><span class="hs-operator">.</span><span class="hs-identifier">Vector</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="hs-identifier">V</span><span>
-</span><a name="line-24"></a><span>
-</span><a name="line-25"></a><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-identifier">Data</span><span class="hs-operator">.</span><span class="hs-identifier">ByteString</span><span class="hs-operator">.</span><span class="hs-identifier">Char8</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="hs-identifier">BS8</span><span>
-</span><a name="line-26"></a><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-identifier">Data</span><span class="hs-operator">.</span><span class="hs-identifier">ByteString</span><span class="hs-operator">.</span><span class="hs-identifier">Lazy</span><span class="hs-operator">.</span><span class="hs-identifier">Char8</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="hs-identifier">BSL</span><span>
-</span><a name="line-27"></a><span>
-</span><a name="line-28"></a><span class="hs-keyword">import</span><span>           </span><span class="hs-identifier">Network</span><span class="hs-operator">.</span><span class="hs-identifier">HTTP</span><span class="hs-operator">.</span><span class="hs-identifier">Client</span><span>
-</span><a name="line-29"></a><span class="hs-keyword">import</span><span>           </span><span class="hs-identifier">Network</span><span class="hs-operator">.</span><span class="hs-identifier">HTTP</span><span class="hs-operator">.</span><span class="hs-identifier">Client</span><span class="hs-operator">.</span><span class="hs-identifier">TLS</span><span>
-</span><a name="line-30"></a><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-identifier">Network</span><span class="hs-operator">.</span><span class="hs-identifier">HTTP</span><span class="hs-operator">.</span><span class="hs-identifier">Types</span><span class="hs-operator">.</span><span class="hs-identifier">Method</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="hs-identifier">NHTM</span><span>
-</span><a name="line-31"></a><span>
-</span><a name="line-32"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Prelude</span><span> </span><span>
-</span><a name="line-33"></a><span>
-</span><a name="line-34"></a><span class="hs-comment">-- * Operations</span><span>
-</span><a name="line-35"></a><span>
+</span><a name="line-8"></a><span class="hs-pragma">{-# LANGUAGE MultiParamTypeClasses #-}</span><span>
+</span><a name="line-9"></a><span class="hs-pragma">{-# OPTIONS_GHC -fno-warn-unused-binds -fno-warn-unused-imports #-}</span><span>
+</span><a name="line-10"></a><span>
+</span><a name="line-11"></a><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">SwaggerPetstore</span><span class="hs-operator">.</span><span class="hs-identifier">API</span><span> </span><span class="hs-keyword">where</span><span>
+</span><a name="line-12"></a><span>
+</span><a name="line-13"></a><span class="hs-keyword">import</span><span> </span><a href="SwaggerPetstore.Model.html"><span class="hs-identifier">SwaggerPetstore</span><span class="hs-operator">.</span><span class="hs-identifier">Model</span></a><span>
+</span><a name="line-14"></a><span>
+</span><a name="line-15"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Control</span><span class="hs-operator">.</span><span class="hs-identifier">Monad</span><span class="hs-operator">.</span><span class="hs-identifier">IO</span><span class="hs-operator">.</span><span class="hs-identifier">Class</span><span>
+</span><a name="line-16"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Data</span><span class="hs-operator">.</span><span class="hs-identifier">Aeson</span><span> </span><span>
+</span><a name="line-17"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Data</span><span class="hs-operator">.</span><span class="hs-identifier">Aeson</span><span class="hs-operator">.</span><span class="hs-identifier">Types</span><span> </span><span>
+</span><a name="line-18"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Data</span><span class="hs-operator">.</span><span class="hs-identifier">Function</span><span> </span><span class="hs-special">(</span><span class="hs-special">(</span><span class="hs-operator hs-var">&amp;</span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><a name="line-19"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Data</span><span class="hs-operator">.</span><span class="hs-identifier">Text</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-type">Text</span><span class="hs-special">)</span><span>
+</span><a name="line-20"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">GHC</span><span class="hs-operator">.</span><span class="hs-identifier">Exts</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-type">IsString</span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><a name="line-21"></a><span>
+</span><a name="line-22"></a><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-identifier">Data</span><span class="hs-operator">.</span><span class="hs-identifier">Map</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="hs-identifier">Map</span><span>
+</span><a name="line-23"></a><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-identifier">Data</span><span class="hs-operator">.</span><span class="hs-identifier">Text</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="hs-identifier">T</span><span>
+</span><a name="line-24"></a><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-identifier">Data</span><span class="hs-operator">.</span><span class="hs-identifier">Vector</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="hs-identifier">V</span><span>
+</span><a name="line-25"></a><span>
+</span><a name="line-26"></a><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-identifier">Data</span><span class="hs-operator">.</span><span class="hs-identifier">ByteString</span><span class="hs-operator">.</span><span class="hs-identifier">Char8</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="hs-identifier">BS8</span><span>
+</span><a name="line-27"></a><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-identifier">Data</span><span class="hs-operator">.</span><span class="hs-identifier">ByteString</span><span class="hs-operator">.</span><span class="hs-identifier">Lazy</span><span class="hs-operator">.</span><span class="hs-identifier">Char8</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="hs-identifier">BSL</span><span>
+</span><a name="line-28"></a><span>
+</span><a name="line-29"></a><span class="hs-keyword">import</span><span>           </span><span class="hs-identifier">Network</span><span class="hs-operator">.</span><span class="hs-identifier">HTTP</span><span class="hs-operator">.</span><span class="hs-identifier">Client</span><span>
+</span><a name="line-30"></a><span class="hs-keyword">import</span><span>           </span><span class="hs-identifier">Network</span><span class="hs-operator">.</span><span class="hs-identifier">HTTP</span><span class="hs-operator">.</span><span class="hs-identifier">Client</span><span class="hs-operator">.</span><span class="hs-identifier">TLS</span><span>
+</span><a name="line-31"></a><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-identifier">Network</span><span class="hs-operator">.</span><span class="hs-identifier">HTTP</span><span class="hs-operator">.</span><span class="hs-identifier">Types</span><span class="hs-operator">.</span><span class="hs-identifier">Method</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="hs-identifier">NHTM</span><span>
+</span><a name="line-32"></a><span>
+</span><a name="line-33"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Prelude</span><span> </span><span>
+</span><a name="line-34"></a><span>
+</span><a name="line-35"></a><span class="hs-comment">-- * Operations</span><span>
 </span><a name="line-36"></a><span>
-</span><a name="line-37"></a><span class="hs-comment">-- ** addPet</span><span>
-</span><a name="line-38"></a><span class="hs-comment">-- | POST \/pet</span><span>
-</span><a name="line-39"></a><span class="hs-comment">-- </span><span>
-</span><a name="line-40"></a><span class="hs-comment">-- Add a new pet to the store</span><span>
-</span><a name="line-41"></a><span class="hs-comment">-- </span><span>
+</span><a name="line-37"></a><span>
+</span><a name="line-38"></a><span class="hs-comment">-- ** addPet</span><span>
+</span><a name="line-39"></a><span class="hs-comment">-- | POST \/pet</span><span>
+</span><a name="line-40"></a><span class="hs-comment">-- </span><span>
+</span><a name="line-41"></a><span class="hs-comment">-- Add a new pet to the store</span><span>
 </span><a name="line-42"></a><span class="hs-comment">-- </span><span>
 </span><a name="line-43"></a><span class="hs-comment">-- </span><span>
-</span><a name="line-44"></a><span class="hs-comment">-- AuthMethod: petstore_auth</span><span>
-</span><a name="line-45"></a><span class="hs-comment">-- </span><span>
-</span><a name="line-46"></a><span class="hs-comment">-- Consumes: application/json, application/xml</span><span>
-</span><a name="line-47"></a><span class="hs-comment">-- </span><span>
-</span><a name="line-48"></a><span class="hs-comment">-- Produces: application/xml, application/json</span><span>
-</span><a name="line-49"></a><span class="hs-comment">-- </span><span>
-</span><a name="line-50"></a><span class="hs-identifier">addPet</span><span> </span><span>
-</span><a name="line-51"></a><span>  </span><span class="hs-glyph">::</span><span> </span><a href="SwaggerPetstore.Model.html#Pet"><span class="hs-identifier hs-type">Pet</span></a><span> </span><span class="hs-comment">-- ^ &quot;body&quot; -  Pet object that needs to be added to the store</span><span>
-</span><a name="line-52"></a><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><a href="SwaggerPetstore.API.html#SwaggerPetstoreRequest"><span class="hs-identifier hs-type">SwaggerPetstoreRequest</span></a><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
-</span><a name="line-53"></a><a name="addPet"><a href="SwaggerPetstore.API.html#addPet"><span class="hs-identifier">addPet</span></a></a><span> </span><a name="local-6989586621679108944"><a href="#local-6989586621679108944"><span class="hs-identifier">body</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="#local-6989586621679108945"><span class="hs-identifier hs-var">request</span></a><span>
-</span><a name="line-54"></a><span>  </span><span class="hs-keyword">where</span><span>
-</span><a name="line-55"></a><span>    </span><a name="local-6989586621679108945"><a href="#local-6989586621679108945"><span class="hs-identifier">request</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="SwaggerPetstore.API.html#mkSwaggerPetstoreRequest"><span class="hs-identifier hs-var">mkSwaggerPetstoreRequest</span></a><span> </span><span class="hs-string">&quot;POST&quot;</span><span> </span><a href="#local-6989586621679108946"><span class="hs-identifier hs-var">url</span></a><span> </span><a href="#local-6989586621679108947"><span class="hs-identifier hs-var">params</span></a><span>
-</span><a name="line-56"></a><span>    </span><a name="local-6989586621679108946"><a href="#local-6989586621679108946"><span class="hs-identifier">url</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="hs-string">&quot;/pet&quot;</span><span class="hs-special">]</span><span>
-</span><a name="line-57"></a><span>    </span><a name="local-6989586621679108947"><a href="#local-6989586621679108947"><span class="hs-identifier">params</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span>
-</span><a name="line-58"></a><span>
-</span><a name="line-59"></a><span class="hs-comment">-- ** deletePet</span><span>
-</span><a name="line-60"></a><span class="hs-comment">-- | DELETE \/pet\/{petId}</span><span>
-</span><a name="line-61"></a><span class="hs-comment">-- </span><span>
-</span><a name="line-62"></a><span class="hs-comment">-- Deletes a pet</span><span>
+</span><a name="line-44"></a><span class="hs-comment">-- </span><span>
+</span><a name="line-45"></a><span class="hs-comment">-- AuthMethod: petstore_auth</span><span>
+</span><a name="line-46"></a><span class="hs-comment">-- </span><span>
+</span><a name="line-47"></a><span class="hs-comment">-- Consumes: application/json, application/xml</span><span>
+</span><a name="line-48"></a><span class="hs-comment">-- </span><span>
+</span><a name="line-49"></a><span class="hs-comment">-- Produces: application/xml, application/json</span><span>
+</span><a name="line-50"></a><span class="hs-comment">-- </span><span>
+</span><a name="line-51"></a><span class="hs-identifier">addPet</span><span> </span><span>
+</span><a name="line-52"></a><span>  </span><span class="hs-glyph">::</span><span> </span><a href="SwaggerPetstore.Model.html#Pet"><span class="hs-identifier hs-type">Pet</span></a><span> </span><span class="hs-comment">-- ^ &quot;body&quot; -  Pet object that needs to be added to the store</span><span>
+</span><a name="line-53"></a><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><a href="SwaggerPetstore.API.html#SwaggerPetstoreRequest"><span class="hs-identifier hs-type">SwaggerPetstoreRequest</span></a><span> </span><a href="SwaggerPetstore.API.html#AddPet"><span class="hs-identifier hs-type">AddPet</span></a><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><a name="line-54"></a><a name="addPet"><a href="SwaggerPetstore.API.html#addPet"><span class="hs-identifier">addPet</span></a></a><span> </span><a name="local-6989586621679108980"><a href="#local-6989586621679108980"><span class="hs-identifier">body</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="#local-6989586621679108981"><span class="hs-identifier hs-var">request</span></a><span>
+</span><a name="line-55"></a><span>  </span><span class="hs-keyword">where</span><span>
+</span><a name="line-56"></a><span>    </span><a name="local-6989586621679108981"><a href="#local-6989586621679108981"><span class="hs-identifier">request</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="SwaggerPetstore.API.html#mkSwaggerPetstoreRequest"><span class="hs-identifier hs-var">mkSwaggerPetstoreRequest</span></a><span> </span><span class="hs-string">&quot;POST&quot;</span><span> </span><a href="#local-6989586621679108982"><span class="hs-identifier hs-var">url</span></a><span> </span><a href="#local-6989586621679108983"><span class="hs-identifier hs-var">params</span></a><span>
+</span><a name="line-57"></a><span>    </span><a name="local-6989586621679108982"><a href="#local-6989586621679108982"><span class="hs-identifier">url</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="hs-string">&quot;/pet&quot;</span><span class="hs-special">]</span><span>
+</span><a name="line-58"></a><span>    </span><a name="local-6989586621679108983"><a href="#local-6989586621679108983"><span class="hs-identifier">params</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span>
+</span><a name="line-59"></a><span>
+</span><a name="line-60"></a><span class="hs-keyword">data</span><span> </span><a name="AddPet"><a href="SwaggerPetstore.API.html#AddPet"><span class="hs-identifier">AddPet</span></a></a><span>
+</span><a name="line-61"></a><span class="hs-comment">-- ** deletePet</span><span>
+</span><a name="line-62"></a><span class="hs-comment">-- | DELETE \/pet\/{petId}</span><span>
 </span><a name="line-63"></a><span class="hs-comment">-- </span><span>
-</span><a name="line-64"></a><span class="hs-comment">-- </span><span>
+</span><a name="line-64"></a><span class="hs-comment">-- Deletes a pet</span><span>
 </span><a name="line-65"></a><span class="hs-comment">-- </span><span>
-</span><a name="line-66"></a><span class="hs-comment">-- AuthMethod: petstore_auth</span><span>
+</span><a name="line-66"></a><span class="hs-comment">-- </span><span>
 </span><a name="line-67"></a><span class="hs-comment">-- </span><span>
-</span><a name="line-68"></a><span class="hs-comment">-- Produces: application/xml, application/json</span><span>
+</span><a name="line-68"></a><span class="hs-comment">-- AuthMethod: petstore_auth</span><span>
 </span><a name="line-69"></a><span class="hs-comment">-- </span><span>
-</span><a name="line-70"></a><span class="hs-comment">-- Optional Params:</span><span>
+</span><a name="line-70"></a><span class="hs-comment">-- Produces: application/xml, application/json</span><span>
 </span><a name="line-71"></a><span class="hs-comment">-- </span><span>
-</span><a name="line-72"></a><span class="hs-comment">-- * &quot;api_key&quot; :: 'Text' </span><span>
+</span><a name="line-72"></a><span class="hs-comment">-- Optional Params:</span><span>
 </span><a name="line-73"></a><span class="hs-comment">-- </span><span>
-</span><a name="line-74"></a><span class="hs-identifier">deletePet</span><span> </span><span>
-</span><a name="line-75"></a><span>  </span><span class="hs-glyph">::</span><span> </span><span class="hs-identifier hs-type">Integer</span><span> </span><span class="hs-comment">-- ^ &quot;petId&quot; -  Pet id to delete</span><span>
-</span><a name="line-76"></a><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><a href="SwaggerPetstore.API.html#SwaggerPetstoreRequest"><span class="hs-identifier hs-type">SwaggerPetstoreRequest</span></a><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
-</span><a name="line-77"></a><a name="deletePet"><a href="SwaggerPetstore.API.html#deletePet"><span class="hs-identifier">deletePet</span></a></a><span> </span><a name="local-6989586621679108948"><a href="#local-6989586621679108948"><span class="hs-identifier">petId</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="#local-6989586621679108949"><span class="hs-identifier hs-var">request</span></a><span>
-</span><a name="line-78"></a><span>  </span><span class="hs-keyword">where</span><span>
-</span><a name="line-79"></a><span>    </span><a name="local-6989586621679108949"><a href="#local-6989586621679108949"><span class="hs-identifier">request</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="SwaggerPetstore.API.html#mkSwaggerPetstoreRequest"><span class="hs-identifier hs-var">mkSwaggerPetstoreRequest</span></a><span> </span><span class="hs-string">&quot;DELETE&quot;</span><span> </span><a href="#local-6989586621679108950"><span class="hs-identifier hs-var">url</span></a><span> </span><a href="#local-6989586621679108951"><span class="hs-identifier hs-var">params</span></a><span>
-</span><a name="line-80"></a><span>    </span><a name="local-6989586621679108950"><a href="#local-6989586621679108950"><span class="hs-identifier">url</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="hs-string">&quot;/pet/&quot;</span><span class="hs-special">,</span><a href="SwaggerPetstore.API.html#toPath"><span class="hs-identifier hs-var">toPath</span></a><span> </span><a href="#local-6989586621679108948"><span class="hs-identifier hs-var">petId</span></a><span class="hs-special">]</span><span>
-</span><a name="line-81"></a><span>    </span><a name="local-6989586621679108951"><a href="#local-6989586621679108951"><span class="hs-identifier">params</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span>
-</span><a name="line-82"></a><span>
-</span><a name="line-83"></a><span class="hs-comment">-- ** findPetsByStatus</span><span>
-</span><a name="line-84"></a><span class="hs-comment">-- | GET \/pet\/findByStatus</span><span>
-</span><a name="line-85"></a><span class="hs-comment">-- </span><span>
-</span><a name="line-86"></a><span class="hs-comment">-- Finds Pets by status</span><span>
-</span><a name="line-87"></a><span class="hs-comment">-- </span><span>
-</span><a name="line-88"></a><span class="hs-comment">-- Multiple status values can be provided with comma separated strings</span><span>
-</span><a name="line-89"></a><span class="hs-comment">-- </span><span>
-</span><a name="line-90"></a><span class="hs-comment">-- AuthMethod: petstore_auth</span><span>
-</span><a name="line-91"></a><span class="hs-comment">-- </span><span>
-</span><a name="line-92"></a><span class="hs-comment">-- Produces: application/xml, application/json</span><span>
-</span><a name="line-93"></a><span class="hs-comment">-- </span><span>
-</span><a name="line-94"></a><span class="hs-identifier">findPetsByStatus</span><span> </span><span>
-</span><a name="line-95"></a><span>  </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="hs-identifier hs-type">Text</span><span class="hs-special">]</span><span> </span><span class="hs-comment">-- ^ &quot;status&quot; -  Status values that need to be considered for filter</span><span>
-</span><a name="line-96"></a><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><a href="SwaggerPetstore.API.html#SwaggerPetstoreRequest"><span class="hs-identifier hs-type">SwaggerPetstoreRequest</span></a><span> </span><span class="hs-special">[</span><a href="SwaggerPetstore.Model.html#Pet"><span class="hs-identifier hs-type">Pet</span></a><span class="hs-special">]</span><span>
-</span><a name="line-97"></a><a name="findPetsByStatus"><a href="SwaggerPetstore.API.html#findPetsByStatus"><span class="hs-identifier">findPetsByStatus</span></a></a><span> </span><a name="local-6989586621679108952"><a href="#local-6989586621679108952"><span class="hs-identifier">status</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="#local-6989586621679108953"><span class="hs-identifier hs-var">request</span></a><span>
-</span><a name="line-98"></a><span>  </span><span class="hs-keyword">where</span><span>
-</span><a name="line-99"></a><span>    </span><a name="local-6989586621679108953"><a href="#local-6989586621679108953"><span class="hs-identifier">request</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="SwaggerPetstore.API.html#mkSwaggerPetstoreRequest"><span class="hs-identifier hs-var">mkSwaggerPetstoreRequest</span></a><span> </span><span class="hs-string">&quot;GET&quot;</span><span> </span><a href="#local-6989586621679108954"><span class="hs-identifier hs-var">url</span></a><span> </span><a href="#local-6989586621679108955"><span class="hs-identifier hs-var">params</span></a><span>
-</span><a name="line-100"></a><span>    </span><a name="local-6989586621679108954"><a href="#local-6989586621679108954"><span class="hs-identifier">url</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="hs-string">&quot;/pet/findByStatus&quot;</span><span class="hs-special">]</span><span>
-</span><a name="line-101"></a><span>    </span><a name="local-6989586621679108955"><a href="#local-6989586621679108955"><span class="hs-identifier">params</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span>
-</span><a name="line-102"></a><span>
-</span><a name="line-103"></a><span class="hs-comment">-- ** findPetsByTags</span><span>
-</span><a name="line-104"></a><span class="hs-comment">-- | GET \/pet\/findByTags</span><span>
-</span><a name="line-105"></a><span class="hs-comment">-- </span><span>
-</span><a name="line-106"></a><span class="hs-comment">-- Finds Pets by tags</span><span>
-</span><a name="line-107"></a><span class="hs-comment">-- </span><span>
-</span><a name="line-108"></a><span class="hs-comment">-- Muliple tags can be provided with comma separated strings. Use tag1, tag2, tag3 for testing.</span><span>
+</span><a name="line-74"></a><span class="hs-comment">-- * &quot;api_key&quot; :: 'Text' </span><span>
+</span><a name="line-75"></a><span class="hs-comment">-- </span><span>
+</span><a name="line-76"></a><span class="hs-identifier">deletePet</span><span> </span><span>
+</span><a name="line-77"></a><span>  </span><span class="hs-glyph">::</span><span> </span><span class="hs-identifier hs-type">Integer</span><span> </span><span class="hs-comment">-- ^ &quot;petId&quot; -  Pet id to delete</span><span>
+</span><a name="line-78"></a><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><a href="SwaggerPetstore.API.html#SwaggerPetstoreRequest"><span class="hs-identifier hs-type">SwaggerPetstoreRequest</span></a><span> </span><a href="SwaggerPetstore.API.html#DeletePet"><span class="hs-identifier hs-type">DeletePet</span></a><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><a name="line-79"></a><a name="deletePet"><a href="SwaggerPetstore.API.html#deletePet"><span class="hs-identifier">deletePet</span></a></a><span> </span><a name="local-6989586621679108984"><a href="#local-6989586621679108984"><span class="hs-identifier">petId</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="#local-6989586621679108985"><span class="hs-identifier hs-var">request</span></a><span>
+</span><a name="line-80"></a><span>  </span><span class="hs-keyword">where</span><span>
+</span><a name="line-81"></a><span>    </span><a name="local-6989586621679108985"><a href="#local-6989586621679108985"><span class="hs-identifier">request</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="SwaggerPetstore.API.html#mkSwaggerPetstoreRequest"><span class="hs-identifier hs-var">mkSwaggerPetstoreRequest</span></a><span> </span><span class="hs-string">&quot;DELETE&quot;</span><span> </span><a href="#local-6989586621679108986"><span class="hs-identifier hs-var">url</span></a><span> </span><a href="#local-6989586621679108987"><span class="hs-identifier hs-var">params</span></a><span>
+</span><a name="line-82"></a><span>    </span><a name="local-6989586621679108986"><a href="#local-6989586621679108986"><span class="hs-identifier">url</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="hs-string">&quot;/pet/&quot;</span><span class="hs-special">,</span><a href="SwaggerPetstore.API.html#toPath"><span class="hs-identifier hs-var">toPath</span></a><span> </span><a href="#local-6989586621679108984"><span class="hs-identifier hs-var">petId</span></a><span class="hs-special">]</span><span>
+</span><a name="line-83"></a><span>    </span><a name="local-6989586621679108987"><a href="#local-6989586621679108987"><span class="hs-identifier">params</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span>
+</span><a name="line-84"></a><span>
+</span><a name="line-85"></a><span class="hs-keyword">data</span><span> </span><a name="DeletePet"><a href="SwaggerPetstore.API.html#DeletePet"><span class="hs-identifier">DeletePet</span></a></a><span>
+</span><a name="line-86"></a><span class="hs-comment">-- ** findPetsByStatus</span><span>
+</span><a name="line-87"></a><span class="hs-comment">-- | GET \/pet\/findByStatus</span><span>
+</span><a name="line-88"></a><span class="hs-comment">-- </span><span>
+</span><a name="line-89"></a><span class="hs-comment">-- Finds Pets by status</span><span>
+</span><a name="line-90"></a><span class="hs-comment">-- </span><span>
+</span><a name="line-91"></a><span class="hs-comment">-- Multiple status values can be provided with comma separated strings</span><span>
+</span><a name="line-92"></a><span class="hs-comment">-- </span><span>
+</span><a name="line-93"></a><span class="hs-comment">-- AuthMethod: petstore_auth</span><span>
+</span><a name="line-94"></a><span class="hs-comment">-- </span><span>
+</span><a name="line-95"></a><span class="hs-comment">-- Produces: application/xml, application/json</span><span>
+</span><a name="line-96"></a><span class="hs-comment">-- </span><span>
+</span><a name="line-97"></a><span class="hs-identifier">findPetsByStatus</span><span> </span><span>
+</span><a name="line-98"></a><span>  </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="hs-identifier hs-type">Text</span><span class="hs-special">]</span><span> </span><span class="hs-comment">-- ^ &quot;status&quot; -  Status values that need to be considered for filter</span><span>
+</span><a name="line-99"></a><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><a href="SwaggerPetstore.API.html#SwaggerPetstoreRequest"><span class="hs-identifier hs-type">SwaggerPetstoreRequest</span></a><span> </span><a href="SwaggerPetstore.API.html#FindPetsByStatus"><span class="hs-identifier hs-type">FindPetsByStatus</span></a><span> </span><span class="hs-special">[</span><a href="SwaggerPetstore.Model.html#Pet"><span class="hs-identifier hs-type">Pet</span></a><span class="hs-special">]</span><span>
+</span><a name="line-100"></a><a name="findPetsByStatus"><a href="SwaggerPetstore.API.html#findPetsByStatus"><span class="hs-identifier">findPetsByStatus</span></a></a><span> </span><a name="local-6989586621679108988"><a href="#local-6989586621679108988"><span class="hs-identifier">status</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="#local-6989586621679108989"><span class="hs-identifier hs-var">request</span></a><span>
+</span><a name="line-101"></a><span>  </span><span class="hs-keyword">where</span><span>
+</span><a name="line-102"></a><span>    </span><a name="local-6989586621679108989"><a href="#local-6989586621679108989"><span class="hs-identifier">request</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="SwaggerPetstore.API.html#mkSwaggerPetstoreRequest"><span class="hs-identifier hs-var">mkSwaggerPetstoreRequest</span></a><span> </span><span class="hs-string">&quot;GET&quot;</span><span> </span><a href="#local-6989586621679108990"><span class="hs-identifier hs-var">url</span></a><span> </span><a href="#local-6989586621679108991"><span class="hs-identifier hs-var">params</span></a><span>
+</span><a name="line-103"></a><span>    </span><a name="local-6989586621679108990"><a href="#local-6989586621679108990"><span class="hs-identifier">url</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="hs-string">&quot;/pet/findByStatus&quot;</span><span class="hs-special">]</span><span>
+</span><a name="line-104"></a><span>    </span><a name="local-6989586621679108991"><a href="#local-6989586621679108991"><span class="hs-identifier">params</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span>
+</span><a name="line-105"></a><span>
+</span><a name="line-106"></a><span class="hs-keyword">data</span><span> </span><a name="FindPetsByStatus"><a href="SwaggerPetstore.API.html#FindPetsByStatus"><span class="hs-identifier">FindPetsByStatus</span></a></a><span>
+</span><a name="line-107"></a><span class="hs-comment">-- ** findPetsByTags</span><span>
+</span><a name="line-108"></a><span class="hs-comment">-- | GET \/pet\/findByTags</span><span>
 </span><a name="line-109"></a><span class="hs-comment">-- </span><span>
-</span><a name="line-110"></a><span class="hs-comment">-- AuthMethod: petstore_auth</span><span>
+</span><a name="line-110"></a><span class="hs-comment">-- Finds Pets by tags</span><span>
 </span><a name="line-111"></a><span class="hs-comment">-- </span><span>
-</span><a name="line-112"></a><span class="hs-comment">-- Produces: application/xml, application/json</span><span>
+</span><a name="line-112"></a><span class="hs-comment">-- Muliple tags can be provided with comma separated strings. Use tag1, tag2, tag3 for testing.</span><span>
 </span><a name="line-113"></a><span class="hs-comment">-- </span><span>
-</span><a name="line-114"></a><span class="hs-identifier">findPetsByTags</span><span> </span><span>
-</span><a name="line-115"></a><span>  </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="hs-identifier hs-type">Text</span><span class="hs-special">]</span><span> </span><span class="hs-comment">-- ^ &quot;tags&quot; -  Tags to filter by</span><span>
-</span><a name="line-116"></a><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><a href="SwaggerPetstore.API.html#SwaggerPetstoreRequest"><span class="hs-identifier hs-type">SwaggerPetstoreRequest</span></a><span> </span><span class="hs-special">[</span><a href="SwaggerPetstore.Model.html#Pet"><span class="hs-identifier hs-type">Pet</span></a><span class="hs-special">]</span><span>
-</span><a name="line-117"></a><a name="findPetsByTags"><a href="SwaggerPetstore.API.html#findPetsByTags"><span class="hs-identifier">findPetsByTags</span></a></a><span> </span><a name="local-6989586621679108956"><a href="#local-6989586621679108956"><span class="hs-identifier">tags</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="#local-6989586621679108957"><span class="hs-identifier hs-var">request</span></a><span>
-</span><a name="line-118"></a><span>  </span><span class="hs-keyword">where</span><span>
-</span><a name="line-119"></a><span>    </span><a name="local-6989586621679108957"><a href="#local-6989586621679108957"><span class="hs-identifier">request</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="SwaggerPetstore.API.html#mkSwaggerPetstoreRequest"><span class="hs-identifier hs-var">mkSwaggerPetstoreRequest</span></a><span> </span><span class="hs-string">&quot;GET&quot;</span><span> </span><a href="#local-6989586621679108958"><span class="hs-identifier hs-var">url</span></a><span> </span><a href="#local-6989586621679108959"><span class="hs-identifier hs-var">params</span></a><span>
-</span><a name="line-120"></a><span>    </span><a name="local-6989586621679108958"><a href="#local-6989586621679108958"><span class="hs-identifier">url</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="hs-string">&quot;/pet/findByTags&quot;</span><span class="hs-special">]</span><span>
-</span><a name="line-121"></a><span>    </span><a name="local-6989586621679108959"><a href="#local-6989586621679108959"><span class="hs-identifier">params</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span>
-</span><a name="line-122"></a><span class="hs-pragma">{-# DEPRECATED findPetsByTags &quot;&quot; #-}</span><span>
-</span><a name="line-123"></a><span>
-</span><a name="line-124"></a><span class="hs-comment">-- ** getPetById</span><span>
-</span><a name="line-125"></a><span class="hs-comment">-- | GET \/pet\/{petId}</span><span>
-</span><a name="line-126"></a><span class="hs-comment">-- </span><span>
-</span><a name="line-127"></a><span class="hs-comment">-- Find pet by ID</span><span>
-</span><a name="line-128"></a><span class="hs-comment">-- </span><span>
-</span><a name="line-129"></a><span class="hs-comment">-- Returns a single pet</span><span>
-</span><a name="line-130"></a><span class="hs-comment">-- </span><span>
-</span><a name="line-131"></a><span class="hs-comment">-- AuthMethod: api_key</span><span>
-</span><a name="line-132"></a><span class="hs-comment">-- </span><span>
-</span><a name="line-133"></a><span class="hs-comment">-- Produces: application/xml, application/json</span><span>
-</span><a name="line-134"></a><span class="hs-comment">-- </span><span>
-</span><a name="line-135"></a><span class="hs-identifier">getPetById</span><span> </span><span>
-</span><a name="line-136"></a><span>  </span><span class="hs-glyph">::</span><span> </span><span class="hs-identifier hs-type">Integer</span><span> </span><span class="hs-comment">-- ^ &quot;petId&quot; -  ID of pet to return</span><span>
-</span><a name="line-137"></a><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><a href="SwaggerPetstore.API.html#SwaggerPetstoreRequest"><span class="hs-identifier hs-type">SwaggerPetstoreRequest</span></a><span> </span><a href="SwaggerPetstore.Model.html#Pet"><span class="hs-identifier hs-type">Pet</span></a><span>
-</span><a name="line-138"></a><a name="getPetById"><a href="SwaggerPetstore.API.html#getPetById"><span class="hs-identifier">getPetById</span></a></a><span> </span><a name="local-6989586621679108960"><a href="#local-6989586621679108960"><span class="hs-identifier">petId</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="#local-6989586621679108961"><span class="hs-identifier hs-var">request</span></a><span>
-</span><a name="line-139"></a><span>  </span><span class="hs-keyword">where</span><span>
-</span><a name="line-140"></a><span>    </span><a name="local-6989586621679108961"><a href="#local-6989586621679108961"><span class="hs-identifier">request</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="SwaggerPetstore.API.html#mkSwaggerPetstoreRequest"><span class="hs-identifier hs-var">mkSwaggerPetstoreRequest</span></a><span> </span><span class="hs-string">&quot;GET&quot;</span><span> </span><a href="#local-6989586621679108962"><span class="hs-identifier hs-var">url</span></a><span> </span><a href="#local-6989586621679108963"><span class="hs-identifier hs-var">params</span></a><span>
-</span><a name="line-141"></a><span>    </span><a name="local-6989586621679108962"><a href="#local-6989586621679108962"><span class="hs-identifier">url</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="hs-string">&quot;/pet/&quot;</span><span class="hs-special">,</span><a href="SwaggerPetstore.API.html#toPath"><span class="hs-identifier hs-var">toPath</span></a><span> </span><a href="#local-6989586621679108960"><span class="hs-identifier hs-var">petId</span></a><span class="hs-special">]</span><span>
-</span><a name="line-142"></a><span>    </span><a name="local-6989586621679108963"><a href="#local-6989586621679108963"><span class="hs-identifier">params</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span>
-</span><a name="line-143"></a><span>
-</span><a name="line-144"></a><span class="hs-comment">-- ** updatePet</span><span>
-</span><a name="line-145"></a><span class="hs-comment">-- | PUT \/pet</span><span>
-</span><a name="line-146"></a><span class="hs-comment">-- </span><span>
-</span><a name="line-147"></a><span class="hs-comment">-- Update an existing pet</span><span>
-</span><a name="line-148"></a><span class="hs-comment">-- </span><span>
-</span><a name="line-149"></a><span class="hs-comment">-- </span><span>
-</span><a name="line-150"></a><span class="hs-comment">-- </span><span>
-</span><a name="line-151"></a><span class="hs-comment">-- AuthMethod: petstore_auth</span><span>
+</span><a name="line-114"></a><span class="hs-comment">-- AuthMethod: petstore_auth</span><span>
+</span><a name="line-115"></a><span class="hs-comment">-- </span><span>
+</span><a name="line-116"></a><span class="hs-comment">-- Produces: application/xml, application/json</span><span>
+</span><a name="line-117"></a><span class="hs-comment">-- </span><span>
+</span><a name="line-118"></a><span class="hs-identifier">findPetsByTags</span><span> </span><span>
+</span><a name="line-119"></a><span>  </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="hs-identifier hs-type">Text</span><span class="hs-special">]</span><span> </span><span class="hs-comment">-- ^ &quot;tags&quot; -  Tags to filter by</span><span>
+</span><a name="line-120"></a><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><a href="SwaggerPetstore.API.html#SwaggerPetstoreRequest"><span class="hs-identifier hs-type">SwaggerPetstoreRequest</span></a><span> </span><a href="SwaggerPetstore.API.html#FindPetsByTags"><span class="hs-identifier hs-type">FindPetsByTags</span></a><span> </span><span class="hs-special">[</span><a href="SwaggerPetstore.Model.html#Pet"><span class="hs-identifier hs-type">Pet</span></a><span class="hs-special">]</span><span>
+</span><a name="line-121"></a><a name="findPetsByTags"><a href="SwaggerPetstore.API.html#findPetsByTags"><span class="hs-identifier">findPetsByTags</span></a></a><span> </span><a name="local-6989586621679108992"><a href="#local-6989586621679108992"><span class="hs-identifier">tags</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="#local-6989586621679108993"><span class="hs-identifier hs-var">request</span></a><span>
+</span><a name="line-122"></a><span>  </span><span class="hs-keyword">where</span><span>
+</span><a name="line-123"></a><span>    </span><a name="local-6989586621679108993"><a href="#local-6989586621679108993"><span class="hs-identifier">request</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="SwaggerPetstore.API.html#mkSwaggerPetstoreRequest"><span class="hs-identifier hs-var">mkSwaggerPetstoreRequest</span></a><span> </span><span class="hs-string">&quot;GET&quot;</span><span> </span><a href="#local-6989586621679108994"><span class="hs-identifier hs-var">url</span></a><span> </span><a href="#local-6989586621679108995"><span class="hs-identifier hs-var">params</span></a><span>
+</span><a name="line-124"></a><span>    </span><a name="local-6989586621679108994"><a href="#local-6989586621679108994"><span class="hs-identifier">url</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="hs-string">&quot;/pet/findByTags&quot;</span><span class="hs-special">]</span><span>
+</span><a name="line-125"></a><span>    </span><a name="local-6989586621679108995"><a href="#local-6989586621679108995"><span class="hs-identifier">params</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span>
+</span><a name="line-126"></a><span class="hs-pragma">{-# DEPRECATED findPetsByTags &quot;&quot; #-}</span><span>
+</span><a name="line-127"></a><span>
+</span><a name="line-128"></a><span class="hs-keyword">data</span><span> </span><a name="FindPetsByTags"><a href="SwaggerPetstore.API.html#FindPetsByTags"><span class="hs-identifier">FindPetsByTags</span></a></a><span>
+</span><a name="line-129"></a><span class="hs-comment">-- ** getPetById</span><span>
+</span><a name="line-130"></a><span class="hs-comment">-- | GET \/pet\/{petId}</span><span>
+</span><a name="line-131"></a><span class="hs-comment">-- </span><span>
+</span><a name="line-132"></a><span class="hs-comment">-- Find pet by ID</span><span>
+</span><a name="line-133"></a><span class="hs-comment">-- </span><span>
+</span><a name="line-134"></a><span class="hs-comment">-- Returns a single pet</span><span>
+</span><a name="line-135"></a><span class="hs-comment">-- </span><span>
+</span><a name="line-136"></a><span class="hs-comment">-- AuthMethod: api_key</span><span>
+</span><a name="line-137"></a><span class="hs-comment">-- </span><span>
+</span><a name="line-138"></a><span class="hs-comment">-- Produces: application/xml, application/json</span><span>
+</span><a name="line-139"></a><span class="hs-comment">-- </span><span>
+</span><a name="line-140"></a><span class="hs-identifier">getPetById</span><span> </span><span>
+</span><a name="line-141"></a><span>  </span><span class="hs-glyph">::</span><span> </span><span class="hs-identifier hs-type">Integer</span><span> </span><span class="hs-comment">-- ^ &quot;petId&quot; -  ID of pet to return</span><span>
+</span><a name="line-142"></a><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><a href="SwaggerPetstore.API.html#SwaggerPetstoreRequest"><span class="hs-identifier hs-type">SwaggerPetstoreRequest</span></a><span> </span><a href="SwaggerPetstore.API.html#GetPetById"><span class="hs-identifier hs-type">GetPetById</span></a><span> </span><a href="SwaggerPetstore.Model.html#Pet"><span class="hs-identifier hs-type">Pet</span></a><span>
+</span><a name="line-143"></a><a name="getPetById"><a href="SwaggerPetstore.API.html#getPetById"><span class="hs-identifier">getPetById</span></a></a><span> </span><a name="local-6989586621679108996"><a href="#local-6989586621679108996"><span class="hs-identifier">petId</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="#local-6989586621679108997"><span class="hs-identifier hs-var">request</span></a><span>
+</span><a name="line-144"></a><span>  </span><span class="hs-keyword">where</span><span>
+</span><a name="line-145"></a><span>    </span><a name="local-6989586621679108997"><a href="#local-6989586621679108997"><span class="hs-identifier">request</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="SwaggerPetstore.API.html#mkSwaggerPetstoreRequest"><span class="hs-identifier hs-var">mkSwaggerPetstoreRequest</span></a><span> </span><span class="hs-string">&quot;GET&quot;</span><span> </span><a href="#local-6989586621679108998"><span class="hs-identifier hs-var">url</span></a><span> </span><a href="#local-6989586621679108999"><span class="hs-identifier hs-var">params</span></a><span>
+</span><a name="line-146"></a><span>    </span><a name="local-6989586621679108998"><a href="#local-6989586621679108998"><span class="hs-identifier">url</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="hs-string">&quot;/pet/&quot;</span><span class="hs-special">,</span><a href="SwaggerPetstore.API.html#toPath"><span class="hs-identifier hs-var">toPath</span></a><span> </span><a href="#local-6989586621679108996"><span class="hs-identifier hs-var">petId</span></a><span class="hs-special">]</span><span>
+</span><a name="line-147"></a><span>    </span><a name="local-6989586621679108999"><a href="#local-6989586621679108999"><span class="hs-identifier">params</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span>
+</span><a name="line-148"></a><span>
+</span><a name="line-149"></a><span class="hs-keyword">data</span><span> </span><a name="GetPetById"><a href="SwaggerPetstore.API.html#GetPetById"><span class="hs-identifier">GetPetById</span></a></a><span>
+</span><a name="line-150"></a><span class="hs-comment">-- ** updatePet</span><span>
+</span><a name="line-151"></a><span class="hs-comment">-- | PUT \/pet</span><span>
 </span><a name="line-152"></a><span class="hs-comment">-- </span><span>
-</span><a name="line-153"></a><span class="hs-comment">-- Consumes: application/json, application/xml</span><span>
+</span><a name="line-153"></a><span class="hs-comment">-- Update an existing pet</span><span>
 </span><a name="line-154"></a><span class="hs-comment">-- </span><span>
-</span><a name="line-155"></a><span class="hs-comment">-- Produces: application/xml, application/json</span><span>
+</span><a name="line-155"></a><span class="hs-comment">-- </span><span>
 </span><a name="line-156"></a><span class="hs-comment">-- </span><span>
-</span><a name="line-157"></a><span class="hs-identifier">updatePet</span><span> </span><span>
-</span><a name="line-158"></a><span>  </span><span class="hs-glyph">::</span><span> </span><a href="SwaggerPetstore.Model.html#Pet"><span class="hs-identifier hs-type">Pet</span></a><span> </span><span class="hs-comment">-- ^ &quot;body&quot; -  Pet object that needs to be added to the store</span><span>
-</span><a name="line-159"></a><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><a href="SwaggerPetstore.API.html#SwaggerPetstoreRequest"><span class="hs-identifier hs-type">SwaggerPetstoreRequest</span></a><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
-</span><a name="line-160"></a><a name="updatePet"><a href="SwaggerPetstore.API.html#updatePet"><span class="hs-identifier">updatePet</span></a></a><span> </span><a name="local-6989586621679108964"><a href="#local-6989586621679108964"><span class="hs-identifier">body</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="#local-6989586621679108965"><span class="hs-identifier hs-var">request</span></a><span>
-</span><a name="line-161"></a><span>  </span><span class="hs-keyword">where</span><span>
-</span><a name="line-162"></a><span>    </span><a name="local-6989586621679108965"><a href="#local-6989586621679108965"><span class="hs-identifier">request</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="SwaggerPetstore.API.html#mkSwaggerPetstoreRequest"><span class="hs-identifier hs-var">mkSwaggerPetstoreRequest</span></a><span> </span><span class="hs-string">&quot;PUT&quot;</span><span> </span><a href="#local-6989586621679108966"><span class="hs-identifier hs-var">url</span></a><span> </span><a href="#local-6989586621679108967"><span class="hs-identifier hs-var">params</span></a><span>
-</span><a name="line-163"></a><span>    </span><a name="local-6989586621679108966"><a href="#local-6989586621679108966"><span class="hs-identifier">url</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="hs-string">&quot;/pet&quot;</span><span class="hs-special">]</span><span>
-</span><a name="line-164"></a><span>    </span><a name="local-6989586621679108967"><a href="#local-6989586621679108967"><span class="hs-identifier">params</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span>
-</span><a name="line-165"></a><span>
-</span><a name="line-166"></a><span class="hs-comment">-- ** updatePetWithForm</span><span>
-</span><a name="line-167"></a><span class="hs-comment">-- | POST \/pet\/{petId}</span><span>
-</span><a name="line-168"></a><span class="hs-comment">-- </span><span>
-</span><a name="line-169"></a><span class="hs-comment">-- Updates a pet in the store with form data</span><span>
-</span><a name="line-170"></a><span class="hs-comment">-- </span><span>
-</span><a name="line-171"></a><span class="hs-comment">-- </span><span>
-</span><a name="line-172"></a><span class="hs-comment">-- </span><span>
-</span><a name="line-173"></a><span class="hs-comment">-- AuthMethod: petstore_auth</span><span>
-</span><a name="line-174"></a><span class="hs-comment">-- </span><span>
-</span><a name="line-175"></a><span class="hs-comment">-- Consumes: application/x-www-form-urlencoded</span><span>
-</span><a name="line-176"></a><span class="hs-comment">-- </span><span>
-</span><a name="line-177"></a><span class="hs-comment">-- Produces: application/xml, application/json</span><span>
+</span><a name="line-157"></a><span class="hs-comment">-- AuthMethod: petstore_auth</span><span>
+</span><a name="line-158"></a><span class="hs-comment">-- </span><span>
+</span><a name="line-159"></a><span class="hs-comment">-- Consumes: application/json, application/xml</span><span>
+</span><a name="line-160"></a><span class="hs-comment">-- </span><span>
+</span><a name="line-161"></a><span class="hs-comment">-- Produces: application/xml, application/json</span><span>
+</span><a name="line-162"></a><span class="hs-comment">-- </span><span>
+</span><a name="line-163"></a><span class="hs-identifier">updatePet</span><span> </span><span>
+</span><a name="line-164"></a><span>  </span><span class="hs-glyph">::</span><span> </span><a href="SwaggerPetstore.Model.html#Pet"><span class="hs-identifier hs-type">Pet</span></a><span> </span><span class="hs-comment">-- ^ &quot;body&quot; -  Pet object that needs to be added to the store</span><span>
+</span><a name="line-165"></a><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><a href="SwaggerPetstore.API.html#SwaggerPetstoreRequest"><span class="hs-identifier hs-type">SwaggerPetstoreRequest</span></a><span> </span><a href="SwaggerPetstore.API.html#UpdatePet"><span class="hs-identifier hs-type">UpdatePet</span></a><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><a name="line-166"></a><a name="updatePet"><a href="SwaggerPetstore.API.html#updatePet"><span class="hs-identifier">updatePet</span></a></a><span> </span><a name="local-6989586621679109000"><a href="#local-6989586621679109000"><span class="hs-identifier">body</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="#local-6989586621679109001"><span class="hs-identifier hs-var">request</span></a><span>
+</span><a name="line-167"></a><span>  </span><span class="hs-keyword">where</span><span>
+</span><a name="line-168"></a><span>    </span><a name="local-6989586621679109001"><a href="#local-6989586621679109001"><span class="hs-identifier">request</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="SwaggerPetstore.API.html#mkSwaggerPetstoreRequest"><span class="hs-identifier hs-var">mkSwaggerPetstoreRequest</span></a><span> </span><span class="hs-string">&quot;PUT&quot;</span><span> </span><a href="#local-6989586621679109002"><span class="hs-identifier hs-var">url</span></a><span> </span><a href="#local-6989586621679109003"><span class="hs-identifier hs-var">params</span></a><span>
+</span><a name="line-169"></a><span>    </span><a name="local-6989586621679109002"><a href="#local-6989586621679109002"><span class="hs-identifier">url</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="hs-string">&quot;/pet&quot;</span><span class="hs-special">]</span><span>
+</span><a name="line-170"></a><span>    </span><a name="local-6989586621679109003"><a href="#local-6989586621679109003"><span class="hs-identifier">params</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span>
+</span><a name="line-171"></a><span>
+</span><a name="line-172"></a><span class="hs-keyword">data</span><span> </span><a name="UpdatePet"><a href="SwaggerPetstore.API.html#UpdatePet"><span class="hs-identifier">UpdatePet</span></a></a><span>
+</span><a name="line-173"></a><span class="hs-comment">-- ** updatePetWithForm</span><span>
+</span><a name="line-174"></a><span class="hs-comment">-- | POST \/pet\/{petId}</span><span>
+</span><a name="line-175"></a><span class="hs-comment">-- </span><span>
+</span><a name="line-176"></a><span class="hs-comment">-- Updates a pet in the store with form data</span><span>
+</span><a name="line-177"></a><span class="hs-comment">-- </span><span>
 </span><a name="line-178"></a><span class="hs-comment">-- </span><span>
-</span><a name="line-179"></a><span class="hs-comment">-- Optional Params:</span><span>
-</span><a name="line-180"></a><span class="hs-comment">-- </span><span>
-</span><a name="line-181"></a><span class="hs-comment">-- * &quot;name&quot; :: 'Text'  - Updated name of the pet</span><span>
-</span><a name="line-182"></a><span class="hs-comment">-- </span><span>
-</span><a name="line-183"></a><span class="hs-comment">-- * &quot;status&quot; :: 'Text'  - Updated status of the pet</span><span>
-</span><a name="line-184"></a><span class="hs-comment">-- </span><span>
-</span><a name="line-185"></a><span class="hs-identifier">updatePetWithForm</span><span> </span><span>
-</span><a name="line-186"></a><span>  </span><span class="hs-glyph">::</span><span> </span><span class="hs-identifier hs-type">Integer</span><span> </span><span class="hs-comment">-- ^ &quot;petId&quot; -  ID of pet that needs to be updated</span><span>
-</span><a name="line-187"></a><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><a href="SwaggerPetstore.API.html#SwaggerPetstoreRequest"><span class="hs-identifier hs-type">SwaggerPetstoreRequest</span></a><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
-</span><a name="line-188"></a><a name="updatePetWithForm"><a href="SwaggerPetstore.API.html#updatePetWithForm"><span class="hs-identifier">updatePetWithForm</span></a></a><span> </span><a name="local-6989586621679108968"><a href="#local-6989586621679108968"><span class="hs-identifier">petId</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="#local-6989586621679108969"><span class="hs-identifier hs-var">request</span></a><span>
-</span><a name="line-189"></a><span>  </span><span class="hs-keyword">where</span><span>
-</span><a name="line-190"></a><span>    </span><a name="local-6989586621679108969"><a href="#local-6989586621679108969"><span class="hs-identifier">request</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="SwaggerPetstore.API.html#mkSwaggerPetstoreRequest"><span class="hs-identifier hs-var">mkSwaggerPetstoreRequest</span></a><span> </span><span class="hs-string">&quot;POST&quot;</span><span> </span><a href="#local-6989586621679108970"><span class="hs-identifier hs-var">url</span></a><span> </span><a href="#local-6989586621679108971"><span class="hs-identifier hs-var">params</span></a><span>
-</span><a name="line-191"></a><span>    </span><a name="local-6989586621679108970"><a href="#local-6989586621679108970"><span class="hs-identifier">url</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="hs-string">&quot;/pet/&quot;</span><span class="hs-special">,</span><a href="SwaggerPetstore.API.html#toPath"><span class="hs-identifier hs-var">toPath</span></a><span> </span><a href="#local-6989586621679108968"><span class="hs-identifier hs-var">petId</span></a><span class="hs-special">]</span><span>
-</span><a name="line-192"></a><span>    </span><a name="local-6989586621679108971"><a href="#local-6989586621679108971"><span class="hs-identifier">params</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span>
-</span><a name="line-193"></a><span>
-</span><a name="line-194"></a><span class="hs-comment">-- ** uploadFile</span><span>
-</span><a name="line-195"></a><span class="hs-comment">-- | POST \/pet\/{petId}\/uploadImage</span><span>
-</span><a name="line-196"></a><span class="hs-comment">-- </span><span>
-</span><a name="line-197"></a><span class="hs-comment">-- uploads an image</span><span>
-</span><a name="line-198"></a><span class="hs-comment">-- </span><span>
-</span><a name="line-199"></a><span class="hs-comment">-- </span><span>
-</span><a name="line-200"></a><span class="hs-comment">-- </span><span>
-</span><a name="line-201"></a><span class="hs-comment">-- AuthMethod: petstore_auth</span><span>
-</span><a name="line-202"></a><span class="hs-comment">-- </span><span>
-</span><a name="line-203"></a><span class="hs-comment">-- Consumes: multipart/form-data</span><span>
+</span><a name="line-179"></a><span class="hs-comment">-- </span><span>
+</span><a name="line-180"></a><span class="hs-comment">-- AuthMethod: petstore_auth</span><span>
+</span><a name="line-181"></a><span class="hs-comment">-- </span><span>
+</span><a name="line-182"></a><span class="hs-comment">-- Consumes: application/x-www-form-urlencoded</span><span>
+</span><a name="line-183"></a><span class="hs-comment">-- </span><span>
+</span><a name="line-184"></a><span class="hs-comment">-- Produces: application/xml, application/json</span><span>
+</span><a name="line-185"></a><span class="hs-comment">-- </span><span>
+</span><a name="line-186"></a><span class="hs-comment">-- Optional Params:</span><span>
+</span><a name="line-187"></a><span class="hs-comment">-- </span><span>
+</span><a name="line-188"></a><span class="hs-comment">-- * &quot;name&quot; :: 'Text'  - Updated name of the pet</span><span>
+</span><a name="line-189"></a><span class="hs-comment">-- </span><span>
+</span><a name="line-190"></a><span class="hs-comment">-- * &quot;status&quot; :: 'Text'  - Updated status of the pet</span><span>
+</span><a name="line-191"></a><span class="hs-comment">-- </span><span>
+</span><a name="line-192"></a><span class="hs-identifier">updatePetWithForm</span><span> </span><span>
+</span><a name="line-193"></a><span>  </span><span class="hs-glyph">::</span><span> </span><span class="hs-identifier hs-type">Integer</span><span> </span><span class="hs-comment">-- ^ &quot;petId&quot; -  ID of pet that needs to be updated</span><span>
+</span><a name="line-194"></a><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><a href="SwaggerPetstore.API.html#SwaggerPetstoreRequest"><span class="hs-identifier hs-type">SwaggerPetstoreRequest</span></a><span> </span><a href="SwaggerPetstore.API.html#UpdatePetWithForm"><span class="hs-identifier hs-type">UpdatePetWithForm</span></a><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><a name="line-195"></a><a name="updatePetWithForm"><a href="SwaggerPetstore.API.html#updatePetWithForm"><span class="hs-identifier">updatePetWithForm</span></a></a><span> </span><a name="local-6989586621679109004"><a href="#local-6989586621679109004"><span class="hs-identifier">petId</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="#local-6989586621679109005"><span class="hs-identifier hs-var">request</span></a><span>
+</span><a name="line-196"></a><span>  </span><span class="hs-keyword">where</span><span>
+</span><a name="line-197"></a><span>    </span><a name="local-6989586621679109005"><a href="#local-6989586621679109005"><span class="hs-identifier">request</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="SwaggerPetstore.API.html#mkSwaggerPetstoreRequest"><span class="hs-identifier hs-var">mkSwaggerPetstoreRequest</span></a><span> </span><span class="hs-string">&quot;POST&quot;</span><span> </span><a href="#local-6989586621679109006"><span class="hs-identifier hs-var">url</span></a><span> </span><a href="#local-6989586621679109007"><span class="hs-identifier hs-var">params</span></a><span>
+</span><a name="line-198"></a><span>    </span><a name="local-6989586621679109006"><a href="#local-6989586621679109006"><span class="hs-identifier">url</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="hs-string">&quot;/pet/&quot;</span><span class="hs-special">,</span><a href="SwaggerPetstore.API.html#toPath"><span class="hs-identifier hs-var">toPath</span></a><span> </span><a href="#local-6989586621679109004"><span class="hs-identifier hs-var">petId</span></a><span class="hs-special">]</span><span>
+</span><a name="line-199"></a><span>    </span><a name="local-6989586621679109007"><a href="#local-6989586621679109007"><span class="hs-identifier">params</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span>
+</span><a name="line-200"></a><span>
+</span><a name="line-201"></a><span class="hs-keyword">data</span><span> </span><a name="UpdatePetWithForm"><a href="SwaggerPetstore.API.html#UpdatePetWithForm"><span class="hs-identifier">UpdatePetWithForm</span></a></a><span>
+</span><a name="line-202"></a><span class="hs-comment">-- ** uploadFile</span><span>
+</span><a name="line-203"></a><span class="hs-comment">-- | POST \/pet\/{petId}\/uploadImage</span><span>
 </span><a name="line-204"></a><span class="hs-comment">-- </span><span>
-</span><a name="line-205"></a><span class="hs-comment">-- Produces: application/json</span><span>
+</span><a name="line-205"></a><span class="hs-comment">-- uploads an image</span><span>
 </span><a name="line-206"></a><span class="hs-comment">-- </span><span>
-</span><a name="line-207"></a><span class="hs-comment">-- Optional Params:</span><span>
+</span><a name="line-207"></a><span class="hs-comment">-- </span><span>
 </span><a name="line-208"></a><span class="hs-comment">-- </span><span>
-</span><a name="line-209"></a><span class="hs-comment">-- * &quot;additionalMetadata&quot; :: 'Text'  - Additional data to pass to server</span><span>
+</span><a name="line-209"></a><span class="hs-comment">-- AuthMethod: petstore_auth</span><span>
 </span><a name="line-210"></a><span class="hs-comment">-- </span><span>
-</span><a name="line-211"></a><span class="hs-comment">-- * &quot;file&quot; :: 'FilePath'  - file to upload</span><span>
+</span><a name="line-211"></a><span class="hs-comment">-- Consumes: multipart/form-data</span><span>
 </span><a name="line-212"></a><span class="hs-comment">-- </span><span>
-</span><a name="line-213"></a><span class="hs-identifier">uploadFile</span><span> </span><span>
-</span><a name="line-214"></a><span>  </span><span class="hs-glyph">::</span><span> </span><span class="hs-identifier hs-type">Integer</span><span> </span><span class="hs-comment">-- ^ &quot;petId&quot; -  ID of pet to update</span><span>
-</span><a name="line-215"></a><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><a href="SwaggerPetstore.API.html#SwaggerPetstoreRequest"><span class="hs-identifier hs-type">SwaggerPetstoreRequest</span></a><span> </span><a href="SwaggerPetstore.Model.html#ApiResponse"><span class="hs-identifier hs-type">ApiResponse</span></a><span>
-</span><a name="line-216"></a><a name="uploadFile"><a href="SwaggerPetstore.API.html#uploadFile"><span class="hs-identifier">uploadFile</span></a></a><span> </span><a name="local-6989586621679108972"><a href="#local-6989586621679108972"><span class="hs-identifier">petId</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="#local-6989586621679108973"><span class="hs-identifier hs-var">request</span></a><span>
-</span><a name="line-217"></a><span>  </span><span class="hs-keyword">where</span><span>
-</span><a name="line-218"></a><span>    </span><a name="local-6989586621679108973"><a href="#local-6989586621679108973"><span class="hs-identifier">request</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="SwaggerPetstore.API.html#mkSwaggerPetstoreRequest"><span class="hs-identifier hs-var">mkSwaggerPetstoreRequest</span></a><span> </span><span class="hs-string">&quot;POST&quot;</span><span> </span><a href="#local-6989586621679108974"><span class="hs-identifier hs-var">url</span></a><span> </span><a href="#local-6989586621679108975"><span class="hs-identifier hs-var">params</span></a><span>
-</span><a name="line-219"></a><span>    </span><a name="local-6989586621679108974"><a href="#local-6989586621679108974"><span class="hs-identifier">url</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="hs-string">&quot;/pet/&quot;</span><span class="hs-special">,</span><a href="SwaggerPetstore.API.html#toPath"><span class="hs-identifier hs-var">toPath</span></a><span> </span><a href="#local-6989586621679108972"><span class="hs-identifier hs-var">petId</span></a><span class="hs-special">,</span><span class="hs-string">&quot;/uploadImage&quot;</span><span class="hs-special">]</span><span>
-</span><a name="line-220"></a><span>    </span><a name="local-6989586621679108975"><a href="#local-6989586621679108975"><span class="hs-identifier">params</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span>
-</span><a name="line-221"></a><span>
-</span><a name="line-222"></a><span>
-</span><a name="line-223"></a><span>
-</span><a name="line-224"></a><span class="hs-comment">-- ** deleteOrder</span><span>
-</span><a name="line-225"></a><span class="hs-comment">-- | DELETE \/store\/order\/{orderId}</span><span>
-</span><a name="line-226"></a><span class="hs-comment">-- </span><span>
-</span><a name="line-227"></a><span class="hs-comment">-- Delete purchase order by ID</span><span>
-</span><a name="line-228"></a><span class="hs-comment">-- </span><span>
-</span><a name="line-229"></a><span class="hs-comment">-- For valid response try integer IDs with positive integer value. Negative or non-integer values will generate API errors</span><span>
-</span><a name="line-230"></a><span class="hs-comment">-- </span><span>
-</span><a name="line-231"></a><span class="hs-comment">-- Produces: application/xml, application/json</span><span>
-</span><a name="line-232"></a><span class="hs-comment">-- </span><span>
-</span><a name="line-233"></a><span class="hs-identifier">deleteOrder</span><span> </span><span>
-</span><a name="line-234"></a><span>  </span><span class="hs-glyph">::</span><span> </span><span class="hs-identifier hs-type">Integer</span><span> </span><span class="hs-comment">-- ^ &quot;orderId&quot; -  ID of the order that needs to be deleted</span><span>
-</span><a name="line-235"></a><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><a href="SwaggerPetstore.API.html#SwaggerPetstoreRequest"><span class="hs-identifier hs-type">SwaggerPetstoreRequest</span></a><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
-</span><a name="line-236"></a><a name="deleteOrder"><a href="SwaggerPetstore.API.html#deleteOrder"><span class="hs-identifier">deleteOrder</span></a></a><span> </span><a name="local-6989586621679108976"><a href="#local-6989586621679108976"><span class="hs-identifier">orderId</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="#local-6989586621679108977"><span class="hs-identifier hs-var">request</span></a><span>
-</span><a name="line-237"></a><span>  </span><span class="hs-keyword">where</span><span>
-</span><a name="line-238"></a><span>    </span><a name="local-6989586621679108977"><a href="#local-6989586621679108977"><span class="hs-identifier">request</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="SwaggerPetstore.API.html#mkSwaggerPetstoreRequest"><span class="hs-identifier hs-var">mkSwaggerPetstoreRequest</span></a><span> </span><span class="hs-string">&quot;DELETE&quot;</span><span> </span><a href="#local-6989586621679108978"><span class="hs-identifier hs-var">url</span></a><span> </span><a href="#local-6989586621679108979"><span class="hs-identifier hs-var">params</span></a><span>
-</span><a name="line-239"></a><span>    </span><a name="local-6989586621679108978"><a href="#local-6989586621679108978"><span class="hs-identifier">url</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="hs-string">&quot;/store/order/&quot;</span><span class="hs-special">,</span><a href="SwaggerPetstore.API.html#toPath"><span class="hs-identifier hs-var">toPath</span></a><span> </span><a href="#local-6989586621679108976"><span class="hs-identifier hs-var">orderId</span></a><span class="hs-special">]</span><span>
-</span><a name="line-240"></a><span>    </span><a name="local-6989586621679108979"><a href="#local-6989586621679108979"><span class="hs-identifier">params</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span>
-</span><a name="line-241"></a><span>
-</span><a name="line-242"></a><span class="hs-comment">-- ** getInventory</span><span>
-</span><a name="line-243"></a><span class="hs-comment">-- | GET \/store\/inventory</span><span>
-</span><a name="line-244"></a><span class="hs-comment">-- </span><span>
-</span><a name="line-245"></a><span class="hs-comment">-- Returns pet inventories by status</span><span>
-</span><a name="line-246"></a><span class="hs-comment">-- </span><span>
-</span><a name="line-247"></a><span class="hs-comment">-- Returns a map of status codes to quantities</span><span>
-</span><a name="line-248"></a><span class="hs-comment">-- </span><span>
-</span><a name="line-249"></a><span class="hs-comment">-- AuthMethod: api_key</span><span>
-</span><a name="line-250"></a><span class="hs-comment">-- </span><span>
-</span><a name="line-251"></a><span class="hs-comment">-- Produces: application/json</span><span>
-</span><a name="line-252"></a><span class="hs-comment">-- </span><span>
-</span><a name="line-253"></a><span class="hs-identifier">getInventory</span><span> </span><span>
-</span><a name="line-254"></a><span>  </span><span class="hs-glyph">::</span><span> </span><a href="SwaggerPetstore.API.html#SwaggerPetstoreRequest"><span class="hs-identifier hs-type">SwaggerPetstoreRequest</span></a><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-type">Map</span><span class="hs-operator hs-type">.</span><span class="hs-identifier hs-type">Map</span><span> </span><span class="hs-identifier hs-type">String</span><span> </span><span class="hs-identifier hs-type">Int</span><span class="hs-special">)</span><span>
-</span><a name="line-255"></a><a name="getInventory"><a href="SwaggerPetstore.API.html#getInventory"><span class="hs-identifier">getInventory</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="#local-6989586621679108980"><span class="hs-identifier hs-var">request</span></a><span>
-</span><a name="line-256"></a><span>  </span><span class="hs-keyword">where</span><span>
-</span><a name="line-257"></a><span>    </span><a name="local-6989586621679108980"><a href="#local-6989586621679108980"><span class="hs-identifier">request</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="SwaggerPetstore.API.html#mkSwaggerPetstoreRequest"><span class="hs-identifier hs-var">mkSwaggerPetstoreRequest</span></a><span> </span><span class="hs-string">&quot;GET&quot;</span><span> </span><a href="#local-6989586621679108981"><span class="hs-identifier hs-var">url</span></a><span> </span><a href="#local-6989586621679108982"><span class="hs-identifier hs-var">params</span></a><span>
-</span><a name="line-258"></a><span>    </span><a name="local-6989586621679108981"><a href="#local-6989586621679108981"><span class="hs-identifier">url</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="hs-string">&quot;/store/inventory&quot;</span><span class="hs-special">]</span><span>
-</span><a name="line-259"></a><span>    </span><a name="local-6989586621679108982"><a href="#local-6989586621679108982"><span class="hs-identifier">params</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span>
-</span><a name="line-260"></a><span>
-</span><a name="line-261"></a><span class="hs-comment">-- ** getOrderById</span><span>
-</span><a name="line-262"></a><span class="hs-comment">-- | GET \/store\/order\/{orderId}</span><span>
-</span><a name="line-263"></a><span class="hs-comment">-- </span><span>
-</span><a name="line-264"></a><span class="hs-comment">-- Find purchase order by ID</span><span>
-</span><a name="line-265"></a><span class="hs-comment">-- </span><span>
-</span><a name="line-266"></a><span class="hs-comment">-- For valid response try integer IDs with value &gt;= 1 and &lt;= 10. Other values will generated exceptions</span><span>
-</span><a name="line-267"></a><span class="hs-comment">-- </span><span>
-</span><a name="line-268"></a><span class="hs-comment">-- Produces: application/xml, application/json</span><span>
-</span><a name="line-269"></a><span class="hs-comment">-- </span><span>
-</span><a name="line-270"></a><span class="hs-identifier">getOrderById</span><span> </span><span>
-</span><a name="line-271"></a><span>  </span><span class="hs-glyph">::</span><span> </span><span class="hs-identifier hs-type">Integer</span><span> </span><span class="hs-comment">-- ^ &quot;orderId&quot; -  ID of pet that needs to be fetched</span><span>
-</span><a name="line-272"></a><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><a href="SwaggerPetstore.API.html#SwaggerPetstoreRequest"><span class="hs-identifier hs-type">SwaggerPetstoreRequest</span></a><span> </span><a href="SwaggerPetstore.Model.html#Order"><span class="hs-identifier hs-type">Order</span></a><span>
-</span><a name="line-273"></a><a name="getOrderById"><a href="SwaggerPetstore.API.html#getOrderById"><span class="hs-identifier">getOrderById</span></a></a><span> </span><a name="local-6989586621679108983"><a href="#local-6989586621679108983"><span class="hs-identifier">orderId</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="#local-6989586621679108984"><span class="hs-identifier hs-var">request</span></a><span>
-</span><a name="line-274"></a><span>  </span><span class="hs-keyword">where</span><span>
-</span><a name="line-275"></a><span>    </span><a name="local-6989586621679108984"><a href="#local-6989586621679108984"><span class="hs-identifier">request</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="SwaggerPetstore.API.html#mkSwaggerPetstoreRequest"><span class="hs-identifier hs-var">mkSwaggerPetstoreRequest</span></a><span> </span><span class="hs-string">&quot;GET&quot;</span><span> </span><a href="#local-6989586621679108985"><span class="hs-identifier hs-var">url</span></a><span> </span><a href="#local-6989586621679108986"><span class="hs-identifier hs-var">params</span></a><span>
-</span><a name="line-276"></a><span>    </span><a name="local-6989586621679108985"><a href="#local-6989586621679108985"><span class="hs-identifier">url</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="hs-string">&quot;/store/order/&quot;</span><span class="hs-special">,</span><a href="SwaggerPetstore.API.html#toPath"><span class="hs-identifier hs-var">toPath</span></a><span> </span><a href="#local-6989586621679108983"><span class="hs-identifier hs-var">orderId</span></a><span class="hs-special">]</span><span>
-</span><a name="line-277"></a><span>    </span><a name="local-6989586621679108986"><a href="#local-6989586621679108986"><span class="hs-identifier">params</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span>
-</span><a name="line-278"></a><span>
-</span><a name="line-279"></a><span class="hs-comment">-- ** placeOrder</span><span>
-</span><a name="line-280"></a><span class="hs-comment">-- | POST \/store\/order</span><span>
-</span><a name="line-281"></a><span class="hs-comment">-- </span><span>
-</span><a name="line-282"></a><span class="hs-comment">-- Place an order for a pet</span><span>
-</span><a name="line-283"></a><span class="hs-comment">-- </span><span>
-</span><a name="line-284"></a><span class="hs-comment">-- </span><span>
-</span><a name="line-285"></a><span class="hs-comment">-- </span><span>
-</span><a name="line-286"></a><span class="hs-comment">-- Produces: application/xml, application/json</span><span>
-</span><a name="line-287"></a><span class="hs-comment">-- </span><span>
-</span><a name="line-288"></a><span class="hs-identifier">placeOrder</span><span> </span><span>
-</span><a name="line-289"></a><span>  </span><span class="hs-glyph">::</span><span> </span><a href="SwaggerPetstore.Model.html#Order"><span class="hs-identifier hs-type">Order</span></a><span> </span><span class="hs-comment">-- ^ &quot;body&quot; -  order placed for purchasing the pet</span><span>
-</span><a name="line-290"></a><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><a href="SwaggerPetstore.API.html#SwaggerPetstoreRequest"><span class="hs-identifier hs-type">SwaggerPetstoreRequest</span></a><span> </span><a href="SwaggerPetstore.Model.html#Order"><span class="hs-identifier hs-type">Order</span></a><span>
-</span><a name="line-291"></a><a name="placeOrder"><a href="SwaggerPetstore.API.html#placeOrder"><span class="hs-identifier">placeOrder</span></a></a><span> </span><a name="local-6989586621679108987"><a href="#local-6989586621679108987"><span class="hs-identifier">body</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="#local-6989586621679108988"><span class="hs-identifier hs-var">request</span></a><span>
-</span><a name="line-292"></a><span>  </span><span class="hs-keyword">where</span><span>
-</span><a name="line-293"></a><span>    </span><a name="local-6989586621679108988"><a href="#local-6989586621679108988"><span class="hs-identifier">request</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="SwaggerPetstore.API.html#mkSwaggerPetstoreRequest"><span class="hs-identifier hs-var">mkSwaggerPetstoreRequest</span></a><span> </span><span class="hs-string">&quot;POST&quot;</span><span> </span><a href="#local-6989586621679108989"><span class="hs-identifier hs-var">url</span></a><span> </span><a href="#local-6989586621679108990"><span class="hs-identifier hs-var">params</span></a><span>
-</span><a name="line-294"></a><span>    </span><a name="local-6989586621679108989"><a href="#local-6989586621679108989"><span class="hs-identifier">url</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="hs-string">&quot;/store/order&quot;</span><span class="hs-special">]</span><span>
-</span><a name="line-295"></a><span>    </span><a name="local-6989586621679108990"><a href="#local-6989586621679108990"><span class="hs-identifier">params</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span>
-</span><a name="line-296"></a><span>
-</span><a name="line-297"></a><span>
-</span><a name="line-298"></a><span>
-</span><a name="line-299"></a><span class="hs-comment">-- ** createUser</span><span>
-</span><a name="line-300"></a><span class="hs-comment">-- | POST \/user</span><span>
-</span><a name="line-301"></a><span class="hs-comment">-- </span><span>
-</span><a name="line-302"></a><span class="hs-comment">-- Create user</span><span>
-</span><a name="line-303"></a><span class="hs-comment">-- </span><span>
-</span><a name="line-304"></a><span class="hs-comment">-- This can only be done by the logged in user.</span><span>
-</span><a name="line-305"></a><span class="hs-comment">-- </span><span>
-</span><a name="line-306"></a><span class="hs-comment">-- Produces: application/xml, application/json</span><span>
-</span><a name="line-307"></a><span class="hs-comment">-- </span><span>
-</span><a name="line-308"></a><span class="hs-identifier">createUser</span><span> </span><span>
-</span><a name="line-309"></a><span>  </span><span class="hs-glyph">::</span><span> </span><a href="SwaggerPetstore.Model.html#User"><span class="hs-identifier hs-type">User</span></a><span> </span><span class="hs-comment">-- ^ &quot;body&quot; -  Created user object</span><span>
-</span><a name="line-310"></a><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><a href="SwaggerPetstore.API.html#SwaggerPetstoreRequest"><span class="hs-identifier hs-type">SwaggerPetstoreRequest</span></a><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
-</span><a name="line-311"></a><a name="createUser"><a href="SwaggerPetstore.API.html#createUser"><span class="hs-identifier">createUser</span></a></a><span> </span><a name="local-6989586621679108991"><a href="#local-6989586621679108991"><span class="hs-identifier">body</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="#local-6989586621679108992"><span class="hs-identifier hs-var">request</span></a><span>
-</span><a name="line-312"></a><span>  </span><span class="hs-keyword">where</span><span>
-</span><a name="line-313"></a><span>    </span><a name="local-6989586621679108992"><a href="#local-6989586621679108992"><span class="hs-identifier">request</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="SwaggerPetstore.API.html#mkSwaggerPetstoreRequest"><span class="hs-identifier hs-var">mkSwaggerPetstoreRequest</span></a><span> </span><span class="hs-string">&quot;POST&quot;</span><span> </span><a href="#local-6989586621679108993"><span class="hs-identifier hs-var">url</span></a><span> </span><a href="#local-6989586621679108994"><span class="hs-identifier hs-var">params</span></a><span>
-</span><a name="line-314"></a><span>    </span><a name="local-6989586621679108993"><a href="#local-6989586621679108993"><span class="hs-identifier">url</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="hs-string">&quot;/user&quot;</span><span class="hs-special">]</span><span>
-</span><a name="line-315"></a><span>    </span><a name="local-6989586621679108994"><a href="#local-6989586621679108994"><span class="hs-identifier">params</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span>
-</span><a name="line-316"></a><span>
-</span><a name="line-317"></a><span class="hs-comment">-- ** createUsersWithArrayInput</span><span>
-</span><a name="line-318"></a><span class="hs-comment">-- | POST \/user\/createWithArray</span><span>
-</span><a name="line-319"></a><span class="hs-comment">-- </span><span>
-</span><a name="line-320"></a><span class="hs-comment">-- Creates list of users with given input array</span><span>
-</span><a name="line-321"></a><span class="hs-comment">-- </span><span>
-</span><a name="line-322"></a><span class="hs-comment">-- </span><span>
-</span><a name="line-323"></a><span class="hs-comment">-- </span><span>
-</span><a name="line-324"></a><span class="hs-comment">-- Produces: application/xml, application/json</span><span>
-</span><a name="line-325"></a><span class="hs-comment">-- </span><span>
-</span><a name="line-326"></a><span class="hs-identifier">createUsersWithArrayInput</span><span> </span><span>
-</span><a name="line-327"></a><span>  </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><a href="SwaggerPetstore.Model.html#User"><span class="hs-identifier hs-type">User</span></a><span class="hs-special">]</span><span> </span><span class="hs-comment">-- ^ &quot;body&quot; -  List of user object</span><span>
-</span><a name="line-328"></a><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><a href="SwaggerPetstore.API.html#SwaggerPetstoreRequest"><span class="hs-identifier hs-type">SwaggerPetstoreRequest</span></a><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
-</span><a name="line-329"></a><a name="createUsersWithArrayInput"><a href="SwaggerPetstore.API.html#createUsersWithArrayInput"><span class="hs-identifier">createUsersWithArrayInput</span></a></a><span> </span><a name="local-6989586621679108995"><a href="#local-6989586621679108995"><span class="hs-identifier">body</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="#local-6989586621679108996"><span class="hs-identifier hs-var">request</span></a><span>
-</span><a name="line-330"></a><span>  </span><span class="hs-keyword">where</span><span>
-</span><a name="line-331"></a><span>    </span><a name="local-6989586621679108996"><a href="#local-6989586621679108996"><span class="hs-identifier">request</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="SwaggerPetstore.API.html#mkSwaggerPetstoreRequest"><span class="hs-identifier hs-var">mkSwaggerPetstoreRequest</span></a><span> </span><span class="hs-string">&quot;POST&quot;</span><span> </span><a href="#local-6989586621679108997"><span class="hs-identifier hs-var">url</span></a><span> </span><a href="#local-6989586621679108998"><span class="hs-identifier hs-var">params</span></a><span>
-</span><a name="line-332"></a><span>    </span><a name="local-6989586621679108997"><a href="#local-6989586621679108997"><span class="hs-identifier">url</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="hs-string">&quot;/user/createWithArray&quot;</span><span class="hs-special">]</span><span>
-</span><a name="line-333"></a><span>    </span><a name="local-6989586621679108998"><a href="#local-6989586621679108998"><span class="hs-identifier">params</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span>
-</span><a name="line-334"></a><span>
-</span><a name="line-335"></a><span class="hs-comment">-- ** createUsersWithListInput</span><span>
-</span><a name="line-336"></a><span class="hs-comment">-- | POST \/user\/createWithList</span><span>
+</span><a name="line-213"></a><span class="hs-comment">-- Produces: application/json</span><span>
+</span><a name="line-214"></a><span class="hs-comment">-- </span><span>
+</span><a name="line-215"></a><span class="hs-comment">-- Optional Params:</span><span>
+</span><a name="line-216"></a><span class="hs-comment">-- </span><span>
+</span><a name="line-217"></a><span class="hs-comment">-- * &quot;additionalMetadata&quot; :: 'Text'  - Additional data to pass to server</span><span>
+</span><a name="line-218"></a><span class="hs-comment">-- </span><span>
+</span><a name="line-219"></a><span class="hs-comment">-- * &quot;file&quot; :: 'FilePath'  - file to upload</span><span>
+</span><a name="line-220"></a><span class="hs-comment">-- </span><span>
+</span><a name="line-221"></a><span class="hs-identifier">uploadFile</span><span> </span><span>
+</span><a name="line-222"></a><span>  </span><span class="hs-glyph">::</span><span> </span><span class="hs-identifier hs-type">Integer</span><span> </span><span class="hs-comment">-- ^ &quot;petId&quot; -  ID of pet to update</span><span>
+</span><a name="line-223"></a><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><a href="SwaggerPetstore.API.html#SwaggerPetstoreRequest"><span class="hs-identifier hs-type">SwaggerPetstoreRequest</span></a><span> </span><a href="SwaggerPetstore.API.html#UploadFile"><span class="hs-identifier hs-type">UploadFile</span></a><span> </span><a href="SwaggerPetstore.Model.html#ApiResponse"><span class="hs-identifier hs-type">ApiResponse</span></a><span>
+</span><a name="line-224"></a><a name="uploadFile"><a href="SwaggerPetstore.API.html#uploadFile"><span class="hs-identifier">uploadFile</span></a></a><span> </span><a name="local-6989586621679109008"><a href="#local-6989586621679109008"><span class="hs-identifier">petId</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="#local-6989586621679109009"><span class="hs-identifier hs-var">request</span></a><span>
+</span><a name="line-225"></a><span>  </span><span class="hs-keyword">where</span><span>
+</span><a name="line-226"></a><span>    </span><a name="local-6989586621679109009"><a href="#local-6989586621679109009"><span class="hs-identifier">request</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="SwaggerPetstore.API.html#mkSwaggerPetstoreRequest"><span class="hs-identifier hs-var">mkSwaggerPetstoreRequest</span></a><span> </span><span class="hs-string">&quot;POST&quot;</span><span> </span><a href="#local-6989586621679109010"><span class="hs-identifier hs-var">url</span></a><span> </span><a href="#local-6989586621679109011"><span class="hs-identifier hs-var">params</span></a><span>
+</span><a name="line-227"></a><span>    </span><a name="local-6989586621679109010"><a href="#local-6989586621679109010"><span class="hs-identifier">url</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="hs-string">&quot;/pet/&quot;</span><span class="hs-special">,</span><a href="SwaggerPetstore.API.html#toPath"><span class="hs-identifier hs-var">toPath</span></a><span> </span><a href="#local-6989586621679109008"><span class="hs-identifier hs-var">petId</span></a><span class="hs-special">,</span><span class="hs-string">&quot;/uploadImage&quot;</span><span class="hs-special">]</span><span>
+</span><a name="line-228"></a><span>    </span><a name="local-6989586621679109011"><a href="#local-6989586621679109011"><span class="hs-identifier">params</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span>
+</span><a name="line-229"></a><span>
+</span><a name="line-230"></a><span class="hs-keyword">data</span><span> </span><a name="UploadFile"><a href="SwaggerPetstore.API.html#UploadFile"><span class="hs-identifier">UploadFile</span></a></a><span>
+</span><a name="line-231"></a><span>
+</span><a name="line-232"></a><span>
+</span><a name="line-233"></a><span class="hs-comment">-- ** deleteOrder</span><span>
+</span><a name="line-234"></a><span class="hs-comment">-- | DELETE \/store\/order\/{orderId}</span><span>
+</span><a name="line-235"></a><span class="hs-comment">-- </span><span>
+</span><a name="line-236"></a><span class="hs-comment">-- Delete purchase order by ID</span><span>
+</span><a name="line-237"></a><span class="hs-comment">-- </span><span>
+</span><a name="line-238"></a><span class="hs-comment">-- For valid response try integer IDs with positive integer value. Negative or non-integer values will generate API errors</span><span>
+</span><a name="line-239"></a><span class="hs-comment">-- </span><span>
+</span><a name="line-240"></a><span class="hs-comment">-- Produces: application/xml, application/json</span><span>
+</span><a name="line-241"></a><span class="hs-comment">-- </span><span>
+</span><a name="line-242"></a><span class="hs-identifier">deleteOrder</span><span> </span><span>
+</span><a name="line-243"></a><span>  </span><span class="hs-glyph">::</span><span> </span><span class="hs-identifier hs-type">Integer</span><span> </span><span class="hs-comment">-- ^ &quot;orderId&quot; -  ID of the order that needs to be deleted</span><span>
+</span><a name="line-244"></a><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><a href="SwaggerPetstore.API.html#SwaggerPetstoreRequest"><span class="hs-identifier hs-type">SwaggerPetstoreRequest</span></a><span> </span><a href="SwaggerPetstore.API.html#DeleteOrder"><span class="hs-identifier hs-type">DeleteOrder</span></a><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><a name="line-245"></a><a name="deleteOrder"><a href="SwaggerPetstore.API.html#deleteOrder"><span class="hs-identifier">deleteOrder</span></a></a><span> </span><a name="local-6989586621679109012"><a href="#local-6989586621679109012"><span class="hs-identifier">orderId</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="#local-6989586621679109013"><span class="hs-identifier hs-var">request</span></a><span>
+</span><a name="line-246"></a><span>  </span><span class="hs-keyword">where</span><span>
+</span><a name="line-247"></a><span>    </span><a name="local-6989586621679109013"><a href="#local-6989586621679109013"><span class="hs-identifier">request</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="SwaggerPetstore.API.html#mkSwaggerPetstoreRequest"><span class="hs-identifier hs-var">mkSwaggerPetstoreRequest</span></a><span> </span><span class="hs-string">&quot;DELETE&quot;</span><span> </span><a href="#local-6989586621679109014"><span class="hs-identifier hs-var">url</span></a><span> </span><a href="#local-6989586621679109015"><span class="hs-identifier hs-var">params</span></a><span>
+</span><a name="line-248"></a><span>    </span><a name="local-6989586621679109014"><a href="#local-6989586621679109014"><span class="hs-identifier">url</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="hs-string">&quot;/store/order/&quot;</span><span class="hs-special">,</span><a href="SwaggerPetstore.API.html#toPath"><span class="hs-identifier hs-var">toPath</span></a><span> </span><a href="#local-6989586621679109012"><span class="hs-identifier hs-var">orderId</span></a><span class="hs-special">]</span><span>
+</span><a name="line-249"></a><span>    </span><a name="local-6989586621679109015"><a href="#local-6989586621679109015"><span class="hs-identifier">params</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span>
+</span><a name="line-250"></a><span>
+</span><a name="line-251"></a><span class="hs-keyword">data</span><span> </span><a name="DeleteOrder"><a href="SwaggerPetstore.API.html#DeleteOrder"><span class="hs-identifier">DeleteOrder</span></a></a><span>
+</span><a name="line-252"></a><span class="hs-comment">-- ** getInventory</span><span>
+</span><a name="line-253"></a><span class="hs-comment">-- | GET \/store\/inventory</span><span>
+</span><a name="line-254"></a><span class="hs-comment">-- </span><span>
+</span><a name="line-255"></a><span class="hs-comment">-- Returns pet inventories by status</span><span>
+</span><a name="line-256"></a><span class="hs-comment">-- </span><span>
+</span><a name="line-257"></a><span class="hs-comment">-- Returns a map of status codes to quantities</span><span>
+</span><a name="line-258"></a><span class="hs-comment">-- </span><span>
+</span><a name="line-259"></a><span class="hs-comment">-- AuthMethod: api_key</span><span>
+</span><a name="line-260"></a><span class="hs-comment">-- </span><span>
+</span><a name="line-261"></a><span class="hs-comment">-- Produces: application/json</span><span>
+</span><a name="line-262"></a><span class="hs-comment">-- </span><span>
+</span><a name="line-263"></a><span class="hs-identifier">getInventory</span><span> </span><span>
+</span><a name="line-264"></a><span>  </span><span class="hs-glyph">::</span><span> </span><a href="SwaggerPetstore.API.html#SwaggerPetstoreRequest"><span class="hs-identifier hs-type">SwaggerPetstoreRequest</span></a><span> </span><a href="SwaggerPetstore.API.html#GetInventory"><span class="hs-identifier hs-type">GetInventory</span></a><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-type">Map</span><span class="hs-operator hs-type">.</span><span class="hs-identifier hs-type">Map</span><span> </span><span class="hs-identifier hs-type">String</span><span> </span><span class="hs-identifier hs-type">Int</span><span class="hs-special">)</span><span>
+</span><a name="line-265"></a><a name="getInventory"><a href="SwaggerPetstore.API.html#getInventory"><span class="hs-identifier">getInventory</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="#local-6989586621679109016"><span class="hs-identifier hs-var">request</span></a><span>
+</span><a name="line-266"></a><span>  </span><span class="hs-keyword">where</span><span>
+</span><a name="line-267"></a><span>    </span><a name="local-6989586621679109016"><a href="#local-6989586621679109016"><span class="hs-identifier">request</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="SwaggerPetstore.API.html#mkSwaggerPetstoreRequest"><span class="hs-identifier hs-var">mkSwaggerPetstoreRequest</span></a><span> </span><span class="hs-string">&quot;GET&quot;</span><span> </span><a href="#local-6989586621679109017"><span class="hs-identifier hs-var">url</span></a><span> </span><a href="#local-6989586621679109018"><span class="hs-identifier hs-var">params</span></a><span>
+</span><a name="line-268"></a><span>    </span><a name="local-6989586621679109017"><a href="#local-6989586621679109017"><span class="hs-identifier">url</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="hs-string">&quot;/store/inventory&quot;</span><span class="hs-special">]</span><span>
+</span><a name="line-269"></a><span>    </span><a name="local-6989586621679109018"><a href="#local-6989586621679109018"><span class="hs-identifier">params</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span>
+</span><a name="line-270"></a><span>
+</span><a name="line-271"></a><span class="hs-keyword">data</span><span> </span><a name="GetInventory"><a href="SwaggerPetstore.API.html#GetInventory"><span class="hs-identifier">GetInventory</span></a></a><span>
+</span><a name="line-272"></a><span class="hs-comment">-- ** getOrderById</span><span>
+</span><a name="line-273"></a><span class="hs-comment">-- | GET \/store\/order\/{orderId}</span><span>
+</span><a name="line-274"></a><span class="hs-comment">-- </span><span>
+</span><a name="line-275"></a><span class="hs-comment">-- Find purchase order by ID</span><span>
+</span><a name="line-276"></a><span class="hs-comment">-- </span><span>
+</span><a name="line-277"></a><span class="hs-comment">-- For valid response try integer IDs with value &gt;= 1 and &lt;= 10. Other values will generated exceptions</span><span>
+</span><a name="line-278"></a><span class="hs-comment">-- </span><span>
+</span><a name="line-279"></a><span class="hs-comment">-- Produces: application/xml, application/json</span><span>
+</span><a name="line-280"></a><span class="hs-comment">-- </span><span>
+</span><a name="line-281"></a><span class="hs-identifier">getOrderById</span><span> </span><span>
+</span><a name="line-282"></a><span>  </span><span class="hs-glyph">::</span><span> </span><span class="hs-identifier hs-type">Integer</span><span> </span><span class="hs-comment">-- ^ &quot;orderId&quot; -  ID of pet that needs to be fetched</span><span>
+</span><a name="line-283"></a><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><a href="SwaggerPetstore.API.html#SwaggerPetstoreRequest"><span class="hs-identifier hs-type">SwaggerPetstoreRequest</span></a><span> </span><a href="SwaggerPetstore.API.html#GetOrderById"><span class="hs-identifier hs-type">GetOrderById</span></a><span> </span><a href="SwaggerPetstore.Model.html#Order"><span class="hs-identifier hs-type">Order</span></a><span>
+</span><a name="line-284"></a><a name="getOrderById"><a href="SwaggerPetstore.API.html#getOrderById"><span class="hs-identifier">getOrderById</span></a></a><span> </span><a name="local-6989586621679109019"><a href="#local-6989586621679109019"><span class="hs-identifier">orderId</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="#local-6989586621679109020"><span class="hs-identifier hs-var">request</span></a><span>
+</span><a name="line-285"></a><span>  </span><span class="hs-keyword">where</span><span>
+</span><a name="line-286"></a><span>    </span><a name="local-6989586621679109020"><a href="#local-6989586621679109020"><span class="hs-identifier">request</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="SwaggerPetstore.API.html#mkSwaggerPetstoreRequest"><span class="hs-identifier hs-var">mkSwaggerPetstoreRequest</span></a><span> </span><span class="hs-string">&quot;GET&quot;</span><span> </span><a href="#local-6989586621679109021"><span class="hs-identifier hs-var">url</span></a><span> </span><a href="#local-6989586621679109022"><span class="hs-identifier hs-var">params</span></a><span>
+</span><a name="line-287"></a><span>    </span><a name="local-6989586621679109021"><a href="#local-6989586621679109021"><span class="hs-identifier">url</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="hs-string">&quot;/store/order/&quot;</span><span class="hs-special">,</span><a href="SwaggerPetstore.API.html#toPath"><span class="hs-identifier hs-var">toPath</span></a><span> </span><a href="#local-6989586621679109019"><span class="hs-identifier hs-var">orderId</span></a><span class="hs-special">]</span><span>
+</span><a name="line-288"></a><span>    </span><a name="local-6989586621679109022"><a href="#local-6989586621679109022"><span class="hs-identifier">params</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span>
+</span><a name="line-289"></a><span>
+</span><a name="line-290"></a><span class="hs-keyword">data</span><span> </span><a name="GetOrderById"><a href="SwaggerPetstore.API.html#GetOrderById"><span class="hs-identifier">GetOrderById</span></a></a><span>
+</span><a name="line-291"></a><span class="hs-comment">-- ** placeOrder</span><span>
+</span><a name="line-292"></a><span class="hs-comment">-- | POST \/store\/order</span><span>
+</span><a name="line-293"></a><span class="hs-comment">-- </span><span>
+</span><a name="line-294"></a><span class="hs-comment">-- Place an order for a pet</span><span>
+</span><a name="line-295"></a><span class="hs-comment">-- </span><span>
+</span><a name="line-296"></a><span class="hs-comment">-- </span><span>
+</span><a name="line-297"></a><span class="hs-comment">-- </span><span>
+</span><a name="line-298"></a><span class="hs-comment">-- Produces: application/xml, application/json</span><span>
+</span><a name="line-299"></a><span class="hs-comment">-- </span><span>
+</span><a name="line-300"></a><span class="hs-identifier">placeOrder</span><span> </span><span>
+</span><a name="line-301"></a><span>  </span><span class="hs-glyph">::</span><span> </span><a href="SwaggerPetstore.Model.html#Order"><span class="hs-identifier hs-type">Order</span></a><span> </span><span class="hs-comment">-- ^ &quot;body&quot; -  order placed for purchasing the pet</span><span>
+</span><a name="line-302"></a><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><a href="SwaggerPetstore.API.html#SwaggerPetstoreRequest"><span class="hs-identifier hs-type">SwaggerPetstoreRequest</span></a><span> </span><a href="SwaggerPetstore.API.html#PlaceOrder"><span class="hs-identifier hs-type">PlaceOrder</span></a><span> </span><a href="SwaggerPetstore.Model.html#Order"><span class="hs-identifier hs-type">Order</span></a><span>
+</span><a name="line-303"></a><a name="placeOrder"><a href="SwaggerPetstore.API.html#placeOrder"><span class="hs-identifier">placeOrder</span></a></a><span> </span><a name="local-6989586621679109023"><a href="#local-6989586621679109023"><span class="hs-identifier">body</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="#local-6989586621679109024"><span class="hs-identifier hs-var">request</span></a><span>
+</span><a name="line-304"></a><span>  </span><span class="hs-keyword">where</span><span>
+</span><a name="line-305"></a><span>    </span><a name="local-6989586621679109024"><a href="#local-6989586621679109024"><span class="hs-identifier">request</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="SwaggerPetstore.API.html#mkSwaggerPetstoreRequest"><span class="hs-identifier hs-var">mkSwaggerPetstoreRequest</span></a><span> </span><span class="hs-string">&quot;POST&quot;</span><span> </span><a href="#local-6989586621679109025"><span class="hs-identifier hs-var">url</span></a><span> </span><a href="#local-6989586621679109026"><span class="hs-identifier hs-var">params</span></a><span>
+</span><a name="line-306"></a><span>    </span><a name="local-6989586621679109025"><a href="#local-6989586621679109025"><span class="hs-identifier">url</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="hs-string">&quot;/store/order&quot;</span><span class="hs-special">]</span><span>
+</span><a name="line-307"></a><span>    </span><a name="local-6989586621679109026"><a href="#local-6989586621679109026"><span class="hs-identifier">params</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span>
+</span><a name="line-308"></a><span>
+</span><a name="line-309"></a><span class="hs-keyword">data</span><span> </span><a name="PlaceOrder"><a href="SwaggerPetstore.API.html#PlaceOrder"><span class="hs-identifier">PlaceOrder</span></a></a><span>
+</span><a name="line-310"></a><span>
+</span><a name="line-311"></a><span>
+</span><a name="line-312"></a><span class="hs-comment">-- ** createUser</span><span>
+</span><a name="line-313"></a><span class="hs-comment">-- | POST \/user</span><span>
+</span><a name="line-314"></a><span class="hs-comment">-- </span><span>
+</span><a name="line-315"></a><span class="hs-comment">-- Create user</span><span>
+</span><a name="line-316"></a><span class="hs-comment">-- </span><span>
+</span><a name="line-317"></a><span class="hs-comment">-- This can only be done by the logged in user.</span><span>
+</span><a name="line-318"></a><span class="hs-comment">-- </span><span>
+</span><a name="line-319"></a><span class="hs-comment">-- Produces: application/xml, application/json</span><span>
+</span><a name="line-320"></a><span class="hs-comment">-- </span><span>
+</span><a name="line-321"></a><span class="hs-identifier">createUser</span><span> </span><span>
+</span><a name="line-322"></a><span>  </span><span class="hs-glyph">::</span><span> </span><a href="SwaggerPetstore.Model.html#User"><span class="hs-identifier hs-type">User</span></a><span> </span><span class="hs-comment">-- ^ &quot;body&quot; -  Created user object</span><span>
+</span><a name="line-323"></a><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><a href="SwaggerPetstore.API.html#SwaggerPetstoreRequest"><span class="hs-identifier hs-type">SwaggerPetstoreRequest</span></a><span> </span><a href="SwaggerPetstore.API.html#CreateUser"><span class="hs-identifier hs-type">CreateUser</span></a><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><a name="line-324"></a><a name="createUser"><a href="SwaggerPetstore.API.html#createUser"><span class="hs-identifier">createUser</span></a></a><span> </span><a name="local-6989586621679109027"><a href="#local-6989586621679109027"><span class="hs-identifier">body</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="#local-6989586621679109028"><span class="hs-identifier hs-var">request</span></a><span>
+</span><a name="line-325"></a><span>  </span><span class="hs-keyword">where</span><span>
+</span><a name="line-326"></a><span>    </span><a name="local-6989586621679109028"><a href="#local-6989586621679109028"><span class="hs-identifier">request</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="SwaggerPetstore.API.html#mkSwaggerPetstoreRequest"><span class="hs-identifier hs-var">mkSwaggerPetstoreRequest</span></a><span> </span><span class="hs-string">&quot;POST&quot;</span><span> </span><a href="#local-6989586621679109029"><span class="hs-identifier hs-var">url</span></a><span> </span><a href="#local-6989586621679109030"><span class="hs-identifier hs-var">params</span></a><span>
+</span><a name="line-327"></a><span>    </span><a name="local-6989586621679109029"><a href="#local-6989586621679109029"><span class="hs-identifier">url</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="hs-string">&quot;/user&quot;</span><span class="hs-special">]</span><span>
+</span><a name="line-328"></a><span>    </span><a name="local-6989586621679109030"><a href="#local-6989586621679109030"><span class="hs-identifier">params</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span>
+</span><a name="line-329"></a><span>
+</span><a name="line-330"></a><span class="hs-keyword">data</span><span> </span><a name="CreateUser"><a href="SwaggerPetstore.API.html#CreateUser"><span class="hs-identifier">CreateUser</span></a></a><span>
+</span><a name="line-331"></a><span class="hs-comment">-- ** createUsersWithArrayInput</span><span>
+</span><a name="line-332"></a><span class="hs-comment">-- | POST \/user\/createWithArray</span><span>
+</span><a name="line-333"></a><span class="hs-comment">-- </span><span>
+</span><a name="line-334"></a><span class="hs-comment">-- Creates list of users with given input array</span><span>
+</span><a name="line-335"></a><span class="hs-comment">-- </span><span>
+</span><a name="line-336"></a><span class="hs-comment">-- </span><span>
 </span><a name="line-337"></a><span class="hs-comment">-- </span><span>
-</span><a name="line-338"></a><span class="hs-comment">-- Creates list of users with given input array</span><span>
+</span><a name="line-338"></a><span class="hs-comment">-- Produces: application/xml, application/json</span><span>
 </span><a name="line-339"></a><span class="hs-comment">-- </span><span>
-</span><a name="line-340"></a><span class="hs-comment">-- </span><span>
-</span><a name="line-341"></a><span class="hs-comment">-- </span><span>
-</span><a name="line-342"></a><span class="hs-comment">-- Produces: application/xml, application/json</span><span>
-</span><a name="line-343"></a><span class="hs-comment">-- </span><span>
-</span><a name="line-344"></a><span class="hs-identifier">createUsersWithListInput</span><span> </span><span>
-</span><a name="line-345"></a><span>  </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><a href="SwaggerPetstore.Model.html#User"><span class="hs-identifier hs-type">User</span></a><span class="hs-special">]</span><span> </span><span class="hs-comment">-- ^ &quot;body&quot; -  List of user object</span><span>
-</span><a name="line-346"></a><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><a href="SwaggerPetstore.API.html#SwaggerPetstoreRequest"><span class="hs-identifier hs-type">SwaggerPetstoreRequest</span></a><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
-</span><a name="line-347"></a><a name="createUsersWithListInput"><a href="SwaggerPetstore.API.html#createUsersWithListInput"><span class="hs-identifier">createUsersWithListInput</span></a></a><span> </span><a name="local-6989586621679108999"><a href="#local-6989586621679108999"><span class="hs-identifier">body</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="#local-6989586621679109000"><span class="hs-identifier hs-var">request</span></a><span>
-</span><a name="line-348"></a><span>  </span><span class="hs-keyword">where</span><span>
-</span><a name="line-349"></a><span>    </span><a name="local-6989586621679109000"><a href="#local-6989586621679109000"><span class="hs-identifier">request</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="SwaggerPetstore.API.html#mkSwaggerPetstoreRequest"><span class="hs-identifier hs-var">mkSwaggerPetstoreRequest</span></a><span> </span><span class="hs-string">&quot;POST&quot;</span><span> </span><a href="#local-6989586621679109001"><span class="hs-identifier hs-var">url</span></a><span> </span><a href="#local-6989586621679109002"><span class="hs-identifier hs-var">params</span></a><span>
-</span><a name="line-350"></a><span>    </span><a name="local-6989586621679109001"><a href="#local-6989586621679109001"><span class="hs-identifier">url</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="hs-string">&quot;/user/createWithList&quot;</span><span class="hs-special">]</span><span>
-</span><a name="line-351"></a><span>    </span><a name="local-6989586621679109002"><a href="#local-6989586621679109002"><span class="hs-identifier">params</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span>
-</span><a name="line-352"></a><span>
-</span><a name="line-353"></a><span class="hs-comment">-- ** deleteUser</span><span>
-</span><a name="line-354"></a><span class="hs-comment">-- | DELETE \/user\/{username}</span><span>
+</span><a name="line-340"></a><span class="hs-identifier">createUsersWithArrayInput</span><span> </span><span>
+</span><a name="line-341"></a><span>  </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><a href="SwaggerPetstore.Model.html#User"><span class="hs-identifier hs-type">User</span></a><span class="hs-special">]</span><span> </span><span class="hs-comment">-- ^ &quot;body&quot; -  List of user object</span><span>
+</span><a name="line-342"></a><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><a href="SwaggerPetstore.API.html#SwaggerPetstoreRequest"><span class="hs-identifier hs-type">SwaggerPetstoreRequest</span></a><span> </span><a href="SwaggerPetstore.API.html#CreateUsersWithArrayInput"><span class="hs-identifier hs-type">CreateUsersWithArrayInput</span></a><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><a name="line-343"></a><a name="createUsersWithArrayInput"><a href="SwaggerPetstore.API.html#createUsersWithArrayInput"><span class="hs-identifier">createUsersWithArrayInput</span></a></a><span> </span><a name="local-6989586621679109031"><a href="#local-6989586621679109031"><span class="hs-identifier">body</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="#local-6989586621679109032"><span class="hs-identifier hs-var">request</span></a><span>
+</span><a name="line-344"></a><span>  </span><span class="hs-keyword">where</span><span>
+</span><a name="line-345"></a><span>    </span><a name="local-6989586621679109032"><a href="#local-6989586621679109032"><span class="hs-identifier">request</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="SwaggerPetstore.API.html#mkSwaggerPetstoreRequest"><span class="hs-identifier hs-var">mkSwaggerPetstoreRequest</span></a><span> </span><span class="hs-string">&quot;POST&quot;</span><span> </span><a href="#local-6989586621679109033"><span class="hs-identifier hs-var">url</span></a><span> </span><a href="#local-6989586621679109034"><span class="hs-identifier hs-var">params</span></a><span>
+</span><a name="line-346"></a><span>    </span><a name="local-6989586621679109033"><a href="#local-6989586621679109033"><span class="hs-identifier">url</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="hs-string">&quot;/user/createWithArray&quot;</span><span class="hs-special">]</span><span>
+</span><a name="line-347"></a><span>    </span><a name="local-6989586621679109034"><a href="#local-6989586621679109034"><span class="hs-identifier">params</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span>
+</span><a name="line-348"></a><span>
+</span><a name="line-349"></a><span class="hs-keyword">data</span><span> </span><a name="CreateUsersWithArrayInput"><a href="SwaggerPetstore.API.html#CreateUsersWithArrayInput"><span class="hs-identifier">CreateUsersWithArrayInput</span></a></a><span>
+</span><a name="line-350"></a><span class="hs-comment">-- ** createUsersWithListInput</span><span>
+</span><a name="line-351"></a><span class="hs-comment">-- | POST \/user\/createWithList</span><span>
+</span><a name="line-352"></a><span class="hs-comment">-- </span><span>
+</span><a name="line-353"></a><span class="hs-comment">-- Creates list of users with given input array</span><span>
+</span><a name="line-354"></a><span class="hs-comment">-- </span><span>
 </span><a name="line-355"></a><span class="hs-comment">-- </span><span>
-</span><a name="line-356"></a><span class="hs-comment">-- Delete user</span><span>
-</span><a name="line-357"></a><span class="hs-comment">-- </span><span>
-</span><a name="line-358"></a><span class="hs-comment">-- This can only be done by the logged in user.</span><span>
-</span><a name="line-359"></a><span class="hs-comment">-- </span><span>
-</span><a name="line-360"></a><span class="hs-comment">-- Produces: application/xml, application/json</span><span>
-</span><a name="line-361"></a><span class="hs-comment">-- </span><span>
-</span><a name="line-362"></a><span class="hs-identifier">deleteUser</span><span> </span><span>
-</span><a name="line-363"></a><span>  </span><span class="hs-glyph">::</span><span> </span><span class="hs-identifier hs-type">Text</span><span> </span><span class="hs-comment">-- ^ &quot;username&quot; -  The name that needs to be deleted</span><span>
-</span><a name="line-364"></a><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><a href="SwaggerPetstore.API.html#SwaggerPetstoreRequest"><span class="hs-identifier hs-type">SwaggerPetstoreRequest</span></a><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
-</span><a name="line-365"></a><a name="deleteUser"><a href="SwaggerPetstore.API.html#deleteUser"><span class="hs-identifier">deleteUser</span></a></a><span> </span><a name="local-6989586621679109003"><a href="#local-6989586621679109003"><span class="hs-identifier">username</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="#local-6989586621679109004"><span class="hs-identifier hs-var">request</span></a><span>
-</span><a name="line-366"></a><span>  </span><span class="hs-keyword">where</span><span>
-</span><a name="line-367"></a><span>    </span><a name="local-6989586621679109004"><a href="#local-6989586621679109004"><span class="hs-identifier">request</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="SwaggerPetstore.API.html#mkSwaggerPetstoreRequest"><span class="hs-identifier hs-var">mkSwaggerPetstoreRequest</span></a><span> </span><span class="hs-string">&quot;DELETE&quot;</span><span> </span><a href="#local-6989586621679109005"><span class="hs-identifier hs-var">url</span></a><span> </span><a href="#local-6989586621679109006"><span class="hs-identifier hs-var">params</span></a><span>
-</span><a name="line-368"></a><span>    </span><a name="local-6989586621679109005"><a href="#local-6989586621679109005"><span class="hs-identifier">url</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="hs-string">&quot;/user/&quot;</span><span class="hs-special">,</span><a href="SwaggerPetstore.API.html#toPath"><span class="hs-identifier hs-var">toPath</span></a><span> </span><a href="#local-6989586621679109003"><span class="hs-identifier hs-var">username</span></a><span class="hs-special">]</span><span>
-</span><a name="line-369"></a><span>    </span><a name="local-6989586621679109006"><a href="#local-6989586621679109006"><span class="hs-identifier">params</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span>
-</span><a name="line-370"></a><span>
-</span><a name="line-371"></a><span class="hs-comment">-- ** getUserByName</span><span>
-</span><a name="line-372"></a><span class="hs-comment">-- | GET \/user\/{username}</span><span>
+</span><a name="line-356"></a><span class="hs-comment">-- </span><span>
+</span><a name="line-357"></a><span class="hs-comment">-- Produces: application/xml, application/json</span><span>
+</span><a name="line-358"></a><span class="hs-comment">-- </span><span>
+</span><a name="line-359"></a><span class="hs-identifier">createUsersWithListInput</span><span> </span><span>
+</span><a name="line-360"></a><span>  </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><a href="SwaggerPetstore.Model.html#User"><span class="hs-identifier hs-type">User</span></a><span class="hs-special">]</span><span> </span><span class="hs-comment">-- ^ &quot;body&quot; -  List of user object</span><span>
+</span><a name="line-361"></a><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><a href="SwaggerPetstore.API.html#SwaggerPetstoreRequest"><span class="hs-identifier hs-type">SwaggerPetstoreRequest</span></a><span> </span><a href="SwaggerPetstore.API.html#CreateUsersWithListInput"><span class="hs-identifier hs-type">CreateUsersWithListInput</span></a><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><a name="line-362"></a><a name="createUsersWithListInput"><a href="SwaggerPetstore.API.html#createUsersWithListInput"><span class="hs-identifier">createUsersWithListInput</span></a></a><span> </span><a name="local-6989586621679109035"><a href="#local-6989586621679109035"><span class="hs-identifier">body</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="#local-6989586621679109036"><span class="hs-identifier hs-var">request</span></a><span>
+</span><a name="line-363"></a><span>  </span><span class="hs-keyword">where</span><span>
+</span><a name="line-364"></a><span>    </span><a name="local-6989586621679109036"><a href="#local-6989586621679109036"><span class="hs-identifier">request</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="SwaggerPetstore.API.html#mkSwaggerPetstoreRequest"><span class="hs-identifier hs-var">mkSwaggerPetstoreRequest</span></a><span> </span><span class="hs-string">&quot;POST&quot;</span><span> </span><a href="#local-6989586621679109037"><span class="hs-identifier hs-var">url</span></a><span> </span><a href="#local-6989586621679109038"><span class="hs-identifier hs-var">params</span></a><span>
+</span><a name="line-365"></a><span>    </span><a name="local-6989586621679109037"><a href="#local-6989586621679109037"><span class="hs-identifier">url</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="hs-string">&quot;/user/createWithList&quot;</span><span class="hs-special">]</span><span>
+</span><a name="line-366"></a><span>    </span><a name="local-6989586621679109038"><a href="#local-6989586621679109038"><span class="hs-identifier">params</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span>
+</span><a name="line-367"></a><span>
+</span><a name="line-368"></a><span class="hs-keyword">data</span><span> </span><a name="CreateUsersWithListInput"><a href="SwaggerPetstore.API.html#CreateUsersWithListInput"><span class="hs-identifier">CreateUsersWithListInput</span></a></a><span>
+</span><a name="line-369"></a><span class="hs-comment">-- ** deleteUser</span><span>
+</span><a name="line-370"></a><span class="hs-comment">-- | DELETE \/user\/{username}</span><span>
+</span><a name="line-371"></a><span class="hs-comment">-- </span><span>
+</span><a name="line-372"></a><span class="hs-comment">-- Delete user</span><span>
 </span><a name="line-373"></a><span class="hs-comment">-- </span><span>
-</span><a name="line-374"></a><span class="hs-comment">-- Get user by user name</span><span>
+</span><a name="line-374"></a><span class="hs-comment">-- This can only be done by the logged in user.</span><span>
 </span><a name="line-375"></a><span class="hs-comment">-- </span><span>
-</span><a name="line-376"></a><span class="hs-comment">-- </span><span>
+</span><a name="line-376"></a><span class="hs-comment">-- Produces: application/xml, application/json</span><span>
 </span><a name="line-377"></a><span class="hs-comment">-- </span><span>
-</span><a name="line-378"></a><span class="hs-comment">-- Produces: application/xml, application/json</span><span>
-</span><a name="line-379"></a><span class="hs-comment">-- </span><span>
-</span><a name="line-380"></a><span class="hs-identifier">getUserByName</span><span> </span><span>
-</span><a name="line-381"></a><span>  </span><span class="hs-glyph">::</span><span> </span><span class="hs-identifier hs-type">Text</span><span> </span><span class="hs-comment">-- ^ &quot;username&quot; -  The name that needs to be fetched. Use user1 for testing. </span><span>
-</span><a name="line-382"></a><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><a href="SwaggerPetstore.API.html#SwaggerPetstoreRequest"><span class="hs-identifier hs-type">SwaggerPetstoreRequest</span></a><span> </span><a href="SwaggerPetstore.Model.html#User"><span class="hs-identifier hs-type">User</span></a><span>
-</span><a name="line-383"></a><a name="getUserByName"><a href="SwaggerPetstore.API.html#getUserByName"><span class="hs-identifier">getUserByName</span></a></a><span> </span><a name="local-6989586621679109007"><a href="#local-6989586621679109007"><span class="hs-identifier">username</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="#local-6989586621679109008"><span class="hs-identifier hs-var">request</span></a><span>
-</span><a name="line-384"></a><span>  </span><span class="hs-keyword">where</span><span>
-</span><a name="line-385"></a><span>    </span><a name="local-6989586621679109008"><a href="#local-6989586621679109008"><span class="hs-identifier">request</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="SwaggerPetstore.API.html#mkSwaggerPetstoreRequest"><span class="hs-identifier hs-var">mkSwaggerPetstoreRequest</span></a><span> </span><span class="hs-string">&quot;GET&quot;</span><span> </span><a href="#local-6989586621679109009"><span class="hs-identifier hs-var">url</span></a><span> </span><a href="#local-6989586621679109010"><span class="hs-identifier hs-var">params</span></a><span>
-</span><a name="line-386"></a><span>    </span><a name="local-6989586621679109009"><a href="#local-6989586621679109009"><span class="hs-identifier">url</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="hs-string">&quot;/user/&quot;</span><span class="hs-special">,</span><a href="SwaggerPetstore.API.html#toPath"><span class="hs-identifier hs-var">toPath</span></a><span> </span><a href="#local-6989586621679109007"><span class="hs-identifier hs-var">username</span></a><span class="hs-special">]</span><span>
-</span><a name="line-387"></a><span>    </span><a name="local-6989586621679109010"><a href="#local-6989586621679109010"><span class="hs-identifier">params</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span>
-</span><a name="line-388"></a><span>
-</span><a name="line-389"></a><span class="hs-comment">-- ** loginUser</span><span>
-</span><a name="line-390"></a><span class="hs-comment">-- | GET \/user\/login</span><span>
-</span><a name="line-391"></a><span class="hs-comment">-- </span><span>
-</span><a name="line-392"></a><span class="hs-comment">-- Logs user into the system</span><span>
+</span><a name="line-378"></a><span class="hs-identifier">deleteUser</span><span> </span><span>
+</span><a name="line-379"></a><span>  </span><span class="hs-glyph">::</span><span> </span><span class="hs-identifier hs-type">Text</span><span> </span><span class="hs-comment">-- ^ &quot;username&quot; -  The name that needs to be deleted</span><span>
+</span><a name="line-380"></a><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><a href="SwaggerPetstore.API.html#SwaggerPetstoreRequest"><span class="hs-identifier hs-type">SwaggerPetstoreRequest</span></a><span> </span><a href="SwaggerPetstore.API.html#DeleteUser"><span class="hs-identifier hs-type">DeleteUser</span></a><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><a name="line-381"></a><a name="deleteUser"><a href="SwaggerPetstore.API.html#deleteUser"><span class="hs-identifier">deleteUser</span></a></a><span> </span><a name="local-6989586621679109039"><a href="#local-6989586621679109039"><span class="hs-identifier">username</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="#local-6989586621679109040"><span class="hs-identifier hs-var">request</span></a><span>
+</span><a name="line-382"></a><span>  </span><span class="hs-keyword">where</span><span>
+</span><a name="line-383"></a><span>    </span><a name="local-6989586621679109040"><a href="#local-6989586621679109040"><span class="hs-identifier">request</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="SwaggerPetstore.API.html#mkSwaggerPetstoreRequest"><span class="hs-identifier hs-var">mkSwaggerPetstoreRequest</span></a><span> </span><span class="hs-string">&quot;DELETE&quot;</span><span> </span><a href="#local-6989586621679109041"><span class="hs-identifier hs-var">url</span></a><span> </span><a href="#local-6989586621679109042"><span class="hs-identifier hs-var">params</span></a><span>
+</span><a name="line-384"></a><span>    </span><a name="local-6989586621679109041"><a href="#local-6989586621679109041"><span class="hs-identifier">url</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="hs-string">&quot;/user/&quot;</span><span class="hs-special">,</span><a href="SwaggerPetstore.API.html#toPath"><span class="hs-identifier hs-var">toPath</span></a><span> </span><a href="#local-6989586621679109039"><span class="hs-identifier hs-var">username</span></a><span class="hs-special">]</span><span>
+</span><a name="line-385"></a><span>    </span><a name="local-6989586621679109042"><a href="#local-6989586621679109042"><span class="hs-identifier">params</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span>
+</span><a name="line-386"></a><span>
+</span><a name="line-387"></a><span class="hs-keyword">data</span><span> </span><a name="DeleteUser"><a href="SwaggerPetstore.API.html#DeleteUser"><span class="hs-identifier">DeleteUser</span></a></a><span>
+</span><a name="line-388"></a><span class="hs-comment">-- ** getUserByName</span><span>
+</span><a name="line-389"></a><span class="hs-comment">-- | GET \/user\/{username}</span><span>
+</span><a name="line-390"></a><span class="hs-comment">-- </span><span>
+</span><a name="line-391"></a><span class="hs-comment">-- Get user by user name</span><span>
+</span><a name="line-392"></a><span class="hs-comment">-- </span><span>
 </span><a name="line-393"></a><span class="hs-comment">-- </span><span>
 </span><a name="line-394"></a><span class="hs-comment">-- </span><span>
-</span><a name="line-395"></a><span class="hs-comment">-- </span><span>
-</span><a name="line-396"></a><span class="hs-comment">-- Produces: application/xml, application/json</span><span>
-</span><a name="line-397"></a><span class="hs-comment">-- </span><span>
-</span><a name="line-398"></a><span class="hs-identifier">loginUser</span><span> </span><span>
-</span><a name="line-399"></a><span>  </span><span class="hs-glyph">::</span><span> </span><span class="hs-identifier hs-type">Text</span><span> </span><span class="hs-comment">-- ^ &quot;username&quot; -  The user name for login</span><span>
-</span><a name="line-400"></a><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-identifier hs-type">Text</span><span> </span><span class="hs-comment">-- ^ &quot;password&quot; -  The password for login in clear text</span><span>
-</span><a name="line-401"></a><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><a href="SwaggerPetstore.API.html#SwaggerPetstoreRequest"><span class="hs-identifier hs-type">SwaggerPetstoreRequest</span></a><span> </span><span class="hs-identifier hs-type">Text</span><span>
-</span><a name="line-402"></a><a name="loginUser"><a href="SwaggerPetstore.API.html#loginUser"><span class="hs-identifier">loginUser</span></a></a><span> </span><a name="local-6989586621679109011"><a href="#local-6989586621679109011"><span class="hs-identifier">username</span></a></a><span> </span><a name="local-6989586621679109012"><a href="#local-6989586621679109012"><span class="hs-identifier">password</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="#local-6989586621679109013"><span class="hs-identifier hs-var">request</span></a><span>
-</span><a name="line-403"></a><span>  </span><span class="hs-keyword">where</span><span>
-</span><a name="line-404"></a><span>    </span><a name="local-6989586621679109013"><a href="#local-6989586621679109013"><span class="hs-identifier">request</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="SwaggerPetstore.API.html#mkSwaggerPetstoreRequest"><span class="hs-identifier hs-var">mkSwaggerPetstoreRequest</span></a><span> </span><span class="hs-string">&quot;GET&quot;</span><span> </span><a href="#local-6989586621679109014"><span class="hs-identifier hs-var">url</span></a><span> </span><a href="#local-6989586621679109015"><span class="hs-identifier hs-var">params</span></a><span>
-</span><a name="line-405"></a><span>    </span><a name="local-6989586621679109014"><a href="#local-6989586621679109014"><span class="hs-identifier">url</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="hs-string">&quot;/user/login&quot;</span><span class="hs-special">]</span><span>
-</span><a name="line-406"></a><span>    </span><a name="local-6989586621679109015"><a href="#local-6989586621679109015"><span class="hs-identifier">params</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span>
-</span><a name="line-407"></a><span>
-</span><a name="line-408"></a><span class="hs-comment">-- ** logoutUser</span><span>
-</span><a name="line-409"></a><span class="hs-comment">-- | GET \/user\/logout</span><span>
-</span><a name="line-410"></a><span class="hs-comment">-- </span><span>
-</span><a name="line-411"></a><span class="hs-comment">-- Logs out current logged in user session</span><span>
+</span><a name="line-395"></a><span class="hs-comment">-- Produces: application/xml, application/json</span><span>
+</span><a name="line-396"></a><span class="hs-comment">-- </span><span>
+</span><a name="line-397"></a><span class="hs-identifier">getUserByName</span><span> </span><span>
+</span><a name="line-398"></a><span>  </span><span class="hs-glyph">::</span><span> </span><span class="hs-identifier hs-type">Text</span><span> </span><span class="hs-comment">-- ^ &quot;username&quot; -  The name that needs to be fetched. Use user1 for testing. </span><span>
+</span><a name="line-399"></a><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><a href="SwaggerPetstore.API.html#SwaggerPetstoreRequest"><span class="hs-identifier hs-type">SwaggerPetstoreRequest</span></a><span> </span><a href="SwaggerPetstore.API.html#GetUserByName"><span class="hs-identifier hs-type">GetUserByName</span></a><span> </span><a href="SwaggerPetstore.Model.html#User"><span class="hs-identifier hs-type">User</span></a><span>
+</span><a name="line-400"></a><a name="getUserByName"><a href="SwaggerPetstore.API.html#getUserByName"><span class="hs-identifier">getUserByName</span></a></a><span> </span><a name="local-6989586621679109043"><a href="#local-6989586621679109043"><span class="hs-identifier">username</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="#local-6989586621679109044"><span class="hs-identifier hs-var">request</span></a><span>
+</span><a name="line-401"></a><span>  </span><span class="hs-keyword">where</span><span>
+</span><a name="line-402"></a><span>    </span><a name="local-6989586621679109044"><a href="#local-6989586621679109044"><span class="hs-identifier">request</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="SwaggerPetstore.API.html#mkSwaggerPetstoreRequest"><span class="hs-identifier hs-var">mkSwaggerPetstoreRequest</span></a><span> </span><span class="hs-string">&quot;GET&quot;</span><span> </span><a href="#local-6989586621679109045"><span class="hs-identifier hs-var">url</span></a><span> </span><a href="#local-6989586621679109046"><span class="hs-identifier hs-var">params</span></a><span>
+</span><a name="line-403"></a><span>    </span><a name="local-6989586621679109045"><a href="#local-6989586621679109045"><span class="hs-identifier">url</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="hs-string">&quot;/user/&quot;</span><span class="hs-special">,</span><a href="SwaggerPetstore.API.html#toPath"><span class="hs-identifier hs-var">toPath</span></a><span> </span><a href="#local-6989586621679109043"><span class="hs-identifier hs-var">username</span></a><span class="hs-special">]</span><span>
+</span><a name="line-404"></a><span>    </span><a name="local-6989586621679109046"><a href="#local-6989586621679109046"><span class="hs-identifier">params</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span>
+</span><a name="line-405"></a><span>
+</span><a name="line-406"></a><span class="hs-keyword">data</span><span> </span><a name="GetUserByName"><a href="SwaggerPetstore.API.html#GetUserByName"><span class="hs-identifier">GetUserByName</span></a></a><span>
+</span><a name="line-407"></a><span class="hs-comment">-- ** loginUser</span><span>
+</span><a name="line-408"></a><span class="hs-comment">-- | GET \/user\/login</span><span>
+</span><a name="line-409"></a><span class="hs-comment">-- </span><span>
+</span><a name="line-410"></a><span class="hs-comment">-- Logs user into the system</span><span>
+</span><a name="line-411"></a><span class="hs-comment">-- </span><span>
 </span><a name="line-412"></a><span class="hs-comment">-- </span><span>
 </span><a name="line-413"></a><span class="hs-comment">-- </span><span>
-</span><a name="line-414"></a><span class="hs-comment">-- </span><span>
-</span><a name="line-415"></a><span class="hs-comment">-- Produces: application/xml, application/json</span><span>
-</span><a name="line-416"></a><span class="hs-comment">-- </span><span>
-</span><a name="line-417"></a><span class="hs-identifier">logoutUser</span><span> </span><span>
-</span><a name="line-418"></a><span>  </span><span class="hs-glyph">::</span><span> </span><a href="SwaggerPetstore.API.html#SwaggerPetstoreRequest"><span class="hs-identifier hs-type">SwaggerPetstoreRequest</span></a><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
-</span><a name="line-419"></a><a name="logoutUser"><a href="SwaggerPetstore.API.html#logoutUser"><span class="hs-identifier">logoutUser</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="#local-6989586621679109016"><span class="hs-identifier hs-var">request</span></a><span>
-</span><a name="line-420"></a><span>  </span><span class="hs-keyword">where</span><span>
-</span><a name="line-421"></a><span>    </span><a name="local-6989586621679109016"><a href="#local-6989586621679109016"><span class="hs-identifier">request</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="SwaggerPetstore.API.html#mkSwaggerPetstoreRequest"><span class="hs-identifier hs-var">mkSwaggerPetstoreRequest</span></a><span> </span><span class="hs-string">&quot;GET&quot;</span><span> </span><a href="#local-6989586621679109017"><span class="hs-identifier hs-var">url</span></a><span> </span><a href="#local-6989586621679109018"><span class="hs-identifier hs-var">params</span></a><span>
-</span><a name="line-422"></a><span>    </span><a name="local-6989586621679109017"><a href="#local-6989586621679109017"><span class="hs-identifier">url</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="hs-string">&quot;/user/logout&quot;</span><span class="hs-special">]</span><span>
-</span><a name="line-423"></a><span>    </span><a name="local-6989586621679109018"><a href="#local-6989586621679109018"><span class="hs-identifier">params</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span>
-</span><a name="line-424"></a><span>
-</span><a name="line-425"></a><span class="hs-comment">-- ** updateUser</span><span>
-</span><a name="line-426"></a><span class="hs-comment">-- | PUT \/user\/{username}</span><span>
-</span><a name="line-427"></a><span class="hs-comment">-- </span><span>
-</span><a name="line-428"></a><span class="hs-comment">-- Updated user</span><span>
+</span><a name="line-414"></a><span class="hs-comment">-- Produces: application/xml, application/json</span><span>
+</span><a name="line-415"></a><span class="hs-comment">-- </span><span>
+</span><a name="line-416"></a><span class="hs-identifier">loginUser</span><span> </span><span>
+</span><a name="line-417"></a><span>  </span><span class="hs-glyph">::</span><span> </span><span class="hs-identifier hs-type">Text</span><span> </span><span class="hs-comment">-- ^ &quot;username&quot; -  The user name for login</span><span>
+</span><a name="line-418"></a><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-identifier hs-type">Text</span><span> </span><span class="hs-comment">-- ^ &quot;password&quot; -  The password for login in clear text</span><span>
+</span><a name="line-419"></a><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><a href="SwaggerPetstore.API.html#SwaggerPetstoreRequest"><span class="hs-identifier hs-type">SwaggerPetstoreRequest</span></a><span> </span><a href="SwaggerPetstore.API.html#LoginUser"><span class="hs-identifier hs-type">LoginUser</span></a><span> </span><span class="hs-identifier hs-type">Text</span><span>
+</span><a name="line-420"></a><a name="loginUser"><a href="SwaggerPetstore.API.html#loginUser"><span class="hs-identifier">loginUser</span></a></a><span> </span><a name="local-6989586621679109047"><a href="#local-6989586621679109047"><span class="hs-identifier">username</span></a></a><span> </span><a name="local-6989586621679109048"><a href="#local-6989586621679109048"><span class="hs-identifier">password</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="#local-6989586621679109049"><span class="hs-identifier hs-var">request</span></a><span>
+</span><a name="line-421"></a><span>  </span><span class="hs-keyword">where</span><span>
+</span><a name="line-422"></a><span>    </span><a name="local-6989586621679109049"><a href="#local-6989586621679109049"><span class="hs-identifier">request</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="SwaggerPetstore.API.html#mkSwaggerPetstoreRequest"><span class="hs-identifier hs-var">mkSwaggerPetstoreRequest</span></a><span> </span><span class="hs-string">&quot;GET&quot;</span><span> </span><a href="#local-6989586621679109050"><span class="hs-identifier hs-var">url</span></a><span> </span><a href="#local-6989586621679109051"><span class="hs-identifier hs-var">params</span></a><span>
+</span><a name="line-423"></a><span>    </span><a name="local-6989586621679109050"><a href="#local-6989586621679109050"><span class="hs-identifier">url</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="hs-string">&quot;/user/login&quot;</span><span class="hs-special">]</span><span>
+</span><a name="line-424"></a><span>    </span><a name="local-6989586621679109051"><a href="#local-6989586621679109051"><span class="hs-identifier">params</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span>
+</span><a name="line-425"></a><span>
+</span><a name="line-426"></a><span class="hs-keyword">data</span><span> </span><a name="LoginUser"><a href="SwaggerPetstore.API.html#LoginUser"><span class="hs-identifier">LoginUser</span></a></a><span>
+</span><a name="line-427"></a><span class="hs-comment">-- ** logoutUser</span><span>
+</span><a name="line-428"></a><span class="hs-comment">-- | GET \/user\/logout</span><span>
 </span><a name="line-429"></a><span class="hs-comment">-- </span><span>
-</span><a name="line-430"></a><span class="hs-comment">-- This can only be done by the logged in user.</span><span>
+</span><a name="line-430"></a><span class="hs-comment">-- Logs out current logged in user session</span><span>
 </span><a name="line-431"></a><span class="hs-comment">-- </span><span>
-</span><a name="line-432"></a><span class="hs-comment">-- Produces: application/xml, application/json</span><span>
+</span><a name="line-432"></a><span class="hs-comment">-- </span><span>
 </span><a name="line-433"></a><span class="hs-comment">-- </span><span>
-</span><a name="line-434"></a><span class="hs-identifier">updateUser</span><span> </span><span>
-</span><a name="line-435"></a><span>  </span><span class="hs-glyph">::</span><span> </span><span class="hs-identifier hs-type">Text</span><span> </span><span class="hs-comment">-- ^ &quot;username&quot; -  name that need to be updated</span><span>
-</span><a name="line-436"></a><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><a href="SwaggerPetstore.Model.html#User"><span class="hs-identifier hs-type">User</span></a><span> </span><span class="hs-comment">-- ^ &quot;body&quot; -  Updated user object</span><span>
-</span><a name="line-437"></a><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><a href="SwaggerPetstore.API.html#SwaggerPetstoreRequest"><span class="hs-identifier hs-type">SwaggerPetstoreRequest</span></a><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
-</span><a name="line-438"></a><a name="updateUser"><a href="SwaggerPetstore.API.html#updateUser"><span class="hs-identifier">updateUser</span></a></a><span> </span><a name="local-6989586621679109019"><a href="#local-6989586621679109019"><span class="hs-identifier">username</span></a></a><span> </span><a name="local-6989586621679109020"><a href="#local-6989586621679109020"><span class="hs-identifier">body</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="#local-6989586621679109021"><span class="hs-identifier hs-var">request</span></a><span>
+</span><a name="line-434"></a><span class="hs-comment">-- Produces: application/xml, application/json</span><span>
+</span><a name="line-435"></a><span class="hs-comment">-- </span><span>
+</span><a name="line-436"></a><span class="hs-identifier">logoutUser</span><span> </span><span>
+</span><a name="line-437"></a><span>  </span><span class="hs-glyph">::</span><span> </span><a href="SwaggerPetstore.API.html#SwaggerPetstoreRequest"><span class="hs-identifier hs-type">SwaggerPetstoreRequest</span></a><span> </span><a href="SwaggerPetstore.API.html#LogoutUser"><span class="hs-identifier hs-type">LogoutUser</span></a><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><a name="line-438"></a><a name="logoutUser"><a href="SwaggerPetstore.API.html#logoutUser"><span class="hs-identifier">logoutUser</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="#local-6989586621679109052"><span class="hs-identifier hs-var">request</span></a><span>
 </span><a name="line-439"></a><span>  </span><span class="hs-keyword">where</span><span>
-</span><a name="line-440"></a><span>    </span><a name="local-6989586621679109021"><a href="#local-6989586621679109021"><span class="hs-identifier">request</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="SwaggerPetstore.API.html#mkSwaggerPetstoreRequest"><span class="hs-identifier hs-var">mkSwaggerPetstoreRequest</span></a><span> </span><span class="hs-string">&quot;PUT&quot;</span><span> </span><a href="#local-6989586621679109022"><span class="hs-identifier hs-var">url</span></a><span> </span><a href="#local-6989586621679109023"><span class="hs-identifier hs-var">params</span></a><span>
-</span><a name="line-441"></a><span>    </span><a name="local-6989586621679109022"><a href="#local-6989586621679109022"><span class="hs-identifier">url</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="hs-string">&quot;/user/&quot;</span><span class="hs-special">,</span><a href="SwaggerPetstore.API.html#toPath"><span class="hs-identifier hs-var">toPath</span></a><span> </span><a href="#local-6989586621679109019"><span class="hs-identifier hs-var">username</span></a><span class="hs-special">]</span><span>
-</span><a name="line-442"></a><span>    </span><a name="local-6989586621679109023"><a href="#local-6989586621679109023"><span class="hs-identifier">params</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span>
+</span><a name="line-440"></a><span>    </span><a name="local-6989586621679109052"><a href="#local-6989586621679109052"><span class="hs-identifier">request</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="SwaggerPetstore.API.html#mkSwaggerPetstoreRequest"><span class="hs-identifier hs-var">mkSwaggerPetstoreRequest</span></a><span> </span><span class="hs-string">&quot;GET&quot;</span><span> </span><a href="#local-6989586621679109053"><span class="hs-identifier hs-var">url</span></a><span> </span><a href="#local-6989586621679109054"><span class="hs-identifier hs-var">params</span></a><span>
+</span><a name="line-441"></a><span>    </span><a name="local-6989586621679109053"><a href="#local-6989586621679109053"><span class="hs-identifier">url</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="hs-string">&quot;/user/logout&quot;</span><span class="hs-special">]</span><span>
+</span><a name="line-442"></a><span>    </span><a name="local-6989586621679109054"><a href="#local-6989586621679109054"><span class="hs-identifier">params</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span>
 </span><a name="line-443"></a><span>
-</span><a name="line-444"></a><span>
-</span><a name="line-445"></a><span>
-</span><a name="line-446"></a><span class="hs-comment">-- * SwaggerPetstoreRequest</span><span>
-</span><a name="line-447"></a><span>
-</span><a name="line-448"></a><span class="hs-keyword">data</span><span> </span><a name="SwaggerPetstoreRequest"><a href="SwaggerPetstore.API.html#SwaggerPetstoreRequest"><span class="hs-identifier">SwaggerPetstoreRequest</span></a></a><span> </span><a name="local-6989586621679108942"><a href="#local-6989586621679108942"><span class="hs-identifier">r</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a name="SwaggerPetstoreRequest"><a href="SwaggerPetstore.API.html#SwaggerPetstoreRequest"><span class="hs-identifier">SwaggerPetstoreRequest</span></a></a><span>
-</span><a name="line-449"></a><span>  </span><span class="hs-special">{</span><span> </span><a name="rMethod"><a href="SwaggerPetstore.API.html#rMethod"><span class="hs-identifier">rMethod</span></a></a><span>  </span><span class="hs-glyph">::</span><span> </span><span class="hs-identifier hs-type">NHTM</span><span class="hs-operator hs-type">.</span><span class="hs-identifier hs-type">Method</span><span>   </span><span class="hs-comment">-- ^ Method of SwaggerPetstoreRequest</span><span>
-</span><a name="line-450"></a><span>  </span><span class="hs-special">,</span><span> </span><a name="endpoint"><a href="SwaggerPetstore.API.html#endpoint"><span class="hs-identifier">endpoint</span></a></a><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="hs-identifier hs-type">Text</span><span class="hs-special">]</span><span>     </span><span class="hs-comment">-- ^ Endpoint of SwaggerPetstoreRequest</span><span>
-</span><a name="line-451"></a><span>  </span><span class="hs-special">,</span><span> </span><a name="params"><a href="SwaggerPetstore.API.html#params"><span class="hs-identifier">params</span></a></a><span>   </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><a href="SwaggerPetstore.API.html#EncodedParam"><span class="hs-identifier hs-type">EncodedParam</span></a><span class="hs-special">]</span><span> </span><span class="hs-comment">-- ^ Encoded params of SwaggerPetstoreRequest</span><span>
-</span><a name="line-452"></a><span>  </span><span class="hs-special">}</span><span>
-</span><a name="line-453"></a><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-type">Show</span><span class="hs-special">)</span><span>
-</span><a name="line-454"></a><span>
-</span><a name="line-455"></a><span class="hs-identifier">mkSwaggerPetstoreRequest</span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-identifier hs-type">NHTM</span><span class="hs-operator hs-type">.</span><span class="hs-identifier hs-type">Method</span><span>
-</span><a name="line-456"></a><span>                  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="hs-identifier hs-type">Text</span><span class="hs-special">]</span><span>
-</span><a name="line-457"></a><span>                  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><a href="SwaggerPetstore.API.html#EncodedParam"><span class="hs-identifier hs-type">EncodedParam</span></a><span class="hs-special">]</span><span>
-</span><a name="line-458"></a><span>                  </span><span class="hs-glyph">-&gt;</span><span> </span><a href="SwaggerPetstore.API.html#SwaggerPetstoreRequest"><span class="hs-identifier hs-type">SwaggerPetstoreRequest</span></a><span> </span><a href="#local-6989586621679108943"><span class="hs-identifier hs-type">r</span></a><span>
-</span><a name="line-459"></a><a name="mkSwaggerPetstoreRequest"><a href="SwaggerPetstore.API.html#mkSwaggerPetstoreRequest"><span class="hs-identifier">mkSwaggerPetstoreRequest</span></a></a><span> </span><a name="local-6989586621679109024"><a href="#local-6989586621679109024"><span class="hs-identifier">m</span></a></a><span> </span><a name="local-6989586621679109025"><a href="#local-6989586621679109025"><span class="hs-identifier">e</span></a></a><span> </span><a name="local-6989586621679109026"><a href="#local-6989586621679109026"><span class="hs-identifier">p</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="SwaggerPetstore.API.html#SwaggerPetstoreRequest"><span class="hs-identifier hs-var">SwaggerPetstoreRequest</span></a><span> </span><a href="#local-6989586621679109024"><span class="hs-identifier hs-var">m</span></a><span> </span><a href="#local-6989586621679109025"><span class="hs-identifier hs-var">e</span></a><span> </span><a href="#local-6989586621679109026"><span class="hs-identifier hs-var">p</span></a><span>
-</span><a name="line-460"></a><span>
-</span><a name="line-461"></a><span class="hs-comment">-- | Type alias for query parameters</span><span>
-</span><a name="line-462"></a><span class="hs-keyword">type</span><span> </span><a name="TupleBS8"><a href="SwaggerPetstore.API.html#TupleBS8"><span class="hs-identifier">TupleBS8</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-type">BS8</span><span class="hs-operator hs-type">.</span><span class="hs-identifier hs-type">ByteString</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-type">BS8</span><span class="hs-operator hs-type">.</span><span class="hs-identifier hs-type">ByteString</span><span class="hs-special">)</span><span>
+</span><a name="line-444"></a><span class="hs-keyword">data</span><span> </span><a name="LogoutUser"><a href="SwaggerPetstore.API.html#LogoutUser"><span class="hs-identifier">LogoutUser</span></a></a><span>
+</span><a name="line-445"></a><span class="hs-comment">-- ** updateUser</span><span>
+</span><a name="line-446"></a><span class="hs-comment">-- | PUT \/user\/{username}</span><span>
+</span><a name="line-447"></a><span class="hs-comment">-- </span><span>
+</span><a name="line-448"></a><span class="hs-comment">-- Updated user</span><span>
+</span><a name="line-449"></a><span class="hs-comment">-- </span><span>
+</span><a name="line-450"></a><span class="hs-comment">-- This can only be done by the logged in user.</span><span>
+</span><a name="line-451"></a><span class="hs-comment">-- </span><span>
+</span><a name="line-452"></a><span class="hs-comment">-- Produces: application/xml, application/json</span><span>
+</span><a name="line-453"></a><span class="hs-comment">-- </span><span>
+</span><a name="line-454"></a><span class="hs-identifier">updateUser</span><span> </span><span>
+</span><a name="line-455"></a><span>  </span><span class="hs-glyph">::</span><span> </span><span class="hs-identifier hs-type">Text</span><span> </span><span class="hs-comment">-- ^ &quot;username&quot; -  name that need to be updated</span><span>
+</span><a name="line-456"></a><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><a href="SwaggerPetstore.Model.html#User"><span class="hs-identifier hs-type">User</span></a><span> </span><span class="hs-comment">-- ^ &quot;body&quot; -  Updated user object</span><span>
+</span><a name="line-457"></a><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><a href="SwaggerPetstore.API.html#SwaggerPetstoreRequest"><span class="hs-identifier hs-type">SwaggerPetstoreRequest</span></a><span> </span><a href="SwaggerPetstore.API.html#UpdateUser"><span class="hs-identifier hs-type">UpdateUser</span></a><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><a name="line-458"></a><a name="updateUser"><a href="SwaggerPetstore.API.html#updateUser"><span class="hs-identifier">updateUser</span></a></a><span> </span><a name="local-6989586621679109055"><a href="#local-6989586621679109055"><span class="hs-identifier">username</span></a></a><span> </span><a name="local-6989586621679109056"><a href="#local-6989586621679109056"><span class="hs-identifier">body</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="#local-6989586621679109057"><span class="hs-identifier hs-var">request</span></a><span>
+</span><a name="line-459"></a><span>  </span><span class="hs-keyword">where</span><span>
+</span><a name="line-460"></a><span>    </span><a name="local-6989586621679109057"><a href="#local-6989586621679109057"><span class="hs-identifier">request</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="SwaggerPetstore.API.html#mkSwaggerPetstoreRequest"><span class="hs-identifier hs-var">mkSwaggerPetstoreRequest</span></a><span> </span><span class="hs-string">&quot;PUT&quot;</span><span> </span><a href="#local-6989586621679109058"><span class="hs-identifier hs-var">url</span></a><span> </span><a href="#local-6989586621679109059"><span class="hs-identifier hs-var">params</span></a><span>
+</span><a name="line-461"></a><span>    </span><a name="local-6989586621679109058"><a href="#local-6989586621679109058"><span class="hs-identifier">url</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="hs-string">&quot;/user/&quot;</span><span class="hs-special">,</span><a href="SwaggerPetstore.API.html#toPath"><span class="hs-identifier hs-var">toPath</span></a><span> </span><a href="#local-6989586621679109055"><span class="hs-identifier hs-var">username</span></a><span class="hs-special">]</span><span>
+</span><a name="line-462"></a><span>    </span><a name="local-6989586621679109059"><a href="#local-6989586621679109059"><span class="hs-identifier">params</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span>
 </span><a name="line-463"></a><span>
-</span><a name="line-464"></a><span class="hs-comment">-- * EncodedParam</span><span>
+</span><a name="line-464"></a><span class="hs-keyword">data</span><span> </span><a name="UpdateUser"><a href="SwaggerPetstore.API.html#UpdateUser"><span class="hs-identifier">UpdateUser</span></a></a><span>
 </span><a name="line-465"></a><span>
-</span><a name="line-466"></a><span class="hs-keyword">data</span><span> </span><a name="EncodedParam"><a href="SwaggerPetstore.API.html#EncodedParam"><span class="hs-identifier">EncodedParam</span></a></a><span>
-</span><a name="line-467"></a><span>  </span><span class="hs-glyph">=</span><span> </span><a name="Query"><a href="SwaggerPetstore.API.html#Query"><span class="hs-identifier">Query</span></a></a><span> </span><a href="SwaggerPetstore.API.html#TupleBS8"><span class="hs-identifier hs-type">TupleBS8</span></a><span>
-</span><a name="line-468"></a><span>  </span><span class="hs-glyph">|</span><span> </span><a name="Body"><a href="SwaggerPetstore.API.html#Body"><span class="hs-identifier">Body</span></a></a><span> </span><span class="hs-identifier hs-type">BSL</span><span class="hs-operator hs-type">.</span><span class="hs-identifier hs-type">ByteString</span><span>
-</span><a name="line-469"></a><span>  </span><span class="hs-glyph">|</span><span> </span><a name="Header"><a href="SwaggerPetstore.API.html#Header"><span class="hs-identifier">Header</span></a></a><span> </span><a href="SwaggerPetstore.API.html#TupleBS8"><span class="hs-identifier hs-type">TupleBS8</span></a><span>
-</span><a name="line-470"></a><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-type">Show</span><span class="hs-special">)</span><span>
-</span><a name="line-471"></a><span>
-</span><a name="line-472"></a><span class="hs-keyword">data</span><span> </span><a name="ResultFormatType"><a href="SwaggerPetstore.API.html#ResultFormatType"><span class="hs-identifier">ResultFormatType</span></a></a><span>
-</span><a name="line-473"></a><span>  </span><span class="hs-glyph">=</span><span> </span><a name="FormatJson"><a href="SwaggerPetstore.API.html#FormatJson"><span class="hs-identifier">FormatJson</span></a></a><span>
-</span><a name="line-474"></a><span>  </span><span class="hs-glyph">|</span><span> </span><a name="FormatXml"><a href="SwaggerPetstore.API.html#FormatXml"><span class="hs-identifier">FormatXml</span></a></a><span>
-</span><a name="line-475"></a><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-type">Show</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-type">Eq</span><span class="hs-special">)</span><span>
-</span><a name="line-476"></a><span>
-</span><a name="line-477"></a><a name="toPath"><a href="SwaggerPetstore.API.html#toPath"><span class="hs-identifier">toPath</span></a></a><span> </span><span class="hs-identifier">_</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-string">&quot;toPath&quot;</span><span>
-</span><a name="line-478"></a></pre></body></html>
+</span><a name="line-466"></a><span>
+</span><a name="line-467"></a><span class="hs-comment">-- * SwaggerPetstoreRequest</span><span>
+</span><a name="line-468"></a><span>
+</span><a name="line-469"></a><span class="hs-keyword">data</span><span> </span><a name="SwaggerPetstoreRequest"><a href="SwaggerPetstore.API.html#SwaggerPetstoreRequest"><span class="hs-identifier">SwaggerPetstoreRequest</span></a></a><span> </span><a name="local-6989586621679108970"><a href="#local-6989586621679108970"><span class="hs-identifier">req</span></a></a><span> </span><a name="local-6989586621679108971"><a href="#local-6989586621679108971"><span class="hs-identifier">res</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a name="SwaggerPetstoreRequest"><a href="SwaggerPetstore.API.html#SwaggerPetstoreRequest"><span class="hs-identifier">SwaggerPetstoreRequest</span></a></a><span>
+</span><a name="line-470"></a><span>  </span><span class="hs-special">{</span><span> </span><a name="rMethod"><a href="SwaggerPetstore.API.html#rMethod"><span class="hs-identifier">rMethod</span></a></a><span>  </span><span class="hs-glyph">::</span><span> </span><span class="hs-identifier hs-type">NHTM</span><span class="hs-operator hs-type">.</span><span class="hs-identifier hs-type">Method</span><span>   </span><span class="hs-comment">-- ^ Method of SwaggerPetstoreRequest</span><span>
+</span><a name="line-471"></a><span>  </span><span class="hs-special">,</span><span> </span><a name="endpoint"><a href="SwaggerPetstore.API.html#endpoint"><span class="hs-identifier">endpoint</span></a></a><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="hs-identifier hs-type">Text</span><span class="hs-special">]</span><span>     </span><span class="hs-comment">-- ^ Endpoint of SwaggerPetstoreRequest</span><span>
+</span><a name="line-472"></a><span>  </span><span class="hs-special">,</span><span> </span><a name="params"><a href="SwaggerPetstore.API.html#params"><span class="hs-identifier">params</span></a></a><span>   </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><a href="SwaggerPetstore.API.html#EncodedParam"><span class="hs-identifier hs-type">EncodedParam</span></a><span class="hs-special">]</span><span> </span><span class="hs-comment">-- ^ Encoded params of SwaggerPetstoreRequest</span><span>
+</span><a name="line-473"></a><span>  </span><span class="hs-special">}</span><span>
+</span><a name="line-474"></a><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-type">Show</span><span class="hs-special">)</span><span>
+</span><a name="line-475"></a><span>
+</span><a name="line-476"></a><span class="hs-identifier">mkSwaggerPetstoreRequest</span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-identifier hs-type">NHTM</span><span class="hs-operator hs-type">.</span><span class="hs-identifier hs-type">Method</span><span>
+</span><a name="line-477"></a><span>                  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="hs-identifier hs-type">Text</span><span class="hs-special">]</span><span>
+</span><a name="line-478"></a><span>                  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><a href="SwaggerPetstore.API.html#EncodedParam"><span class="hs-identifier hs-type">EncodedParam</span></a><span class="hs-special">]</span><span>
+</span><a name="line-479"></a><span>                  </span><span class="hs-glyph">-&gt;</span><span> </span><a href="SwaggerPetstore.API.html#SwaggerPetstoreRequest"><span class="hs-identifier hs-type">SwaggerPetstoreRequest</span></a><span> </span><a href="#local-6989586621679108978"><span class="hs-identifier hs-type">req</span></a><span> </span><a href="#local-6989586621679108979"><span class="hs-identifier hs-type">res</span></a><span>
+</span><a name="line-480"></a><a name="mkSwaggerPetstoreRequest"><a href="SwaggerPetstore.API.html#mkSwaggerPetstoreRequest"><span class="hs-identifier">mkSwaggerPetstoreRequest</span></a></a><span> </span><a name="local-6989586621679109060"><a href="#local-6989586621679109060"><span class="hs-identifier">m</span></a></a><span> </span><a name="local-6989586621679109061"><a href="#local-6989586621679109061"><span class="hs-identifier">e</span></a></a><span> </span><a name="local-6989586621679109062"><a href="#local-6989586621679109062"><span class="hs-identifier">p</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="SwaggerPetstore.API.html#SwaggerPetstoreRequest"><span class="hs-identifier hs-var">SwaggerPetstoreRequest</span></a><span> </span><a href="#local-6989586621679109060"><span class="hs-identifier hs-var">m</span></a><span> </span><a href="#local-6989586621679109061"><span class="hs-identifier hs-var">e</span></a><span> </span><a href="#local-6989586621679109062"><span class="hs-identifier hs-var">p</span></a><span>
+</span><a name="line-481"></a><span>
+</span><a name="line-482"></a><span class="hs-comment">-- | Type alias for query parameters</span><span>
+</span><a name="line-483"></a><span class="hs-keyword">type</span><span> </span><a name="TupleBS8"><a href="SwaggerPetstore.API.html#TupleBS8"><span class="hs-identifier">TupleBS8</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-type">BS8</span><span class="hs-operator hs-type">.</span><span class="hs-identifier hs-type">ByteString</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-type">BS8</span><span class="hs-operator hs-type">.</span><span class="hs-identifier hs-type">ByteString</span><span class="hs-special">)</span><span>
+</span><a name="line-484"></a><span>
+</span><a name="line-485"></a><span class="hs-comment">-- * Params</span><span>
+</span><a name="line-486"></a><span>
+</span><a name="line-487"></a><span class="hs-comment">-- ** HasOptionalParam</span><span>
+</span><a name="line-488"></a><span class="hs-keyword">class</span><span> </span><span class="hs-special">(</span><a href="SwaggerPetstore.API.html#ToEncodedParam"><span class="hs-identifier hs-type">ToEncodedParam</span></a><span> </span><a href="#local-6989586621679108969"><span class="hs-identifier hs-type">param</span></a><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><a name="HasOptionalParam"><a href="SwaggerPetstore.API.html#HasOptionalParam"><span class="hs-identifier">HasOptionalParam</span></a></a><span> </span><a name="local-6989586621679108968"><a href="#local-6989586621679108968"><span class="hs-identifier">request</span></a></a><span> </span><a name="local-6989586621679108969"><a href="#local-6989586621679108969"><span class="hs-identifier">param</span></a></a><span> </span><span class="hs-keyword">where</span><span>
+</span><a name="line-489"></a><span>
+</span><a name="line-490"></a><span class="hs-comment">-- ** addOptionalParam</span><span>
+</span><a name="line-491"></a><span class="hs-comment">-- | Add an optional parameter to a request</span><span>
+</span><a name="line-492"></a><span class="hs-identifier">addOptionalParam</span><span>
+</span><a name="line-493"></a><span>  </span><span class="hs-glyph">::</span><span> </span><a href="SwaggerPetstore.API.html#HasOptionalParam"><span class="hs-identifier hs-type">HasOptionalParam</span></a><span> </span><a href="#local-6989586621679108975"><span class="hs-identifier hs-type">req</span></a><span> </span><a href="#local-6989586621679108976"><span class="hs-identifier hs-type">param</span></a><span>
+</span><a name="line-494"></a><span>  </span><span class="hs-glyph">=&gt;</span><span> </span><a href="SwaggerPetstore.API.html#SwaggerPetstoreRequest"><span class="hs-identifier hs-type">SwaggerPetstoreRequest</span></a><span> </span><a href="#local-6989586621679108975"><span class="hs-identifier hs-type">req</span></a><span> </span><a href="#local-6989586621679108977"><span class="hs-identifier hs-type">res</span></a><span> </span><span class="hs-glyph">-&gt;</span><span> </span><a href="#local-6989586621679108976"><span class="hs-identifier hs-type">param</span></a><span> </span><span class="hs-glyph">-&gt;</span><span> </span><a href="SwaggerPetstore.API.html#SwaggerPetstoreRequest"><span class="hs-identifier hs-type">SwaggerPetstoreRequest</span></a><span> </span><a href="#local-6989586621679108975"><span class="hs-identifier hs-type">req</span></a><span> </span><a href="#local-6989586621679108977"><span class="hs-identifier hs-type">res</span></a><span>
+</span><a name="line-495"></a><a name="addOptionalParam"><a href="SwaggerPetstore.API.html#addOptionalParam"><span class="hs-identifier">addOptionalParam</span></a></a><span> </span><a name="local-6989586621679109063"><a href="#local-6989586621679109063"><span class="hs-identifier">request</span></a></a><span> </span><a name="local-6989586621679109064"><a href="#local-6989586621679109064"><span class="hs-identifier">param</span></a></a><span> </span><span class="hs-glyph">=</span><span>
+</span><a name="line-496"></a><span>  </span><a href="#local-6989586621679109063"><span class="hs-identifier hs-var">request</span></a><span>
+</span><a name="line-497"></a><span>  </span><span class="hs-special">{</span><span> </span><span class="hs-identifier">params</span><span> </span><span class="hs-glyph">=</span><span> </span><a href="SwaggerPetstore.API.html#toEncodedParam"><span class="hs-identifier hs-var">toEncodedParam</span></a><span> </span><a href="#local-6989586621679109064"><span class="hs-identifier hs-var">param</span></a><span> </span><span class="hs-special">(</span><span class="hs-identifier">params</span><span> </span><a href="#local-6989586621679109063"><span class="hs-identifier hs-var">request</span></a><span class="hs-special">)</span><span>
+</span><a name="line-498"></a><span>  </span><span class="hs-special">}</span><span>
+</span><a name="line-499"></a><span>
+</span><a name="line-500"></a><span class="hs-comment">-- ** (-&amp;-)</span><span>
+</span><a name="line-501"></a><span class="hs-comment">-- | infix operator for 'addOptionalParam'</span><span>
+</span><a name="line-502"></a><span class="hs-special">(</span><span class="hs-operator">-&amp;-</span><span class="hs-special">)</span><span>
+</span><a name="line-503"></a><span>  </span><span class="hs-glyph">::</span><span> </span><a href="SwaggerPetstore.API.html#HasOptionalParam"><span class="hs-identifier hs-type">HasOptionalParam</span></a><span> </span><a href="#local-6989586621679108972"><span class="hs-identifier hs-type">req</span></a><span> </span><a href="#local-6989586621679108973"><span class="hs-identifier hs-type">param</span></a><span>
+</span><a name="line-504"></a><span>  </span><span class="hs-glyph">=&gt;</span><span> </span><a href="SwaggerPetstore.API.html#SwaggerPetstoreRequest"><span class="hs-identifier hs-type">SwaggerPetstoreRequest</span></a><span> </span><a href="#local-6989586621679108972"><span class="hs-identifier hs-type">req</span></a><span> </span><a href="#local-6989586621679108974"><span class="hs-identifier hs-type">res</span></a><span> </span><span class="hs-glyph">-&gt;</span><span> </span><a href="#local-6989586621679108973"><span class="hs-identifier hs-type">param</span></a><span> </span><span class="hs-glyph">-&gt;</span><span> </span><a href="SwaggerPetstore.API.html#SwaggerPetstoreRequest"><span class="hs-identifier hs-type">SwaggerPetstoreRequest</span></a><span> </span><a href="#local-6989586621679108972"><span class="hs-identifier hs-type">req</span></a><span> </span><a href="#local-6989586621679108974"><span class="hs-identifier hs-type">res</span></a><span>
+</span><a name="line-505"></a><a name="local-6989586621679109065"><a href="#local-6989586621679109065"><span class="hs-identifier">request</span></a></a><span> </span><a name="-%26-"><a href="SwaggerPetstore.API.html#-%26-"><span class="hs-operator">-&amp;-</span></a></a><span> </span><a name="local-6989586621679109066"><a href="#local-6989586621679109066"><span class="hs-identifier">param</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="SwaggerPetstore.API.html#addOptionalParam"><span class="hs-identifier hs-var">addOptionalParam</span></a><span> </span><a href="#local-6989586621679109065"><span class="hs-identifier hs-var">request</span></a><span> </span><a href="#local-6989586621679109066"><span class="hs-identifier hs-var">param</span></a><span>
+</span><a name="line-506"></a><span class="hs-pragma">{-# INLINE (-&amp;-) #-}</span><span>
+</span><a name="line-507"></a><span>
+</span><a name="line-508"></a><span class="hs-comment">-- ** ToEncodedParam</span><span>
+</span><a name="line-509"></a><span class="hs-keyword">class</span><span> </span><a name="ToEncodedParam"><a href="SwaggerPetstore.API.html#ToEncodedParam"><span class="hs-identifier">ToEncodedParam</span></a></a><span> </span><a name="local-6989586621679108967"><a href="#local-6989586621679108967"><span class="hs-identifier">param</span></a></a><span> </span><span class="hs-keyword">where</span><span>
+</span><a name="line-510"></a><span>  </span><span class="hs-identifier">toEncodedParam</span><span> </span><span class="hs-glyph">::</span><span> </span><a href="#local-6989586621679108967"><span class="hs-identifier hs-type">param</span></a><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><a href="SwaggerPetstore.API.html#EncodedParam"><span class="hs-identifier hs-type">EncodedParam</span></a><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><a href="SwaggerPetstore.API.html#EncodedParam"><span class="hs-identifier hs-type">EncodedParam</span></a><span class="hs-special">]</span><span>
+</span><a name="line-511"></a><span>
+</span><a name="line-512"></a><span class="hs-comment">-- ** EncodedParam</span><span>
+</span><a name="line-513"></a><span class="hs-keyword">data</span><span> </span><a name="EncodedParam"><a href="SwaggerPetstore.API.html#EncodedParam"><span class="hs-identifier">EncodedParam</span></a></a><span>
+</span><a name="line-514"></a><span>  </span><span class="hs-glyph">=</span><span> </span><a name="Query"><a href="SwaggerPetstore.API.html#Query"><span class="hs-identifier">Query</span></a></a><span> </span><a href="SwaggerPetstore.API.html#TupleBS8"><span class="hs-identifier hs-type">TupleBS8</span></a><span>
+</span><a name="line-515"></a><span>  </span><span class="hs-glyph">|</span><span> </span><a name="Body"><a href="SwaggerPetstore.API.html#Body"><span class="hs-identifier">Body</span></a></a><span> </span><span class="hs-identifier hs-type">BSL</span><span class="hs-operator hs-type">.</span><span class="hs-identifier hs-type">ByteString</span><span>
+</span><a name="line-516"></a><span>  </span><span class="hs-glyph">|</span><span> </span><a name="Header"><a href="SwaggerPetstore.API.html#Header"><span class="hs-identifier">Header</span></a></a><span> </span><a href="SwaggerPetstore.API.html#TupleBS8"><span class="hs-identifier hs-type">TupleBS8</span></a><span>
+</span><a name="line-517"></a><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-type">Show</span><span class="hs-special">)</span><span>
+</span><a name="line-518"></a><span>
+</span><a name="line-519"></a><span class="hs-keyword">data</span><span> </span><a name="ResultFormatType"><a href="SwaggerPetstore.API.html#ResultFormatType"><span class="hs-identifier">ResultFormatType</span></a></a><span>
+</span><a name="line-520"></a><span>  </span><span class="hs-glyph">=</span><span> </span><a name="FormatJson"><a href="SwaggerPetstore.API.html#FormatJson"><span class="hs-identifier">FormatJson</span></a></a><span>
+</span><a name="line-521"></a><span>  </span><span class="hs-glyph">|</span><span> </span><a name="FormatXml"><a href="SwaggerPetstore.API.html#FormatXml"><span class="hs-identifier">FormatXml</span></a></a><span>
+</span><a name="line-522"></a><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-type">Show</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-type">Eq</span><span class="hs-special">)</span><span>
+</span><a name="line-523"></a><span>
+</span><a name="line-524"></a><a name="toPath"><a href="SwaggerPetstore.API.html#toPath"><span class="hs-identifier">toPath</span></a></a><span> </span><span class="hs-identifier">_</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-string">&quot;toPath&quot;</span><span>
+</span><a name="line-525"></a></pre></body></html>
