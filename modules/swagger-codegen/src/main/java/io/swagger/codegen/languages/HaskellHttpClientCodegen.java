@@ -384,6 +384,8 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
         }
     }
 
+    protected Map<String, Parameter> allOptionalParams = new HashMap<String, Parameter>();
+
     @Override
     public CodegenOperation fromOperation(String resourcePath, String httpMethod, Operation operation, Map<String, Model> definitions, Swagger swagger) {
         CodegenOperation op = super.fromOperation(resourcePath, httpMethod, operation, definitions, swagger);

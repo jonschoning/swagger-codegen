@@ -7,6 +7,7 @@ Module : {{title}}.API
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 {-# OPTIONS_GHC -fno-warn-unused-binds -fno-warn-unused-imports #-}
 
 module {{title}}.API where
@@ -22,6 +23,7 @@ import GHC.Exts (IsString(..))
 
 import qualified Data.Map as Map
 import qualified Data.Text as T
+import qualified Data.Text.Encoding as TE
 import qualified Data.Vector as V
 
 import qualified Data.ByteString.Char8 as BS8
@@ -60,7 +62,8 @@ import Prelude
 
 data {{{vendorExtensions.x-operationType}}}{{#vendorExtensions.x-hasOptionalParams}}{{#allParams}}{{^required}}
 {{#description}}-- | /Optional Param/ "{{{baseName}}}" - {{{description}}}{{/description}}
-instance HasOptionalParam {{{vendorExtensions.x-operationType}}} {{{vendorExtensions.x-paramNameType}}}{{/required}}{{/allParams}}{{/vendorExtensions.x-hasOptionalParams}}
+instance HasOptionalParam {{{vendorExtensions.x-operationType}}} {{{vendorExtensions.x-paramNameType}}} where
+  addOptionalParam req ({{{vendorExtensions.x-paramNameType}}} xs) = req { params = Query ("{{{baseName}}}", TE.encodeUtf8 xs) : params req}{{/required}}{{/allParams}}{{/vendorExtensions.x-hasOptionalParams}}
 {{/operation}}{{/operations}}{{/apis}}{{/apiInfo}}
 
 -- * {{requestType}}
@@ -85,32 +88,20 @@ type TupleBS8 = (BS8.ByteString, BS8.ByteString)
 
 -- ** HasOptionalParam
 -- | Designates the optional parameters of a request
-class (ToEncodedParam param) => HasOptionalParam request param where
+class HasOptionalParam req param where
+  {-# MINIMAL addOptionalParam | (-&-) #-}
 
--- ** addOptionalParam
--- | Add an optional parameter to a request
-addOptionalParam
-  :: HasOptionalParam req param
-  => {{requestType}} req res -> param -> {{requestType}} req res
-addOptionalParam request param =
-  request
-  { params = toEncodedParam param (params request)
-  }
+  -- | Add an optional parameter to a request
+  addOptionalParam :: forall res. {{requestType}} req res -> param -> {{requestType}} req res
+  addOptionalParam = (-&-)
+  {-# INLINE addOptionalParam #-}
 
--- ** (-&-)
--- | infix operator \/ alias for 'addOptionalParam'
--- Add an optional parameter to a request
-(-&-)
-  :: HasOptionalParam req param
-  => {{requestType}} req res -> param -> {{requestType}} req res
-request -&- param = addOptionalParam request param
-{-# INLINE (-&-) #-}
+  -- | infix operator \/ alias for 'addOptionalParam'
+  (-&-) :: forall res. {{requestType}} req res -> param -> {{requestType}} req res
+  (-&-) = addOptionalParam
+  {-# INLINE (-&-) #-}
+
 infixl 2 -&-
-
--- ** ToEncodedParam
--- | Encodes request parameters to their "wire" encoding
-class ToEncodedParam param where
-  toEncodedParam :: param -> [EncodedParam] -> [EncodedParam]
 
 -- ** EncodedParam
 -- | The "wire" encoding of a param
@@ -130,6 +121,4 @@ toPath _ = "toPath"
 -- * Optional Request Params
 {{#apiInfo}}{{#apis}}{{#operations}}{{#operation}}{{#vendorExtensions.x-hasOptionalParams}}{{#allParams}}{{^required}}
 newtype {{{vendorExtensions.x-paramNameType}}} = {{{vendorExtensions.x-paramNameType}}} { un{{{vendorExtensions.x-paramNameType}}} :: {{{dataType}}} } deriving (Eq, Show, ToJSON, FromJSON)
-instance ToEncodedParam {{{vendorExtensions.x-paramNameType}}} where
-  toEncodedParam = undefined
 {{/required}}{{/allParams}}{{/vendorExtensions.x-hasOptionalParams}}{{/operation}}{{/operations}}{{/apis}}{{/apiInfo}}

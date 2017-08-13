@@ -7,6 +7,7 @@ Module : SwaggerPetstore.API
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 {-# OPTIONS_GHC -fno-warn-unused-binds -fno-warn-unused-imports #-}
 
 module SwaggerPetstore.API where
@@ -18,10 +19,12 @@ import Data.Aeson
 import Data.Aeson.Types 
 import Data.Function ((&))
 import Data.Text (Text)
+import Data.Proxy (Proxy)
 import GHC.Exts (IsString(..))
 
 import qualified Data.Map as Map
 import qualified Data.Text as T
+import qualified Data.Text.Encoding as TE
 import qualified Data.Vector as V
 
 import qualified Data.ByteString.Char8 as BS8
@@ -81,7 +84,8 @@ deletePet petId = request
 
 data DeletePet
 
-instance HasOptionalParam DeletePet Api'Underscorekey
+instance HasOptionalParam DeletePet Api'Underscorekey where
+  addOptionalParam req (Api'Underscorekey xs) = req { params = Query ("api_key", TE.encodeUtf8 xs) : params req}
 
 
 -- ** findPetsByStatus
@@ -198,9 +202,11 @@ updatePetWithForm petId = request
 
 data UpdatePetWithForm
 -- | /Optional Param/ "name" - Updated name of the pet
-instance HasOptionalParam UpdatePetWithForm Name
+instance HasOptionalParam UpdatePetWithForm Name where
+  addOptionalParam req (Name xs) = req { params = Query ("name", TE.encodeUtf8 xs) : params req}
 -- | /Optional Param/ "status" - Updated status of the pet
-instance HasOptionalParam UpdatePetWithForm Status
+instance HasOptionalParam UpdatePetWithForm Status where
+  addOptionalParam req (Status xs) = req { params = Query ("status", TE.encodeUtf8 xs) : params req}
 
 
 -- ** uploadFile
@@ -226,9 +232,11 @@ uploadFile petId = request
 
 data UploadFile
 -- | /Optional Param/ "additionalMetadata" - Additional data to pass to server
-instance HasOptionalParam UploadFile AdditionalMetadata
+instance HasOptionalParam UploadFile AdditionalMetadata where
+  addOptionalParam req (AdditionalMetadata xs) = req { params = Query ("additionalMetadata", TE.encodeUtf8 xs) : params req}
 -- | /Optional Param/ "file" - file to upload
-instance HasOptionalParam UploadFile File
+instance HasOptionalParam UploadFile File where
+  addOptionalParam req (File xs) = req { params = Query ("file", TE.encodeUtf8 xs) : params req}
 
 
 -- ** deleteOrder
@@ -495,32 +503,20 @@ type TupleBS8 = (BS8.ByteString, BS8.ByteString)
 
 -- ** HasOptionalParam
 -- | Designates the optional parameters of a request
-class (ToEncodedParam param) => HasOptionalParam request param where
+class HasOptionalParam req param where
+  {-# MINIMAL addOptionalParam | (-&-) #-}
 
--- ** addOptionalParam
--- | Add an optional parameter to a request
-addOptionalParam
-  :: HasOptionalParam req param
-  => SwaggerPetstoreRequest req res -> param -> SwaggerPetstoreRequest req res
-addOptionalParam request param =
-  request
-  { params = toEncodedParam param (params request)
-  }
+  -- | Add an optional parameter to a request
+  addOptionalParam :: forall res. SwaggerPetstoreRequest req res -> param -> SwaggerPetstoreRequest req res
+  addOptionalParam = (-&-)
+  {-# INLINE addOptionalParam #-}
 
--- ** (-&-)
--- | infix operator \/ alias for 'addOptionalParam'
--- Add an optional parameter to a request
-(-&-)
-  :: HasOptionalParam req param
-  => SwaggerPetstoreRequest req res -> param -> SwaggerPetstoreRequest req res
-request -&- param = addOptionalParam request param
-{-# INLINE (-&-) #-}
+  -- | infix operator \/ alias for 'addOptionalParam'
+  (-&-) :: forall res. SwaggerPetstoreRequest req res -> param -> SwaggerPetstoreRequest req res
+  (-&-) = addOptionalParam
+  {-# INLINE (-&-) #-}
+
 infixl 2 -&-
-
--- ** ToEncodedParam
--- | Encodes request parameters to their "wire" encoding
-class ToEncodedParam param where
-  toEncodedParam :: param -> [EncodedParam] -> [EncodedParam]
 
 -- ** EncodedParam
 -- | The "wire" encoding of a param
@@ -540,21 +536,11 @@ toPath _ = "toPath"
 -- * Optional Request Params
 
 newtype Api'Underscorekey = Api'Underscorekey { unApi'Underscorekey :: Text } deriving (Eq, Show, ToJSON, FromJSON)
-instance ToEncodedParam Api'Underscorekey where
-  toEncodedParam = undefined
 
 newtype Name = Name { unName :: Text } deriving (Eq, Show, ToJSON, FromJSON)
-instance ToEncodedParam Name where
-  toEncodedParam = undefined
 
 newtype Status = Status { unStatus :: Text } deriving (Eq, Show, ToJSON, FromJSON)
-instance ToEncodedParam Status where
-  toEncodedParam = undefined
 
 newtype AdditionalMetadata = AdditionalMetadata { unAdditionalMetadata :: Text } deriving (Eq, Show, ToJSON, FromJSON)
-instance ToEncodedParam AdditionalMetadata where
-  toEncodedParam = undefined
 
 newtype File = File { unFile :: FilePath } deriving (Eq, Show, ToJSON, FromJSON)
-instance ToEncodedParam File where
-  toEncodedParam = undefined
