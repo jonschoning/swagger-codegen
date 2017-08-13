@@ -391,10 +391,14 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
         op.vendorExtensions.put("x-baseOperationId", op.operationId);
         op.vendorExtensions.put("x-haddockPath", String.format("%s %s", op.httpMethod, op.path.replace("/","\\/")));
         op.operationId = toHsVarName(op.operationId);
-        op.vendorExtensions.put("x-operationType", camelize(op.operationId));
+        op.vendorExtensions.put("x-operationType", capitalize(op.operationId));
 
         for (CodegenParameter param : op.allParams) {
-           if(!param.required)  { op.vendorExtensions.put("x-hasOptionalParams", true); }
+           if(!param.required)  {
+               op.vendorExtensions.put("x-hasOptionalParams", true);
+               param.vendorExtensions.put("x-paramNameType", capitalize(param.paramName));
+               param.vendorExtensions.put("x-operationType", capitalize(op.operationId));
+           }
         }
         for (CodegenParameter param : op.bodyParams) { }
         if(op.getHasPathParams()) {
@@ -471,6 +475,13 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
         return string.replace(".", "").replace("-", "");
     }
 
+    private String capitalize(String word) {
+        if (word.length() > 0) {
+            word = word.substring(0, 1).toUpperCase() + word.substring(1);
+        }
+
+        return word;
+    }
     // Override fromModel to create the appropriate model namings
     @Override
     public CodegenModel fromModel(String name, Model mod, Map<String, Model> allDefinitions) {

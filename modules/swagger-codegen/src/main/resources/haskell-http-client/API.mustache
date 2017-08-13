@@ -2,10 +2,11 @@
 Module : {{title}}.API
 -}
 
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE RecordWildCards #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
 {-# OPTIONS_GHC -fno-warn-unused-binds -fno-warn-unused-imports #-}
 
 module {{title}}.API where
@@ -47,12 +48,7 @@ import Prelude
 -- {{/hasAuthMethods}}{{#hasConsumes}}
 -- Consumes: {{#consumes}}{{{mediaType}}}{{#hasMore}}, {{/hasMore}}{{/consumes}}
 -- {{/hasConsumes}}{{#hasProduces}}
--- Produces: {{#produces}}{{{mediaType}}}{{#hasMore}}, {{/hasMore}}{{/produces}}
--- {{/hasProduces}}{{#vendorExtensions.x-hasOptionalParams}}
--- Optional Params:
--- {{#allParams}}{{^required}}
--- * {{#readOnly}}/ReadOnly/ {{/readOnly}}"{{{baseName}}}" :: '{{dataType}}' {{#description}} - {{{description}}}{{/description}}
--- {{/required}}{{/allParams}}{{/vendorExtensions.x-hasOptionalParams}}
+-- Produces: {{#produces}}{{{mediaType}}}{{#hasMore}}, {{/hasMore}}{{/produces}}{{/hasProduces}}
 {{operationId}} 
   :: {{#allParams}}{{#required}}{{{dataType}}} -- ^ "{{{paramName}}}"{{#description}} - {{/description}} {{{description}}}
   -> {{/required}}{{/allParams}}{{requestType}} {{{vendorExtensions.x-operationType}}} {{vendorExtensions.x-returnType}}
@@ -63,7 +59,15 @@ import Prelude
     params = []{{#isDeprecated}}
 {-# DEPRECATED {{operationId}} "" #-}{{/isDeprecated}}
 
-data {{{vendorExtensions.x-operationType}}}
+data {{{vendorExtensions.x-operationType}}}{{#vendorExtensions.x-hasOptionalParams}}
+{{#allParams}}{{^required}}
+{{#description}}-- | /Optional Param/ "{{{baseName}}}" - {{{description}}}{{/description}}
+instance HasOptionalParam {{{vendorExtensions.x-operationType}}} {{{vendorExtensions.x-paramNameType}}}
+instance ToEncodedParam {{{vendorExtensions.x-paramNameType}}} where
+  toEncodedParam = undefined
+{{/required}}{{/allParams}}
+{{/vendorExtensions.x-hasOptionalParams}}
+
 {{/operation}}
 {{/operations}}{{/apis}}{{/apiInfo}}
 
@@ -109,6 +113,7 @@ addOptionalParam request param =
   => {{requestType}} req res -> param -> {{requestType}} req res
 request -&- param = addOptionalParam request param
 {-# INLINE (-&-) #-}
+infixl 2 -&-
 
 -- ** ToEncodedParam
 -- | Encodes request parameters to their "wire" encoding
@@ -129,3 +134,12 @@ data ResultFormatType
   deriving (Show, Eq)
 
 toPath _ = "toPath"
+
+-- * Optional Request Params
+
+{{#apiInfo}}{{#apis}}{{#operations}}{{#operation}}{{#vendorExtensions.x-hasOptionalParams}}{{#allParams}}{{^required}}
+newtype {{{vendorExtensions.x-paramNameType}}} = {{{vendorExtensions.x-paramNameType}}} { un{{{vendorExtensions.x-paramNameType}}} :: {{{dataType}}} } deriving (Eq, Show, ToJSON, FromJSON){{/required}}{{/allParams}}
+{{/vendorExtensions.x-hasOptionalParams}}
+
+{{/operation}}
+{{/operations}}{{/apis}}{{/apiInfo}}

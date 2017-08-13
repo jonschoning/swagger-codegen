@@ -2,10 +2,11 @@
 Module : SwaggerPetstore.API
 -}
 
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE RecordWildCards #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
 {-# OPTIONS_GHC -fno-warn-unused-binds -fno-warn-unused-imports #-}
 
 module SwaggerPetstore.API where
@@ -47,7 +48,6 @@ import Prelude
 -- Consumes: application/json, application/xml
 -- 
 -- Produces: application/xml, application/json
--- 
 addPet 
   :: Pet -- ^ "body" -  Pet object that needs to be added to the store
   -> SwaggerPetstoreRequest AddPet ()
@@ -68,11 +68,6 @@ data AddPet
 -- AuthMethod: petstore_auth
 -- 
 -- Produces: application/xml, application/json
--- 
--- Optional Params:
--- 
--- * "api_key" :: 'Text' 
--- 
 deletePet 
   :: Integer -- ^ "petId" -  Pet id to delete
   -> SwaggerPetstoreRequest DeletePet ()
@@ -83,6 +78,13 @@ deletePet petId = request
     params = []
 
 data DeletePet
+
+
+instance HasOptionalParam DeletePet Api'Underscorekey
+instance ToEncodedParam Api'Underscorekey where
+  toEncodedParam = undefined
+
+
 -- ** findPetsByStatus
 -- | GET \/pet\/findByStatus
 -- 
@@ -93,7 +95,6 @@ data DeletePet
 -- AuthMethod: petstore_auth
 -- 
 -- Produces: application/xml, application/json
--- 
 findPetsByStatus 
   :: [Text] -- ^ "status" -  Status values that need to be considered for filter
   -> SwaggerPetstoreRequest FindPetsByStatus [Pet]
@@ -114,7 +115,6 @@ data FindPetsByStatus
 -- AuthMethod: petstore_auth
 -- 
 -- Produces: application/xml, application/json
--- 
 findPetsByTags 
   :: [Text] -- ^ "tags" -  Tags to filter by
   -> SwaggerPetstoreRequest FindPetsByTags [Pet]
@@ -136,7 +136,6 @@ data FindPetsByTags
 -- AuthMethod: api_key
 -- 
 -- Produces: application/xml, application/json
--- 
 getPetById 
   :: Integer -- ^ "petId" -  ID of pet to return
   -> SwaggerPetstoreRequest GetPetById Pet
@@ -159,7 +158,6 @@ data GetPetById
 -- Consumes: application/json, application/xml
 -- 
 -- Produces: application/xml, application/json
--- 
 updatePet 
   :: Pet -- ^ "body" -  Pet object that needs to be added to the store
   -> SwaggerPetstoreRequest UpdatePet ()
@@ -182,13 +180,6 @@ data UpdatePet
 -- Consumes: application/x-www-form-urlencoded
 -- 
 -- Produces: application/xml, application/json
--- 
--- Optional Params:
--- 
--- * "name" :: 'Text'  - Updated name of the pet
--- 
--- * "status" :: 'Text'  - Updated status of the pet
--- 
 updatePetWithForm 
   :: Integer -- ^ "petId" -  ID of pet that needs to be updated
   -> SwaggerPetstoreRequest UpdatePetWithForm ()
@@ -199,6 +190,18 @@ updatePetWithForm petId = request
     params = []
 
 data UpdatePetWithForm
+
+-- | /Optional Param/ "name" - Updated name of the pet
+instance HasOptionalParam UpdatePetWithForm Name
+instance ToEncodedParam Name where
+  toEncodedParam = undefined
+
+-- | /Optional Param/ "status" - Updated status of the pet
+instance HasOptionalParam UpdatePetWithForm Status
+instance ToEncodedParam Status where
+  toEncodedParam = undefined
+
+
 -- ** uploadFile
 -- | POST \/pet\/{petId}\/uploadImage
 -- 
@@ -211,13 +214,6 @@ data UpdatePetWithForm
 -- Consumes: multipart/form-data
 -- 
 -- Produces: application/json
--- 
--- Optional Params:
--- 
--- * "additionalMetadata" :: 'Text'  - Additional data to pass to server
--- 
--- * "file" :: 'FilePath'  - file to upload
--- 
 uploadFile 
   :: Integer -- ^ "petId" -  ID of pet to update
   -> SwaggerPetstoreRequest UploadFile ApiResponse
@@ -229,6 +225,18 @@ uploadFile petId = request
 
 data UploadFile
 
+-- | /Optional Param/ "additionalMetadata" - Additional data to pass to server
+instance HasOptionalParam UploadFile AdditionalMetadata
+instance ToEncodedParam AdditionalMetadata where
+  toEncodedParam = undefined
+
+-- | /Optional Param/ "file" - file to upload
+instance HasOptionalParam UploadFile File
+instance ToEncodedParam File where
+  toEncodedParam = undefined
+
+
+
 
 -- ** deleteOrder
 -- | DELETE \/store\/order\/{orderId}
@@ -238,7 +246,6 @@ data UploadFile
 -- For valid response try integer IDs with positive integer value. Negative or non-integer values will generate API errors
 -- 
 -- Produces: application/xml, application/json
--- 
 deleteOrder 
   :: Integer -- ^ "orderId" -  ID of the order that needs to be deleted
   -> SwaggerPetstoreRequest DeleteOrder ()
@@ -259,7 +266,6 @@ data DeleteOrder
 -- AuthMethod: api_key
 -- 
 -- Produces: application/json
--- 
 getInventory 
   :: SwaggerPetstoreRequest GetInventory (Map.Map String Int)
 getInventory = request
@@ -277,7 +283,6 @@ data GetInventory
 -- For valid response try integer IDs with value >= 1 and <= 10. Other values will generated exceptions
 -- 
 -- Produces: application/xml, application/json
--- 
 getOrderById 
   :: Integer -- ^ "orderId" -  ID of pet that needs to be fetched
   -> SwaggerPetstoreRequest GetOrderById Order
@@ -296,7 +301,6 @@ data GetOrderById
 -- 
 -- 
 -- Produces: application/xml, application/json
--- 
 placeOrder 
   :: Order -- ^ "body" -  order placed for purchasing the pet
   -> SwaggerPetstoreRequest PlaceOrder Order
@@ -317,7 +321,6 @@ data PlaceOrder
 -- This can only be done by the logged in user.
 -- 
 -- Produces: application/xml, application/json
--- 
 createUser 
   :: User -- ^ "body" -  Created user object
   -> SwaggerPetstoreRequest CreateUser ()
@@ -336,7 +339,6 @@ data CreateUser
 -- 
 -- 
 -- Produces: application/xml, application/json
--- 
 createUsersWithArrayInput 
   :: [User] -- ^ "body" -  List of user object
   -> SwaggerPetstoreRequest CreateUsersWithArrayInput ()
@@ -355,7 +357,6 @@ data CreateUsersWithArrayInput
 -- 
 -- 
 -- Produces: application/xml, application/json
--- 
 createUsersWithListInput 
   :: [User] -- ^ "body" -  List of user object
   -> SwaggerPetstoreRequest CreateUsersWithListInput ()
@@ -374,7 +375,6 @@ data CreateUsersWithListInput
 -- This can only be done by the logged in user.
 -- 
 -- Produces: application/xml, application/json
--- 
 deleteUser 
   :: Text -- ^ "username" -  The name that needs to be deleted
   -> SwaggerPetstoreRequest DeleteUser ()
@@ -393,7 +393,6 @@ data DeleteUser
 -- 
 -- 
 -- Produces: application/xml, application/json
--- 
 getUserByName 
   :: Text -- ^ "username" -  The name that needs to be fetched. Use user1 for testing. 
   -> SwaggerPetstoreRequest GetUserByName User
@@ -412,7 +411,6 @@ data GetUserByName
 -- 
 -- 
 -- Produces: application/xml, application/json
--- 
 loginUser 
   :: Text -- ^ "username" -  The user name for login
   -> Text -- ^ "password" -  The password for login in clear text
@@ -432,7 +430,6 @@ data LoginUser
 -- 
 -- 
 -- Produces: application/xml, application/json
--- 
 logoutUser 
   :: SwaggerPetstoreRequest LogoutUser ()
 logoutUser = request
@@ -450,7 +447,6 @@ data LogoutUser
 -- This can only be done by the logged in user.
 -- 
 -- Produces: application/xml, application/json
--- 
 updateUser 
   :: Text -- ^ "username" -  name that need to be updated
   -> User -- ^ "body" -  Updated user object
@@ -465,7 +461,7 @@ data UpdateUser
 
 
 -- * SwaggerPetstoreRequest
-
+-- | Represents a request. The "req" type variable is the request type. The "res" type variable is the response type.
 data SwaggerPetstoreRequest req res = SwaggerPetstoreRequest
   { rMethod  :: NHTM.Method   -- ^ Method of SwaggerPetstoreRequest
   , endpoint :: [Text]     -- ^ Endpoint of SwaggerPetstoreRequest
@@ -485,6 +481,7 @@ type TupleBS8 = (BS8.ByteString, BS8.ByteString)
 -- * Params
 
 -- ** HasOptionalParam
+-- | Designates the optional parameters of a request
 class (ToEncodedParam param) => HasOptionalParam request param where
 
 -- ** addOptionalParam
@@ -498,18 +495,22 @@ addOptionalParam request param =
   }
 
 -- ** (-&-)
--- | infix operator for 'addOptionalParam'
+-- | infix operator \/ alias for 'addOptionalParam'
+-- Add an optional parameter to a request
 (-&-)
   :: HasOptionalParam req param
   => SwaggerPetstoreRequest req res -> param -> SwaggerPetstoreRequest req res
 request -&- param = addOptionalParam request param
 {-# INLINE (-&-) #-}
+infixl 2 -&-
 
 -- ** ToEncodedParam
+-- | Encodes request parameters to their "wire" encoding
 class ToEncodedParam param where
   toEncodedParam :: param -> [EncodedParam] -> [EncodedParam]
 
 -- ** EncodedParam
+-- | The "wire" encoding of a param
 data EncodedParam
   = Query TupleBS8
   | Body BSL.ByteString
@@ -522,3 +523,34 @@ data ResultFormatType
   deriving (Show, Eq)
 
 toPath _ = "toPath"
+
+-- * Optional Request Params
+
+
+
+newtype Api'Underscorekey = Api'Underscorekey { unApi'Underscorekey :: Text } deriving (Eq, Show, ToJSON, FromJSON)
+
+
+
+
+
+
+newtype Name = Name { unName :: Text } deriving (Eq, Show, ToJSON, FromJSON)
+newtype Status = Status { unStatus :: Text } deriving (Eq, Show, ToJSON, FromJSON)
+
+
+newtype AdditionalMetadata = AdditionalMetadata { unAdditionalMetadata :: Text } deriving (Eq, Show, ToJSON, FromJSON)
+newtype File = File { unFile :: FilePath } deriving (Eq, Show, ToJSON, FromJSON)
+
+
+
+
+
+
+
+
+
+
+
+
+
