@@ -12,14 +12,13 @@ Module : SwaggerPetstore.API
 
 module SwaggerPetstore.API where
 
-import SwaggerPetstore.Model
+import SwaggerPetstore.Model as M
 
 import Control.Monad.IO.Class
 import Data.Aeson 
 import Data.Aeson.Types 
 import Data.Function ((&))
 import Data.Text (Text)
-import Data.Proxy (Proxy)
 import GHC.Exts (IsString(..))
 
 import qualified Data.Map as Map
@@ -40,6 +39,7 @@ import Prelude
 
 
 -- ** addPet
+
 -- | POST \/pet
 -- 
 -- Add a new pet to the store
@@ -64,6 +64,7 @@ data AddPet
 
 
 -- ** deletePet
+
 -- | DELETE \/pet\/{petId}
 -- 
 -- Deletes a pet
@@ -83,12 +84,12 @@ deletePet petId = request
     params = []
 
 data DeletePet
-
 instance HasOptionalParam DeletePet Api'Underscorekey where
   addOptionalParam req (Api'Underscorekey xs) = req { params = Query ("api_key", TE.encodeUtf8 xs) : params req}
 
 
 -- ** findPetsByStatus
+
 -- | GET \/pet\/findByStatus
 -- 
 -- Finds Pets by status
@@ -111,6 +112,7 @@ data FindPetsByStatus
 
 
 -- ** findPetsByTags
+
 -- | GET \/pet\/findByTags
 -- 
 -- Finds Pets by tags
@@ -134,6 +136,7 @@ data FindPetsByTags
 
 
 -- ** getPetById
+
 -- | GET \/pet\/{petId}
 -- 
 -- Find pet by ID
@@ -156,6 +159,7 @@ data GetPetById
 
 
 -- ** updatePet
+
 -- | PUT \/pet
 -- 
 -- Update an existing pet
@@ -180,6 +184,7 @@ data UpdatePet
 
 
 -- ** updatePetWithForm
+
 -- | POST \/pet\/{petId}
 -- 
 -- Updates a pet in the store with form data
@@ -201,15 +206,18 @@ updatePetWithForm petId = request
     params = []
 
 data UpdatePetWithForm
+
 -- | /Optional Param/ "name" - Updated name of the pet
 instance HasOptionalParam UpdatePetWithForm Name where
   addOptionalParam req (Name xs) = req { params = Query ("name", TE.encodeUtf8 xs) : params req}
+
 -- | /Optional Param/ "status" - Updated status of the pet
 instance HasOptionalParam UpdatePetWithForm Status where
   addOptionalParam req (Status xs) = req { params = Query ("status", TE.encodeUtf8 xs) : params req}
 
 
 -- ** uploadFile
+
 -- | POST \/pet\/{petId}\/uploadImage
 -- 
 -- uploads an image
@@ -231,15 +239,18 @@ uploadFile petId = request
     params = []
 
 data UploadFile
+
 -- | /Optional Param/ "additionalMetadata" - Additional data to pass to server
 instance HasOptionalParam UploadFile AdditionalMetadata where
   addOptionalParam req (AdditionalMetadata xs) = req { params = Query ("additionalMetadata", TE.encodeUtf8 xs) : params req}
+
 -- | /Optional Param/ "file" - file to upload
 instance HasOptionalParam UploadFile File where
   addOptionalParam req (File xs) = req { params = Query ("file", TE.encodeUtf8 xs) : params req}
 
 
 -- ** deleteOrder
+
 -- | DELETE \/store\/order\/{orderId}
 -- 
 -- Delete purchase order by ID
@@ -260,6 +271,7 @@ data DeleteOrder
 
 
 -- ** getInventory
+
 -- | GET \/store\/inventory
 -- 
 -- Returns pet inventories by status
@@ -281,6 +293,7 @@ data GetInventory
 
 
 -- ** getOrderById
+
 -- | GET \/store\/order\/{orderId}
 -- 
 -- Find purchase order by ID
@@ -301,6 +314,7 @@ data GetOrderById
 
 
 -- ** placeOrder
+
 -- | POST \/store\/order
 -- 
 -- Place an order for a pet
@@ -321,6 +335,7 @@ data PlaceOrder
 
 
 -- ** createUser
+
 -- | POST \/user
 -- 
 -- Create user
@@ -341,6 +356,7 @@ data CreateUser
 
 
 -- ** createUsersWithArrayInput
+
 -- | POST \/user\/createWithArray
 -- 
 -- Creates list of users with given input array
@@ -361,6 +377,7 @@ data CreateUsersWithArrayInput
 
 
 -- ** createUsersWithListInput
+
 -- | POST \/user\/createWithList
 -- 
 -- Creates list of users with given input array
@@ -381,6 +398,7 @@ data CreateUsersWithListInput
 
 
 -- ** deleteUser
+
 -- | DELETE \/user\/{username}
 -- 
 -- Delete user
@@ -401,6 +419,7 @@ data DeleteUser
 
 
 -- ** getUserByName
+
 -- | GET \/user\/{username}
 -- 
 -- Get user by user name
@@ -421,6 +440,7 @@ data GetUserByName
 
 
 -- ** loginUser
+
 -- | GET \/user\/login
 -- 
 -- Logs user into the system
@@ -442,6 +462,7 @@ data LoginUser
 
 
 -- ** logoutUser
+
 -- | GET \/user\/logout
 -- 
 -- Logs out current logged in user session
@@ -461,6 +482,7 @@ data LogoutUser
 
 
 -- ** updateUser
+
 -- | PUT \/user\/{username}
 -- 
 -- Updated user
@@ -535,12 +557,12 @@ toPath _ = "toPath"
 
 -- * Optional Request Params
 
-newtype Api'Underscorekey = Api'Underscorekey { unApi'Underscorekey :: Text } deriving (Eq, Show, ToJSON, FromJSON)
+newtype Api'Underscorekey = Api'Underscorekey { unApi'Underscorekey :: Text } deriving (Eq, Show)
 
-newtype Name = Name { unName :: Text } deriving (Eq, Show, ToJSON, FromJSON)
+newtype Name = Name { unName :: Text } deriving (Eq, Show)
 
-newtype Status = Status { unStatus :: Text } deriving (Eq, Show, ToJSON, FromJSON)
+newtype Status = Status { unStatus :: Text } deriving (Eq, Show)
 
-newtype AdditionalMetadata = AdditionalMetadata { unAdditionalMetadata :: Text } deriving (Eq, Show, ToJSON, FromJSON)
+newtype AdditionalMetadata = AdditionalMetadata { unAdditionalMetadata :: Text } deriving (Eq, Show)
 
-newtype File = File { unFile :: FilePath } deriving (Eq, Show, ToJSON, FromJSON)
+newtype File = File { unFile :: FilePath } deriving (Eq, Show)

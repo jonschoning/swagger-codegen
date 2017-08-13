@@ -12,7 +12,7 @@ Module : {{title}}.API
 
 module {{title}}.API where
 
-import {{title}}.Model
+import {{title}}.Model as M
 
 import Control.Monad.IO.Class
 import Data.Aeson 
@@ -39,6 +39,7 @@ import Prelude
 {{#apiInfo}}{{#apis}}{{#operations}}{{#operation}}
 
 -- ** {{operationId}}
+
 -- | {{{vendorExtensions.x-haddockPath}}}
 -- {{#summary}}
 -- {{{.}}}
@@ -51,7 +52,7 @@ import Prelude
 -- {{/hasConsumes}}{{#hasProduces}}
 -- Produces: {{#produces}}{{{mediaType}}}{{#hasMore}}, {{/hasMore}}{{/produces}}{{/hasProduces}}
 {{operationId}} 
-  :: {{#allParams}}{{#required}}{{{dataType}}} -- ^ "{{{paramName}}}"{{#description}} - {{/description}} {{{description}}}
+  :: {{#allParams}}{{#required}}{{dataType}} -- ^ "{{{paramName}}}"{{#description}} - {{/description}} {{{description}}}
   -> {{/required}}{{/allParams}}{{requestType}} {{{vendorExtensions.x-operationType}}} {{vendorExtensions.x-returnType}}
 {{operationId}} {{#allParams}}{{#required}}{{{paramName}}} {{/required}}{{/allParams}}= request
   where
@@ -60,8 +61,9 @@ import Prelude
     params = []{{#isDeprecated}}
 {-# DEPRECATED {{operationId}} "" #-}{{/isDeprecated}}
 
-data {{{vendorExtensions.x-operationType}}}{{#vendorExtensions.x-hasOptionalParams}}{{#allParams}}{{^required}}
-{{#description}}-- | /Optional Param/ "{{{baseName}}}" - {{{description}}}{{/description}}
+data {{{vendorExtensions.x-operationType}}}{{#vendorExtensions.x-hasOptionalParams}}{{#allParams}}{{^required}}{{#description}}
+
+-- | /Optional Param/ "{{{baseName}}}" - {{{description}}}{{/description}}
 instance HasOptionalParam {{{vendorExtensions.x-operationType}}} {{{vendorExtensions.x-paramNameType}}} where
   addOptionalParam req ({{{vendorExtensions.x-paramNameType}}} xs) = req { params = Query ("{{{baseName}}}", TE.encodeUtf8 xs) : params req}{{/required}}{{/allParams}}{{/vendorExtensions.x-hasOptionalParams}}
 {{/operation}}{{/operations}}{{/apis}}{{/apiInfo}}
@@ -119,6 +121,6 @@ data ResultFormatType
 toPath _ = "toPath"
 
 -- * Optional Request Params
-{{#apiInfo}}{{#apis}}{{#operations}}{{#operation}}{{#vendorExtensions.x-hasOptionalParams}}{{#allParams}}{{^required}}
-newtype {{{vendorExtensions.x-paramNameType}}} = {{{vendorExtensions.x-paramNameType}}} { un{{{vendorExtensions.x-paramNameType}}} :: {{{dataType}}} } deriving (Eq, Show, ToJSON, FromJSON)
-{{/required}}{{/allParams}}{{/vendorExtensions.x-hasOptionalParams}}{{/operation}}{{/operations}}{{/apis}}{{/apiInfo}}
+{{#apiInfo}}{{#apis}}{{#operations}}{{#operation}}{{#vendorExtensions.x-hasOptionalParams}}{{#allParams}}{{^required}}{{^vendorExtensions.x-duplicate}}
+newtype {{{vendorExtensions.x-paramNameType}}} = {{{vendorExtensions.x-paramNameType}}} { un{{{vendorExtensions.x-paramNameType}}} :: {{{dataType}}} } deriving (Eq, Show)
+{{/vendorExtensions.x-duplicate}}{{/required}}{{/allParams}}{{/vendorExtensions.x-hasOptionalParams}}{{/operation}}{{/operations}}{{/apis}}{{/apiInfo}}

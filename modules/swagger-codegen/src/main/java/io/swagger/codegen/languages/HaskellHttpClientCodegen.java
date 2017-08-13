@@ -384,7 +384,13 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
         }
     }
 
-    protected Map<String, Parameter> allOptionalParams = new HashMap<String, Parameter>();
+    private boolean isModelledType(CodegenParameter param) {
+        return isModelledType(param.baseType == null ? param.dataType : param.baseType);
+    }
+    private boolean isModelledType(String typeName) {
+        return !languageSpecificPrimitives.contains(typeName) && !typeMapping.values().contains(typeName);
+    }
+    protected Map<String, CodegenParameter> uniqueOptionalParamsByName = new HashMap<String, CodegenParameter>();
 
     @Override
     public CodegenOperation fromOperation(String resourcePath, String httpMethod, Operation operation, Map<String, Model> definitions, Swagger swagger) {
@@ -396,10 +402,27 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
         op.vendorExtensions.put("x-operationType", capitalize(op.operationId));
 
         for (CodegenParameter param : op.allParams) {
+//           if(isModelledType(param)) {
+//               param.vendorExtensions.put("x-ns", "M.");
+//           }
            if(!param.required)  {
                op.vendorExtensions.put("x-hasOptionalParams", true);
-               param.vendorExtensions.put("x-paramNameType", capitalize(param.paramName));
                param.vendorExtensions.put("x-operationType", capitalize(op.operationId));
+
+               String paramNameType = capitalize(param.paramName);
+
+               if(uniqueOptionalParamsByName.containsKey(paramNameType)){
+                   CodegenParameter lastParam = this.uniqueOptionalParamsByName.get(paramNameType);
+                   if(lastParam.dataType.equals(param.dataType)) {
+                       param.vendorExtensions.put("x-duplicate", true);
+                   } else {
+                       paramNameType = paramNameType + param.dataType;
+                   }
+               } else {
+                   uniqueOptionalParamsByName.put(paramNameType, param);
+               }
+
+               param.vendorExtensions.put("x-paramNameType", paramNameType);
            }
         }
         for (CodegenParameter param : op.bodyParams) { }
