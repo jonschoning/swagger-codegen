@@ -34,9 +34,8 @@ import qualified Network.HTTP.Types.Method as NHTM
 import Prelude 
 
 -- * Operations
-{{#apiInfo}}{{#apis}}{{#operations}}
+{{#apiInfo}}{{#apis}}{{#operations}}{{#operation}}
 
-{{#operation}}
 -- ** {{operationId}}
 -- | {{{vendorExtensions.x-haddockPath}}}
 -- {{#summary}}
@@ -59,17 +58,10 @@ import Prelude
     params = []{{#isDeprecated}}
 {-# DEPRECATED {{operationId}} "" #-}{{/isDeprecated}}
 
-data {{{vendorExtensions.x-operationType}}}{{#vendorExtensions.x-hasOptionalParams}}
-{{#allParams}}{{^required}}
+data {{{vendorExtensions.x-operationType}}}{{#vendorExtensions.x-hasOptionalParams}}{{#allParams}}{{^required}}
 {{#description}}-- | /Optional Param/ "{{{baseName}}}" - {{{description}}}{{/description}}
-instance HasOptionalParam {{{vendorExtensions.x-operationType}}} {{{vendorExtensions.x-paramNameType}}}
-instance ToEncodedParam {{{vendorExtensions.x-paramNameType}}} where
-  toEncodedParam = undefined
-{{/required}}{{/allParams}}
-{{/vendorExtensions.x-hasOptionalParams}}
-
-{{/operation}}
-{{/operations}}{{/apis}}{{/apiInfo}}
+instance HasOptionalParam {{{vendorExtensions.x-operationType}}} {{{vendorExtensions.x-paramNameType}}}{{/required}}{{/allParams}}{{/vendorExtensions.x-hasOptionalParams}}
+{{/operation}}{{/operations}}{{/apis}}{{/apiInfo}}
 
 -- * {{requestType}}
 -- | Represents a request. The "req" type variable is the request type. The "res" type variable is the response type.
@@ -136,10 +128,8 @@ data ResultFormatType
 toPath _ = "toPath"
 
 -- * Optional Request Params
-
 {{#apiInfo}}{{#apis}}{{#operations}}{{#operation}}{{#vendorExtensions.x-hasOptionalParams}}{{#allParams}}{{^required}}
-newtype {{{vendorExtensions.x-paramNameType}}} = {{{vendorExtensions.x-paramNameType}}} { un{{{vendorExtensions.x-paramNameType}}} :: {{{dataType}}} } deriving (Eq, Show, ToJSON, FromJSON){{/required}}{{/allParams}}
-{{/vendorExtensions.x-hasOptionalParams}}
-
-{{/operation}}
-{{/operations}}{{/apis}}{{/apiInfo}}
+newtype {{{vendorExtensions.x-paramNameType}}} = {{{vendorExtensions.x-paramNameType}}} { un{{{vendorExtensions.x-paramNameType}}} :: {{{dataType}}} } deriving (Eq, Show, ToJSON, FromJSON)
+instance ToEncodedParam {{{vendorExtensions.x-paramNameType}}} where
+  toEncodedParam = undefined
+{{/required}}{{/allParams}}{{/vendorExtensions.x-hasOptionalParams}}{{/operation}}{{/operations}}{{/apis}}{{/apiInfo}}

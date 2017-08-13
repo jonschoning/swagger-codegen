@@ -58,6 +58,8 @@ addPet body = request
     params = []
 
 data AddPet
+
+
 -- ** deletePet
 -- | DELETE \/pet\/{petId}
 -- 
@@ -79,10 +81,7 @@ deletePet petId = request
 
 data DeletePet
 
-
 instance HasOptionalParam DeletePet Api'Underscorekey
-instance ToEncodedParam Api'Underscorekey where
-  toEncodedParam = undefined
 
 
 -- ** findPetsByStatus
@@ -105,6 +104,8 @@ findPetsByStatus status = request
     params = []
 
 data FindPetsByStatus
+
+
 -- ** findPetsByTags
 -- | GET \/pet\/findByTags
 -- 
@@ -126,6 +127,8 @@ findPetsByTags tags = request
 {-# DEPRECATED findPetsByTags "" #-}
 
 data FindPetsByTags
+
+
 -- ** getPetById
 -- | GET \/pet\/{petId}
 -- 
@@ -146,6 +149,8 @@ getPetById petId = request
     params = []
 
 data GetPetById
+
+
 -- ** updatePet
 -- | PUT \/pet
 -- 
@@ -168,6 +173,8 @@ updatePet body = request
     params = []
 
 data UpdatePet
+
+
 -- ** updatePetWithForm
 -- | POST \/pet\/{petId}
 -- 
@@ -190,16 +197,10 @@ updatePetWithForm petId = request
     params = []
 
 data UpdatePetWithForm
-
 -- | /Optional Param/ "name" - Updated name of the pet
 instance HasOptionalParam UpdatePetWithForm Name
-instance ToEncodedParam Name where
-  toEncodedParam = undefined
-
 -- | /Optional Param/ "status" - Updated status of the pet
 instance HasOptionalParam UpdatePetWithForm Status
-instance ToEncodedParam Status where
-  toEncodedParam = undefined
 
 
 -- ** uploadFile
@@ -224,18 +225,10 @@ uploadFile petId = request
     params = []
 
 data UploadFile
-
 -- | /Optional Param/ "additionalMetadata" - Additional data to pass to server
 instance HasOptionalParam UploadFile AdditionalMetadata
-instance ToEncodedParam AdditionalMetadata where
-  toEncodedParam = undefined
-
 -- | /Optional Param/ "file" - file to upload
 instance HasOptionalParam UploadFile File
-instance ToEncodedParam File where
-  toEncodedParam = undefined
-
-
 
 
 -- ** deleteOrder
@@ -256,6 +249,8 @@ deleteOrder orderId = request
     params = []
 
 data DeleteOrder
+
+
 -- ** getInventory
 -- | GET \/store\/inventory
 -- 
@@ -275,6 +270,8 @@ getInventory = request
     params = []
 
 data GetInventory
+
+
 -- ** getOrderById
 -- | GET \/store\/order\/{orderId}
 -- 
@@ -293,6 +290,8 @@ getOrderById orderId = request
     params = []
 
 data GetOrderById
+
+
 -- ** placeOrder
 -- | POST \/store\/order
 -- 
@@ -331,6 +330,8 @@ createUser body = request
     params = []
 
 data CreateUser
+
+
 -- ** createUsersWithArrayInput
 -- | POST \/user\/createWithArray
 -- 
@@ -349,6 +350,8 @@ createUsersWithArrayInput body = request
     params = []
 
 data CreateUsersWithArrayInput
+
+
 -- ** createUsersWithListInput
 -- | POST \/user\/createWithList
 -- 
@@ -367,6 +370,8 @@ createUsersWithListInput body = request
     params = []
 
 data CreateUsersWithListInput
+
+
 -- ** deleteUser
 -- | DELETE \/user\/{username}
 -- 
@@ -385,6 +390,8 @@ deleteUser username = request
     params = []
 
 data DeleteUser
+
+
 -- ** getUserByName
 -- | GET \/user\/{username}
 -- 
@@ -403,6 +410,8 @@ getUserByName username = request
     params = []
 
 data GetUserByName
+
+
 -- ** loginUser
 -- | GET \/user\/login
 -- 
@@ -422,6 +431,8 @@ loginUser username password = request
     params = []
 
 data LoginUser
+
+
 -- ** logoutUser
 -- | GET \/user\/logout
 -- 
@@ -439,6 +450,8 @@ logoutUser = request
     params = []
 
 data LogoutUser
+
+
 -- ** updateUser
 -- | PUT \/user\/{username}
 -- 
@@ -526,31 +539,22 @@ toPath _ = "toPath"
 
 -- * Optional Request Params
 
-
-
 newtype Api'Underscorekey = Api'Underscorekey { unApi'Underscorekey :: Text } deriving (Eq, Show, ToJSON, FromJSON)
-
-
-
-
-
+instance ToEncodedParam Api'Underscorekey where
+  toEncodedParam = undefined
 
 newtype Name = Name { unName :: Text } deriving (Eq, Show, ToJSON, FromJSON)
-newtype Status = Status { unStatus :: Text } deriving (Eq, Show, ToJSON, FromJSON)
+instance ToEncodedParam Name where
+  toEncodedParam = undefined
 
+newtype Status = Status { unStatus :: Text } deriving (Eq, Show, ToJSON, FromJSON)
+instance ToEncodedParam Status where
+  toEncodedParam = undefined
 
 newtype AdditionalMetadata = AdditionalMetadata { unAdditionalMetadata :: Text } deriving (Eq, Show, ToJSON, FromJSON)
+instance ToEncodedParam AdditionalMetadata where
+  toEncodedParam = undefined
+
 newtype File = File { unFile :: FilePath } deriving (Eq, Show, ToJSON, FromJSON)
-
-
-
-
-
-
-
-
-
-
-
-
-
+instance ToEncodedParam File where
+  toEncodedParam = undefined
