@@ -407,9 +407,6 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
         op.vendorExtensions.put("x-operationType", capitalize(op.operationId));
 
         for (CodegenParameter param : op.allParams) {
-//           if(isModelledType(param)) {
-//               param.vendorExtensions.put("x-ns", "M.");
-//           }
            if(!param.required)  {
                op.vendorExtensions.put("x-hasOptionalParams", true);
                param.vendorExtensions.put("x-operationType", capitalize(op.operationId));

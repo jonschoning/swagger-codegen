@@ -15,8 +15,8 @@ module SwaggerPetstore.API where
 import SwaggerPetstore.Model as M
 
 import Control.Monad.IO.Class
-import Data.Aeson 
-import Data.Aeson.Types 
+import qualified Data.Aeson as A
+import qualified Data.Aeson.Types as A
 import Data.Function ((&))
 import Data.Text (Text)
 import GHC.Exts (IsString(..))
@@ -28,10 +28,12 @@ import qualified Data.Vector as V
 
 import qualified Data.ByteString.Char8 as BS8
 import qualified Data.ByteString.Lazy.Char8 as BSL
-
-import           Network.HTTP.Client
-import           Network.HTTP.Client.TLS
-import qualified Network.HTTP.Types.Method as NHTM
+import qualified Data.ByteString.Builder as BSR
+import qualified Network.HTTP.Client as NH
+import qualified Network.HTTP.Client.TLS as NH
+import qualified Network.HTTP.Types.Method as NH
+import qualified Network.HTTP.Types as NH
+import qualified Network.HTTP.Types.URI as NH
 
 import Prelude 
 
@@ -56,8 +58,8 @@ addPet
   -> SwaggerPetstoreRequest AddPet ()
 addPet body = request
   where
-    request = mkSwaggerPetstoreRequest "POST" url params
-    url = ["/pet"]
+    request = mkSwaggerPetstoreRequest "POST" pathSegments params
+    pathSegments = ["/pet"]
     params = []
 
 data AddPet
@@ -79,8 +81,8 @@ deletePet
   -> SwaggerPetstoreRequest DeletePet ()
 deletePet petId = request
   where
-    request = mkSwaggerPetstoreRequest "DELETE" url params
-    url = ["/pet/",toPath petId]
+    request = mkSwaggerPetstoreRequest "DELETE" pathSegments params
+    pathSegments = ["/pet/",toPath petId]
     params = []
 
 data DeletePet
@@ -104,8 +106,8 @@ findPetsByStatus
   -> SwaggerPetstoreRequest FindPetsByStatus [Pet]
 findPetsByStatus status = request
   where
-    request = mkSwaggerPetstoreRequest "GET" url params
-    url = ["/pet/findByStatus"]
+    request = mkSwaggerPetstoreRequest "GET" pathSegments params
+    pathSegments = ["/pet/findByStatus"]
     params = []
 
 data FindPetsByStatus
@@ -127,8 +129,8 @@ findPetsByTags
   -> SwaggerPetstoreRequest FindPetsByTags [Pet]
 findPetsByTags tags = request
   where
-    request = mkSwaggerPetstoreRequest "GET" url params
-    url = ["/pet/findByTags"]
+    request = mkSwaggerPetstoreRequest "GET" pathSegments params
+    pathSegments = ["/pet/findByTags"]
     params = []
 {-# DEPRECATED findPetsByTags "" #-}
 
@@ -151,8 +153,8 @@ getPetById
   -> SwaggerPetstoreRequest GetPetById Pet
 getPetById petId = request
   where
-    request = mkSwaggerPetstoreRequest "GET" url params
-    url = ["/pet/",toPath petId]
+    request = mkSwaggerPetstoreRequest "GET" pathSegments params
+    pathSegments = ["/pet/",toPath petId]
     params = []
 
 data GetPetById
@@ -176,8 +178,8 @@ updatePet
   -> SwaggerPetstoreRequest UpdatePet ()
 updatePet body = request
   where
-    request = mkSwaggerPetstoreRequest "PUT" url params
-    url = ["/pet"]
+    request = mkSwaggerPetstoreRequest "PUT" pathSegments params
+    pathSegments = ["/pet"]
     params = []
 
 data UpdatePet
@@ -201,8 +203,8 @@ updatePetWithForm
   -> SwaggerPetstoreRequest UpdatePetWithForm ()
 updatePetWithForm petId = request
   where
-    request = mkSwaggerPetstoreRequest "POST" url params
-    url = ["/pet/",toPath petId]
+    request = mkSwaggerPetstoreRequest "POST" pathSegments params
+    pathSegments = ["/pet/",toPath petId]
     params = []
 
 data UpdatePetWithForm
@@ -234,8 +236,8 @@ uploadFile
   -> SwaggerPetstoreRequest UploadFile ApiResponse
 uploadFile petId = request
   where
-    request = mkSwaggerPetstoreRequest "POST" url params
-    url = ["/pet/",toPath petId,"/uploadImage"]
+    request = mkSwaggerPetstoreRequest "POST" pathSegments params
+    pathSegments = ["/pet/",toPath petId,"/uploadImage"]
     params = []
 
 data UploadFile
@@ -245,8 +247,8 @@ instance HasOptionalParam UploadFile AdditionalMetadata where
   addOptionalParam req (AdditionalMetadata xs) = req { params = Query ("additionalMetadata", TE.encodeUtf8 xs) : params req}
 
 -- | /Optional Param/ "file" - file to upload
-instance HasOptionalParam UploadFile File where
-  addOptionalParam req (File xs) = req { params = Query ("file", TE.encodeUtf8 xs) : params req}
+-- instance HasOptionalParam UploadFile File where
+--   addOptionalParam req (File xs) = req { params = Query ("file", TE.encodeUtf8 xs) : params req}
 
 
 -- ** deleteOrder
@@ -263,8 +265,8 @@ deleteOrder
   -> SwaggerPetstoreRequest DeleteOrder ()
 deleteOrder orderId = request
   where
-    request = mkSwaggerPetstoreRequest "DELETE" url params
-    url = ["/store/order/",toPath orderId]
+    request = mkSwaggerPetstoreRequest "DELETE" pathSegments params
+    pathSegments = ["/store/order/",toPath orderId]
     params = []
 
 data DeleteOrder
@@ -285,8 +287,8 @@ getInventory
   :: SwaggerPetstoreRequest GetInventory (Map.Map String Int)
 getInventory = request
   where
-    request = mkSwaggerPetstoreRequest "GET" url params
-    url = ["/store/inventory"]
+    request = mkSwaggerPetstoreRequest "GET" pathSegments params
+    pathSegments = ["/store/inventory"]
     params = []
 
 data GetInventory
@@ -306,8 +308,8 @@ getOrderById
   -> SwaggerPetstoreRequest GetOrderById Order
 getOrderById orderId = request
   where
-    request = mkSwaggerPetstoreRequest "GET" url params
-    url = ["/store/order/",toPath orderId]
+    request = mkSwaggerPetstoreRequest "GET" pathSegments params
+    pathSegments = ["/store/order/",toPath orderId]
     params = []
 
 data GetOrderById
@@ -327,8 +329,8 @@ placeOrder
   -> SwaggerPetstoreRequest PlaceOrder Order
 placeOrder body = request
   where
-    request = mkSwaggerPetstoreRequest "POST" url params
-    url = ["/store/order"]
+    request = mkSwaggerPetstoreRequest "POST" pathSegments params
+    pathSegments = ["/store/order"]
     params = []
 
 data PlaceOrder
@@ -348,8 +350,8 @@ createUser
   -> SwaggerPetstoreRequest CreateUser ()
 createUser body = request
   where
-    request = mkSwaggerPetstoreRequest "POST" url params
-    url = ["/user"]
+    request = mkSwaggerPetstoreRequest "POST" pathSegments params
+    pathSegments = ["/user"]
     params = []
 
 data CreateUser
@@ -369,8 +371,8 @@ createUsersWithArrayInput
   -> SwaggerPetstoreRequest CreateUsersWithArrayInput ()
 createUsersWithArrayInput body = request
   where
-    request = mkSwaggerPetstoreRequest "POST" url params
-    url = ["/user/createWithArray"]
+    request = mkSwaggerPetstoreRequest "POST" pathSegments params
+    pathSegments = ["/user/createWithArray"]
     params = []
 
 data CreateUsersWithArrayInput
@@ -390,8 +392,8 @@ createUsersWithListInput
   -> SwaggerPetstoreRequest CreateUsersWithListInput ()
 createUsersWithListInput body = request
   where
-    request = mkSwaggerPetstoreRequest "POST" url params
-    url = ["/user/createWithList"]
+    request = mkSwaggerPetstoreRequest "POST" pathSegments params
+    pathSegments = ["/user/createWithList"]
     params = []
 
 data CreateUsersWithListInput
@@ -411,8 +413,8 @@ deleteUser
   -> SwaggerPetstoreRequest DeleteUser ()
 deleteUser username = request
   where
-    request = mkSwaggerPetstoreRequest "DELETE" url params
-    url = ["/user/",toPath username]
+    request = mkSwaggerPetstoreRequest "DELETE" pathSegments params
+    pathSegments = ["/user/",toPath username]
     params = []
 
 data DeleteUser
@@ -432,8 +434,8 @@ getUserByName
   -> SwaggerPetstoreRequest GetUserByName User
 getUserByName username = request
   where
-    request = mkSwaggerPetstoreRequest "GET" url params
-    url = ["/user/",toPath username]
+    request = mkSwaggerPetstoreRequest "GET" pathSegments params
+    pathSegments = ["/user/",toPath username]
     params = []
 
 data GetUserByName
@@ -454,8 +456,8 @@ loginUser
   -> SwaggerPetstoreRequest LoginUser Text
 loginUser username password = request
   where
-    request = mkSwaggerPetstoreRequest "GET" url params
-    url = ["/user/login"]
+    request = mkSwaggerPetstoreRequest "GET" pathSegments params
+    pathSegments = ["/user/login"]
     params = []
 
 data LoginUser
@@ -474,8 +476,8 @@ logoutUser
   :: SwaggerPetstoreRequest LogoutUser ()
 logoutUser = request
   where
-    request = mkSwaggerPetstoreRequest "GET" url params
-    url = ["/user/logout"]
+    request = mkSwaggerPetstoreRequest "GET" pathSegments params
+    pathSegments = ["/user/logout"]
     params = []
 
 data LogoutUser
@@ -496,8 +498,8 @@ updateUser
   -> SwaggerPetstoreRequest UpdateUser ()
 updateUser username body = request
   where
-    request = mkSwaggerPetstoreRequest "PUT" url params
-    url = ["/user/",toPath username]
+    request = mkSwaggerPetstoreRequest "PUT" pathSegments params
+    pathSegments = ["/user/",toPath username]
     params = []
 
 data UpdateUser
@@ -506,14 +508,14 @@ data UpdateUser
 -- * SwaggerPetstoreRequest
 -- | Represents a request. The "req" type variable is the request type. The "res" type variable is the response type.
 data SwaggerPetstoreRequest req res = SwaggerPetstoreRequest
-  { rMethod  :: NHTM.Method   -- ^ Method of SwaggerPetstoreRequest
-  , endpoint :: [Text]     -- ^ Endpoint of SwaggerPetstoreRequest
+  { rMethod  :: NH.Method   -- ^ Method of SwaggerPetstoreRequest
+  , pathSegments :: [BS8.ByteString]     -- ^ Endpoint of SwaggerPetstoreRequest
   , params   :: [EncodedParam] -- ^ Encoded params of SwaggerPetstoreRequest
   }
   deriving (Show)
 
-mkSwaggerPetstoreRequest :: NHTM.Method
-                  -> [Text]
+mkSwaggerPetstoreRequest :: NH.Method
+                  -> [BS8.ByteString]
                   -> [EncodedParam]
                   -> SwaggerPetstoreRequest req res
 mkSwaggerPetstoreRequest m e p = SwaggerPetstoreRequest m e p
@@ -553,7 +555,10 @@ data ResultFormatType
   | FormatXml
   deriving (Show, Eq)
 
-toPath _ = "toPath"
+toPath
+  :: (Show a)
+  => a -> BS8.ByteString
+toPath x = NH.urlEncode False (BS8.pack (show x))
 
 -- * Optional Request Params
 

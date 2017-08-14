@@ -15,8 +15,8 @@ module {{title}}.API where
 import {{title}}.Model as M
 
 import Control.Monad.IO.Class
-import Data.Aeson 
-import Data.Aeson.Types 
+import qualified Data.Aeson as A
+import qualified Data.Aeson.Types as A
 import Data.Function ((&))
 import Data.Text (Text)
 import GHC.Exts (IsString(..))
@@ -28,10 +28,12 @@ import qualified Data.Vector as V
 
 import qualified Data.ByteString.Char8 as BS8
 import qualified Data.ByteString.Lazy.Char8 as BSL
-
-import           Network.HTTP.Client
-import           Network.HTTP.Client.TLS
-import qualified Network.HTTP.Types.Method as NHTM
+import qualified Data.ByteString.Builder as BSR
+import qualified Network.HTTP.Client as NH
+import qualified Network.HTTP.Client.TLS as NH
+import qualified Network.HTTP.Types.Method as NH
+import qualified Network.HTTP.Types as NH
+import qualified Network.HTTP.Types.URI as NH
 
 import Prelude 
 
@@ -56,8 +58,8 @@ import Prelude
   -> {{/required}}{{/allParams}}{{requestType}} {{{vendorExtensions.x-operationType}}} {{vendorExtensions.x-returnType}}
 {{operationId}} {{#allParams}}{{#required}}{{{paramName}}} {{/required}}{{/allParams}}= request
   where
-    request = mk{{requestType}} "{{httpMethod}}" url params
-    url = [{{#pathParams}}{{#vendorExtensions.x-pathPrefix}}"{{.}}",{{/vendorExtensions.x-pathPrefix}}toPath {{{paramName}}}{{#hasMore}},{{/hasMore}}{{/pathParams}}{{#vendorExtensions.x-pathSuffix}}{{#vendorExtensions.x-hasPathParams}},{{/vendorExtensions.x-hasPathParams}}"{{.}}"{{/vendorExtensions.x-pathSuffix}}]
+    request = mk{{requestType}} "{{httpMethod}}" urlPath params
+    urlPath = [{{#pathParams}}{{#vendorExtensions.x-pathPrefix}}"{{.}}",{{/vendorExtensions.x-pathPrefix}}toPath {{{paramName}}}{{#hasMore}},{{/hasMore}}{{/pathParams}}{{#vendorExtensions.x-pathSuffix}}{{#vendorExtensions.x-hasPathParams}},{{/vendorExtensions.x-hasPathParams}}"{{.}}"{{/vendorExtensions.x-pathSuffix}}]
     params = []{{#isDeprecated}}
 {-# DEPRECATED {{operationId}} "" #-}{{/isDeprecated}}
 
@@ -71,14 +73,14 @@ instance HasOptionalParam {{{vendorExtensions.x-operationType}}} {{{vendorExtens
 -- * {{requestType}}
 -- | Represents a request. The "req" type variable is the request type. The "res" type variable is the response type.
 data {{requestType}} req res = {{requestType}}
-  { rMethod  :: NHTM.Method   -- ^ Method of {{requestType}}
-  , endpoint :: [Text]     -- ^ Endpoint of {{requestType}}
+  { rMethod  :: NH.Method   -- ^ Method of {{requestType}}
+  , urlPath :: [BS8.ByteString]     -- ^ Endpoint of {{requestType}}
   , params   :: [EncodedParam] -- ^ Encoded params of {{requestType}}
   }
   deriving (Show)
 
-mk{{requestType}} :: NHTM.Method
-                  -> [Text]
+mk{{requestType}} :: NH.Method
+                  -> [BS8.ByteString]
                   -> [EncodedParam]
                   -> {{requestType}} req res
 mk{{requestType}} m e p = {{requestType}} m e p
@@ -118,7 +120,10 @@ data ResultFormatType
   | FormatXml
   deriving (Show, Eq)
 
-toPath _ = "toPath"
+toPath
+  :: (Show a)
+  => a -> BS8.ByteString
+toPath x = NH.urlEncode False (BS8.pack (show x))
 
 -- * Optional Request Params
 {{#apiInfo}}{{#apis}}{{#operations}}{{#operation}}{{#vendorExtensions.x-hasOptionalParams}}{{#allParams}}{{^required}}{{^vendorExtensions.x-duplicate}}

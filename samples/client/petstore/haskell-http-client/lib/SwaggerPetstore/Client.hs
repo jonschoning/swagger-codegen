@@ -40,7 +40,7 @@ import qualified Network.HTTP.Types.Method as NHTM
 -- * Config
 
 data SwaggerPetstoreConfig = SwaggerPetstoreConfig
-  { host  :: Text
+  { host  :: BS8.ByteString
   , execLoggingT :: ExecLoggingT
   , filterLoggingT :: LogSource -> LogLevel -> Bool
   }
@@ -96,7 +96,7 @@ toInitRequest
     -> SwaggerPetstoreRequest req res -- ^ request
     -> m (InitRequest r) -- ^ initialized request
 toInitRequest SwaggerPetstoreConfig {..} SwaggerPetstoreRequest {..} = do
-  parsedReq <- parseRequest $ T.unpack $ T.append host (T.concat endpoint)
+  parsedReq <- parseRequest $ BS8.unpack $ BS8.append host (BS8.concat pathSegments)
   let reqBody | rMethod == NHTM.methodGet = mempty
               | otherwise = filterBody params
       reqQuery  = paramsToByteString $ filterQuery params
