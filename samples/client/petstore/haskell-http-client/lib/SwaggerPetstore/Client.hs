@@ -72,7 +72,14 @@ dispatch' :: SwaggerPetstoreConfig -- ^ config
           -> SwaggerPetstoreRequest req res -- ^ request
           -> IO (NH.Response BSL.ByteString) -- ^ response
 dispatch' config request = do
-  (InitRequest req) <- toInitRequest config request
+  req <- toInitRequest config request
+  dispatch'' config req
+  
+
+dispatch'' :: SwaggerPetstoreConfig -- ^ config
+          -> InitRequest req res -- ^ request
+          -> IO (NH.Response BSL.ByteString) -- ^ response
+dispatch'' config (InitRequest req) = do
   manager <- NH.newManager NH.tlsManagerSettings
   NH.httpLbs req manager
 
@@ -90,29 +97,33 @@ dispatchJson config request = do
 
 -- * InitRequest
 
--- | wraps an http-client 'Request' with the return type parameter "r"
-newtype InitRequest r = InitRequest { unInitRequest :: NH.Request }
+-- | wraps an http-client 'Request' with request/response type parameters
+newtype InitRequest req res = InitRequest
+  { unInitRequest :: NH.Request
+  } deriving (Show)
 
 -- |  Build an http-client 'Request' record from the supplied config and request
 toInitRequest
     :: SwaggerPetstoreConfig -- ^ config
     -> SwaggerPetstoreRequest req res -- ^ request
-    -> IO (InitRequest r) -- ^ initialized request
+    -> IO (InitRequest req res) -- ^ initialized request
 toInitRequest SwaggerPetstoreConfig {..} SwaggerPetstoreRequest {..} = do
   parsedReq <- NH.parseRequest $ BS8.unpack $ BS8.append host (BS8.concat urlPath)
-  let reqHeaders = encParamsHeaders params
-      reqQuery = NH.renderQuery True (encParamsQuery params)
-      req = parsedReq { NH.method = rMethod
-                        , NH.requestHeaders = reqHeaders
-                        , NH.queryString = reqQuery
-                      }
-  initReq <- case encParamsBody params of
-    EncBodyNone -> pure (req { NH.requestBody = mempty })
-    EncBodyBS bs -> pure (req { NH.requestBody = NH.RequestBodyBS bs })
-    EncBodyBSL bsl -> pure (req { NH.requestBody = NH.RequestBodyLBS bsl })
-    EncBodyFormUrlEnc query -> pure (req { NH.requestBody = NH.RequestBodyBS $ NH.renderQuery True query })
-    EncBodyMultiForm parts -> NH.formDataBody parts req
-  pure (InitRequest initReq)
+  let reqHeaders = paramsHeaders params
+      reqQuery = NH.renderQuery True (paramsQuery params)
+      pReq = parsedReq { NH.method = rMethod
+                       , NH.requestHeaders = reqHeaders
+                       , NH.queryString = reqQuery
+                       }
+  req <- case paramsBody params of
+    ParamBodyNone -> pure (pReq { NH.requestBody = mempty })
+    ParamBodyBS bs -> pure (pReq { NH.requestBody = NH.RequestBodyBS bs })
+    ParamBodyBSL bsl -> pure (pReq { NH.requestBody = NH.RequestBodyLBS bsl })
+    ParamBodyFormUrl query -> pure (pReq { NH.requestBody = NH.RequestBodyBS $ NH.renderQuery True query })
+    ParamBodyMultiForm parts -> NH.formDataBody parts pReq
+
+  pure (InitRequest req)
+
 -- * Error
 
 data SwaggerPetstoreError =
