@@ -61,9 +61,10 @@ import Prelude as P
   -> {{/required}}{{/allParams}}{{requestType}} {{{vendorExtensions.x-operationType}}} {{vendorExtensions.x-returnType}}
 {{operationId}} {{#allParams}}{{#required}}{{{paramName}}} {{/required}}{{/allParams}}= request
   where
-    request = mkRequest "{{httpMethod}}" urlPath params
     urlPath = [{{#pathParams}}{{#vendorExtensions.x-pathPrefix}}"{{.}}",{{/vendorExtensions.x-pathPrefix}}toPath {{{paramName}}}{{#hasMore}},{{/hasMore}}{{/pathParams}}{{#vendorExtensions.x-pathSuffix}}{{#vendorExtensions.x-hasPathParams}},{{/vendorExtensions.x-hasPathParams}}"{{.}}"{{/vendorExtensions.x-pathSuffix}}]
-    params = mkParams{{#isDeprecated}}
+    request = mkRequest "{{httpMethod}}" urlPath{{#allParams}}{{#required}}
+      {{#isHeaderParam}}`addHeader` ("{{{baseName}}}", toBS8 {{{paramName}}}){{/isHeaderParam}}{{#isQueryParam}}`addQuery` ("{{{baseName}}}", Just (toBS8 {{{paramName}}})){{/isQueryParam}}{{#isBodyParam}}`setBodyLBS` A.encode {{{paramName}}}{{/isBodyParam}}{{#isFormParam}}`addFormUrlField` ("{{{baseName}}}", Just (toBS8 {{{paramName}}})){{/isFormParam}}{{/required}}{{/allParams}}{{#isDeprecated}}
+
 {-# DEPRECATED {{operationId}} "" #-}{{/isDeprecated}}
 
 data {{{vendorExtensions.x-operationType}}}{{#vendorExtensions.x-hasOptionalParams}}{{#allParams}}{{^required}}{{#description}}
@@ -71,7 +72,7 @@ data {{{vendorExtensions.x-operationType}}}{{#vendorExtensions.x-hasOptionalPara
 -- | /Optional Param/ "{{{baseName}}}" - {{{description}}}{{/description}}
 instance HasOptionalParam {{{vendorExtensions.x-operationType}}} {{{vendorExtensions.x-paramNameType}}} where
   applyOptionalParam req ({{{vendorExtensions.x-paramNameType}}} xs) =
-    {{#isHeaderParam}}addHeader req ("{{{baseName}}}", toBS8 xs){{/isHeaderParam}}{{#isQueryParam}}addQuery req ("{{{baseName}}}", Just (toBS8 xs)){{/isQueryParam}}{{#isBodyParam}}error "TODO"{{/isBodyParam}}{{#isFormParam}}addFormUrlField req ("{{{baseName}}}", Just (toBS8 xs)){{/isFormParam}}{{/required}}{{/allParams}}{{/vendorExtensions.x-hasOptionalParams}}
+    {{#isHeaderParam}}addHeader req ("{{{baseName}}}", toBS8 xs){{/isHeaderParam}}{{#isQueryParam}}addQuery req ("{{{baseName}}}", Just (toBS8 xs)){{/isQueryParam}}{{#isBodyParam}}setBodyLBS req (A.encode {{{paramName}}}){{/isBodyParam}}{{#isFormParam}}addFormUrlField req ("{{{baseName}}}", Just (toBS8 xs)){{/isFormParam}}{{/required}}{{/allParams}}{{/vendorExtensions.x-hasOptionalParams}}
 {{/operation}}{{/operations}}{{/apis}}{{/apiInfo}}
 
 -- * {{requestType}}
@@ -88,10 +89,12 @@ data {{requestType}} req res = {{requestType}}
 -- * {{requestType}} Helpers
 
 mkRequest :: NH.Method -- ^ Method 
-                  -> [BS8.ByteString] -- ^ Endpoint
-                  -> Params  -- ^ params
-                  -> {{requestType}} req res -- ^ req: Request Type, res: Response Type
-mkRequest m u p = {{requestType}} m u p
+          -> [BS8.ByteString] -- ^ Endpoint
+          -> {{requestType}} req res -- ^ req: Request Type, res: Response Type
+mkRequest m u = {{requestType}} m u mkParams
+
+mkParams :: Params
+mkParams = Params [] [] ParamBodyNone
 
 addHeader :: {{requestType}} req res -> NH.Header -> {{requestType}} req res
 addHeader req header = 
@@ -108,16 +111,25 @@ setBodyBS req body =
     let _params = params req
     in req { params = _params { paramsBody = ParamBodyBS body } }
 
+setBodyLBS :: SwaggerPetstoreRequest req res -> BSL.ByteString -> SwaggerPetstoreRequest req res
+setBodyLBS req body = 
+    let _params = params req
+    in req { params = _params { paramsBody = ParamBodyBSL body } }
+
 addFormUrlField :: {{requestType}} req res -> NH.QueryItem -> {{requestType}} req res
 addFormUrlField req field = 
     let _params = params req
-        ParamBodyFormUrl fields = paramsBody _params
+        fields = case paramsBody _params of
+            ParamBodyFormUrl _fields -> _fields
+            _ -> []
     in req { params = _params { paramsBody = ParamBodyFormUrl (field : fields) } }
 
 addMultiFormPart :: {{requestType}} req res -> NH.Part -> {{requestType}} req res
 addMultiFormPart req newpart = 
     let _params = params req
-        ParamBodyMultiForm parts = paramsBody _params
+        parts = case paramsBody _params of
+            ParamBodyMultiForm _parts -> _parts
+            _ -> []
     in req { params = _params { paramsBody = ParamBodyMultiForm (newpart : parts) } }
 
 
@@ -150,9 +162,6 @@ data Params = Params
   , paramsBody :: ParamBody
   }
   deriving (Show)
-
-mkParams :: Params
-mkParams = Params [] [] ParamBodyNone
 
 data ParamBody
   = ParamBodyNone

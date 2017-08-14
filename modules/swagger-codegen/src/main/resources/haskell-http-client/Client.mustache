@@ -79,7 +79,7 @@ dispatch' config request = do
 dispatch'' :: {{configType}} -- ^ config
           -> InitRequest req res -- ^ request
           -> IO (NH.Response BSL.ByteString) -- ^ response
-dispatch'' config (InitRequest req) = do
+dispatch'' _ (InitRequest req) = do
   manager <- NH.newManager NH.tlsManagerSettings
   NH.httpLbs req manager
 

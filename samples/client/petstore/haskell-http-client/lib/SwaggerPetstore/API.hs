@@ -61,9 +61,9 @@ addPet
   -> SwaggerPetstoreRequest AddPet ()
 addPet body = request
   where
-    request = mkRequest "POST" urlPath params
     urlPath = ["/pet"]
-    params = mkParams
+    request = mkRequest "POST" urlPath
+      `setBodyLBS` A.encode body
 
 data AddPet
 
@@ -84,9 +84,9 @@ deletePet
   -> SwaggerPetstoreRequest DeletePet ()
 deletePet petId = request
   where
-    request = mkRequest "DELETE" urlPath params
     urlPath = ["/pet/",toPath petId]
-    params = mkParams
+    request = mkRequest "DELETE" urlPath
+      
 
 data DeletePet
 instance HasOptionalParam DeletePet Api'Underscorekey where
@@ -110,9 +110,9 @@ findPetsByStatus
   -> SwaggerPetstoreRequest FindPetsByStatus [Pet]
 findPetsByStatus status = request
   where
-    request = mkRequest "GET" urlPath params
     urlPath = ["/pet/findByStatus"]
-    params = mkParams
+    request = mkRequest "GET" urlPath
+      `addQuery` ("status", Just (toBS8 status))
 
 data FindPetsByStatus
 
@@ -133,9 +133,10 @@ findPetsByTags
   -> SwaggerPetstoreRequest FindPetsByTags [Pet]
 findPetsByTags tags = request
   where
-    request = mkRequest "GET" urlPath params
     urlPath = ["/pet/findByTags"]
-    params = mkParams
+    request = mkRequest "GET" urlPath
+      `addQuery` ("tags", Just (toBS8 tags))
+
 {-# DEPRECATED findPetsByTags "" #-}
 
 data FindPetsByTags
@@ -157,9 +158,9 @@ getPetById
   -> SwaggerPetstoreRequest GetPetById Pet
 getPetById petId = request
   where
-    request = mkRequest "GET" urlPath params
     urlPath = ["/pet/",toPath petId]
-    params = mkParams
+    request = mkRequest "GET" urlPath
+      
 
 data GetPetById
 
@@ -182,9 +183,9 @@ updatePet
   -> SwaggerPetstoreRequest UpdatePet ()
 updatePet body = request
   where
-    request = mkRequest "PUT" urlPath params
     urlPath = ["/pet"]
-    params = mkParams
+    request = mkRequest "PUT" urlPath
+      `setBodyLBS` A.encode body
 
 data UpdatePet
 
@@ -207,9 +208,9 @@ updatePetWithForm
   -> SwaggerPetstoreRequest UpdatePetWithForm ()
 updatePetWithForm petId = request
   where
-    request = mkRequest "POST" urlPath params
     urlPath = ["/pet/",toPath petId]
-    params = mkParams
+    request = mkRequest "POST" urlPath
+      
 
 data UpdatePetWithForm
 
@@ -242,9 +243,9 @@ uploadFile
   -> SwaggerPetstoreRequest UploadFile ApiResponse
 uploadFile petId = request
   where
-    request = mkRequest "POST" urlPath params
     urlPath = ["/pet/",toPath petId,"/uploadImage"]
-    params = mkParams
+    request = mkRequest "POST" urlPath
+      
 
 data UploadFile
 
@@ -273,9 +274,9 @@ deleteOrder
   -> SwaggerPetstoreRequest DeleteOrder ()
 deleteOrder orderId = request
   where
-    request = mkRequest "DELETE" urlPath params
     urlPath = ["/store/order/",toPath orderId]
-    params = mkParams
+    request = mkRequest "DELETE" urlPath
+      
 
 data DeleteOrder
 
@@ -295,9 +296,8 @@ getInventory
   :: SwaggerPetstoreRequest GetInventory (Map.Map String Int)
 getInventory = request
   where
-    request = mkRequest "GET" urlPath params
     urlPath = ["/store/inventory"]
-    params = mkParams
+    request = mkRequest "GET" urlPath
 
 data GetInventory
 
@@ -316,9 +316,9 @@ getOrderById
   -> SwaggerPetstoreRequest GetOrderById Order
 getOrderById orderId = request
   where
-    request = mkRequest "GET" urlPath params
     urlPath = ["/store/order/",toPath orderId]
-    params = mkParams
+    request = mkRequest "GET" urlPath
+      
 
 data GetOrderById
 
@@ -337,9 +337,9 @@ placeOrder
   -> SwaggerPetstoreRequest PlaceOrder Order
 placeOrder body = request
   where
-    request = mkRequest "POST" urlPath params
     urlPath = ["/store/order"]
-    params = mkParams
+    request = mkRequest "POST" urlPath
+      `setBodyLBS` A.encode body
 
 data PlaceOrder
 
@@ -358,9 +358,9 @@ createUser
   -> SwaggerPetstoreRequest CreateUser ()
 createUser body = request
   where
-    request = mkRequest "POST" urlPath params
     urlPath = ["/user"]
-    params = mkParams
+    request = mkRequest "POST" urlPath
+      `setBodyLBS` A.encode body
 
 data CreateUser
 
@@ -379,9 +379,9 @@ createUsersWithArrayInput
   -> SwaggerPetstoreRequest CreateUsersWithArrayInput ()
 createUsersWithArrayInput body = request
   where
-    request = mkRequest "POST" urlPath params
     urlPath = ["/user/createWithArray"]
-    params = mkParams
+    request = mkRequest "POST" urlPath
+      `setBodyLBS` A.encode body
 
 data CreateUsersWithArrayInput
 
@@ -400,9 +400,9 @@ createUsersWithListInput
   -> SwaggerPetstoreRequest CreateUsersWithListInput ()
 createUsersWithListInput body = request
   where
-    request = mkRequest "POST" urlPath params
     urlPath = ["/user/createWithList"]
-    params = mkParams
+    request = mkRequest "POST" urlPath
+      `setBodyLBS` A.encode body
 
 data CreateUsersWithListInput
 
@@ -421,9 +421,9 @@ deleteUser
   -> SwaggerPetstoreRequest DeleteUser ()
 deleteUser username = request
   where
-    request = mkRequest "DELETE" urlPath params
     urlPath = ["/user/",toPath username]
-    params = mkParams
+    request = mkRequest "DELETE" urlPath
+      
 
 data DeleteUser
 
@@ -442,9 +442,9 @@ getUserByName
   -> SwaggerPetstoreRequest GetUserByName User
 getUserByName username = request
   where
-    request = mkRequest "GET" urlPath params
     urlPath = ["/user/",toPath username]
-    params = mkParams
+    request = mkRequest "GET" urlPath
+      
 
 data GetUserByName
 
@@ -464,9 +464,10 @@ loginUser
   -> SwaggerPetstoreRequest LoginUser Text
 loginUser username password = request
   where
-    request = mkRequest "GET" urlPath params
     urlPath = ["/user/login"]
-    params = mkParams
+    request = mkRequest "GET" urlPath
+      `addQuery` ("username", Just (toBS8 username))
+      `addQuery` ("password", Just (toBS8 password))
 
 data LoginUser
 
@@ -484,9 +485,8 @@ logoutUser
   :: SwaggerPetstoreRequest LogoutUser ()
 logoutUser = request
   where
-    request = mkRequest "GET" urlPath params
     urlPath = ["/user/logout"]
-    params = mkParams
+    request = mkRequest "GET" urlPath
 
 data LogoutUser
 
@@ -506,9 +506,10 @@ updateUser
   -> SwaggerPetstoreRequest UpdateUser ()
 updateUser username body = request
   where
-    request = mkRequest "PUT" urlPath params
     urlPath = ["/user/",toPath username]
-    params = mkParams
+    request = mkRequest "PUT" urlPath
+      
+      `setBodyLBS` A.encode body
 
 data UpdateUser
 
@@ -527,10 +528,12 @@ data SwaggerPetstoreRequest req res = SwaggerPetstoreRequest
 -- * SwaggerPetstoreRequest Helpers
 
 mkRequest :: NH.Method -- ^ Method 
-                  -> [BS8.ByteString] -- ^ Endpoint
-                  -> Params  -- ^ params
-                  -> SwaggerPetstoreRequest req res -- ^ req: Request Type, res: Response Type
-mkRequest m u p = SwaggerPetstoreRequest m u p
+          -> [BS8.ByteString] -- ^ Endpoint
+          -> SwaggerPetstoreRequest req res -- ^ req: Request Type, res: Response Type
+mkRequest m u = SwaggerPetstoreRequest m u mkParams
+
+mkParams :: Params
+mkParams = Params [] [] ParamBodyNone
 
 addHeader :: SwaggerPetstoreRequest req res -> NH.Header -> SwaggerPetstoreRequest req res
 addHeader req header = 
@@ -547,16 +550,25 @@ setBodyBS req body =
     let _params = params req
     in req { params = _params { paramsBody = ParamBodyBS body } }
 
+setBodyLBS :: SwaggerPetstoreRequest req res -> BSL.ByteString -> SwaggerPetstoreRequest req res
+setBodyLBS req body = 
+    let _params = params req
+    in req { params = _params { paramsBody = ParamBodyBSL body } }
+
 addFormUrlField :: SwaggerPetstoreRequest req res -> NH.QueryItem -> SwaggerPetstoreRequest req res
 addFormUrlField req field = 
     let _params = params req
-        ParamBodyFormUrl fields = paramsBody _params
+        fields = case paramsBody _params of
+            ParamBodyFormUrl _fields -> _fields
+            _ -> []
     in req { params = _params { paramsBody = ParamBodyFormUrl (field : fields) } }
 
 addMultiFormPart :: SwaggerPetstoreRequest req res -> NH.Part -> SwaggerPetstoreRequest req res
 addMultiFormPart req newpart = 
     let _params = params req
-        ParamBodyMultiForm parts = paramsBody _params
+        parts = case paramsBody _params of
+            ParamBodyMultiForm _parts -> _parts
+            _ -> []
     in req { params = _params { paramsBody = ParamBodyMultiForm (newpart : parts) } }
 
 
@@ -589,9 +601,6 @@ data Params = Params
   , paramsBody :: ParamBody
   }
   deriving (Show)
-
-mkParams :: Params
-mkParams = Params [] [] ParamBodyNone
 
 data ParamBody
   = ParamBodyNone
