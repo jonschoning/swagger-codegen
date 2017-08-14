@@ -59,11 +59,9 @@ import Prelude as P
 {{operationId}} 
   :: {{#allParams}}{{#required}}{{dataType}} -- ^ "{{{paramName}}}"{{#description}} - {{/description}} {{{description}}}
   -> {{/required}}{{/allParams}}{{requestType}} {{{vendorExtensions.x-operationType}}} {{vendorExtensions.x-returnType}}
-{{operationId}} {{#allParams}}{{#required}}{{{paramName}}} {{/required}}{{/allParams}}= request
-  where
-    urlPath = [{{#pathParams}}{{#vendorExtensions.x-pathPrefix}}"{{.}}",{{/vendorExtensions.x-pathPrefix}}toPath {{{paramName}}}{{#hasMore}},{{/hasMore}}{{/pathParams}}{{#vendorExtensions.x-pathSuffix}}{{#vendorExtensions.x-hasPathParams}},{{/vendorExtensions.x-hasPathParams}}"{{.}}"{{/vendorExtensions.x-pathSuffix}}]
-    request = mkRequest "{{httpMethod}}" urlPath{{#allParams}}{{#required}}
-      {{#isHeaderParam}}`addHeader` ("{{{baseName}}}", toBS8 {{{paramName}}}){{/isHeaderParam}}{{#isQueryParam}}`addQuery` ("{{{baseName}}}", Just (toBS8 {{{paramName}}})){{/isQueryParam}}{{#isBodyParam}}`setBodyLBS` A.encode {{{paramName}}}{{/isBodyParam}}{{#isFormParam}}`addFormUrlField` ("{{{baseName}}}", Just (toBS8 {{{paramName}}})){{/isFormParam}}{{/required}}{{/allParams}}{{#isDeprecated}}
+{{operationId}} {{#allParams}}{{#required}}{{{paramName}}} {{/required}}{{/allParams}}=
+  mkRequest "{{httpMethod}}" [{{#pathParams}}{{#vendorExtensions.x-pathPrefix}}"{{.}}",{{/vendorExtensions.x-pathPrefix}}toPath {{{paramName}}}{{#hasMore}},{{/hasMore}}{{/pathParams}}{{#vendorExtensions.x-pathSuffix}}{{#vendorExtensions.x-hasPathParams}},{{/vendorExtensions.x-hasPathParams}}"{{.}}"{{/vendorExtensions.x-pathSuffix}}]{{#allParams}}{{#required}}
+    {{#isHeaderParam}}`addHeader` ("{{{baseName}}}", toBS8 {{{paramName}}}){{/isHeaderParam}}{{#isQueryParam}}`addQuery` ("{{{baseName}}}", Just (toBS8 {{{paramName}}})){{/isQueryParam}}{{#isBodyParam}}`setBodyLBS` A.encode {{{paramName}}}{{/isBodyParam}}{{#isFormParam}}`addFormUrlField` ("{{{baseName}}}", Just (toBS8 {{{paramName}}})){{/isFormParam}}{{/required}}{{/allParams}}{{#isDeprecated}}
 
 {-# DEPRECATED {{operationId}} "" #-}{{/isDeprecated}}
 

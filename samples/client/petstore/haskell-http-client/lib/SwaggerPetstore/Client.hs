@@ -119,7 +119,7 @@ toInitRequest SwaggerPetstoreConfig {..} SwaggerPetstoreRequest {..} = do
     ParamBodyNone -> pure (pReq { NH.requestBody = mempty })
     ParamBodyBS bs -> pure (pReq { NH.requestBody = NH.RequestBodyBS bs })
     ParamBodyBSL bsl -> pure (pReq { NH.requestBody = NH.RequestBodyLBS bsl })
-    ParamBodyFormUrl query -> pure (pReq { NH.requestBody = NH.RequestBodyBS $ NH.renderQuery True query })
+    ParamBodyFormUrl query -> pure (pReq { NH.requestBody = NH.RequestBodyBS $ NH.renderQuery False query })
     ParamBodyMultiForm parts -> NH.formDataBody parts pReq
 
   pure (InitRequest req)

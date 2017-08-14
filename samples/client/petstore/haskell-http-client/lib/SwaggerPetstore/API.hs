@@ -59,11 +59,9 @@ import Prelude as P
 addPet 
   :: Pet -- ^ "body" -  Pet object that needs to be added to the store
   -> SwaggerPetstoreRequest AddPet ()
-addPet body = request
-  where
-    urlPath = ["/pet"]
-    request = mkRequest "POST" urlPath
-      `setBodyLBS` A.encode body
+addPet body =
+  mkRequest "POST" ["/pet"]
+    `setBodyLBS` A.encode body
 
 data AddPet
 
@@ -82,11 +80,9 @@ data AddPet
 deletePet 
   :: Integer -- ^ "petId" -  Pet id to delete
   -> SwaggerPetstoreRequest DeletePet ()
-deletePet petId = request
-  where
-    urlPath = ["/pet/",toPath petId]
-    request = mkRequest "DELETE" urlPath
-      
+deletePet petId =
+  mkRequest "DELETE" ["/pet/",toPath petId]
+    
 
 data DeletePet
 instance HasOptionalParam DeletePet Api'Underscorekey where
@@ -108,11 +104,9 @@ instance HasOptionalParam DeletePet Api'Underscorekey where
 findPetsByStatus 
   :: [Text] -- ^ "status" -  Status values that need to be considered for filter
   -> SwaggerPetstoreRequest FindPetsByStatus [Pet]
-findPetsByStatus status = request
-  where
-    urlPath = ["/pet/findByStatus"]
-    request = mkRequest "GET" urlPath
-      `addQuery` ("status", Just (toBS8 status))
+findPetsByStatus status =
+  mkRequest "GET" ["/pet/findByStatus"]
+    `addQuery` ("status", Just (toBS8 status))
 
 data FindPetsByStatus
 
@@ -131,11 +125,9 @@ data FindPetsByStatus
 findPetsByTags 
   :: [Text] -- ^ "tags" -  Tags to filter by
   -> SwaggerPetstoreRequest FindPetsByTags [Pet]
-findPetsByTags tags = request
-  where
-    urlPath = ["/pet/findByTags"]
-    request = mkRequest "GET" urlPath
-      `addQuery` ("tags", Just (toBS8 tags))
+findPetsByTags tags =
+  mkRequest "GET" ["/pet/findByTags"]
+    `addQuery` ("tags", Just (toBS8 tags))
 
 {-# DEPRECATED findPetsByTags "" #-}
 
@@ -156,11 +148,9 @@ data FindPetsByTags
 getPetById 
   :: Integer -- ^ "petId" -  ID of pet to return
   -> SwaggerPetstoreRequest GetPetById Pet
-getPetById petId = request
-  where
-    urlPath = ["/pet/",toPath petId]
-    request = mkRequest "GET" urlPath
-      
+getPetById petId =
+  mkRequest "GET" ["/pet/",toPath petId]
+    
 
 data GetPetById
 
@@ -181,11 +171,9 @@ data GetPetById
 updatePet 
   :: Pet -- ^ "body" -  Pet object that needs to be added to the store
   -> SwaggerPetstoreRequest UpdatePet ()
-updatePet body = request
-  where
-    urlPath = ["/pet"]
-    request = mkRequest "PUT" urlPath
-      `setBodyLBS` A.encode body
+updatePet body =
+  mkRequest "PUT" ["/pet"]
+    `setBodyLBS` A.encode body
 
 data UpdatePet
 
@@ -206,11 +194,9 @@ data UpdatePet
 updatePetWithForm 
   :: Integer -- ^ "petId" -  ID of pet that needs to be updated
   -> SwaggerPetstoreRequest UpdatePetWithForm ()
-updatePetWithForm petId = request
-  where
-    urlPath = ["/pet/",toPath petId]
-    request = mkRequest "POST" urlPath
-      
+updatePetWithForm petId =
+  mkRequest "POST" ["/pet/",toPath petId]
+    
 
 data UpdatePetWithForm
 
@@ -241,11 +227,9 @@ instance HasOptionalParam UpdatePetWithForm Status where
 uploadFile 
   :: Integer -- ^ "petId" -  ID of pet to update
   -> SwaggerPetstoreRequest UploadFile ApiResponse
-uploadFile petId = request
-  where
-    urlPath = ["/pet/",toPath petId,"/uploadImage"]
-    request = mkRequest "POST" urlPath
-      
+uploadFile petId =
+  mkRequest "POST" ["/pet/",toPath petId,"/uploadImage"]
+    
 
 data UploadFile
 
@@ -272,11 +256,9 @@ instance HasOptionalParam UploadFile File where
 deleteOrder 
   :: Integer -- ^ "orderId" -  ID of the order that needs to be deleted
   -> SwaggerPetstoreRequest DeleteOrder ()
-deleteOrder orderId = request
-  where
-    urlPath = ["/store/order/",toPath orderId]
-    request = mkRequest "DELETE" urlPath
-      
+deleteOrder orderId =
+  mkRequest "DELETE" ["/store/order/",toPath orderId]
+    
 
 data DeleteOrder
 
@@ -294,10 +276,8 @@ data DeleteOrder
 -- Produces: application/json
 getInventory 
   :: SwaggerPetstoreRequest GetInventory (Map.Map String Int)
-getInventory = request
-  where
-    urlPath = ["/store/inventory"]
-    request = mkRequest "GET" urlPath
+getInventory =
+  mkRequest "GET" ["/store/inventory"]
 
 data GetInventory
 
@@ -314,11 +294,11 @@ data GetInventory
 getOrderById 
   :: Integer -- ^ "orderId" -  ID of pet that needs to be fetched
   -> SwaggerPetstoreRequest GetOrderById Order
-getOrderById orderId = request
-  where
-    urlPath = ["/store/order/",toPath orderId]
-    request = mkRequest "GET" urlPath
-      
+getOrderById orderId =
+  mkRequest
+    "GET"
+    ["/store/order/",toPath orderId]
+    
 
 data GetOrderById
 
@@ -335,11 +315,9 @@ data GetOrderById
 placeOrder 
   :: Order -- ^ "body" -  order placed for purchasing the pet
   -> SwaggerPetstoreRequest PlaceOrder Order
-placeOrder body = request
-  where
-    urlPath = ["/store/order"]
-    request = mkRequest "POST" urlPath
-      `setBodyLBS` A.encode body
+placeOrder body =
+  mkRequest "POST" ["/store/order"]
+    `setBodyLBS` A.encode body
 
 data PlaceOrder
 
@@ -356,11 +334,9 @@ data PlaceOrder
 createUser 
   :: User -- ^ "body" -  Created user object
   -> SwaggerPetstoreRequest CreateUser ()
-createUser body = request
-  where
-    urlPath = ["/user"]
-    request = mkRequest "POST" urlPath
-      `setBodyLBS` A.encode body
+createUser body =
+  mkRequest "POST" ["/user"]
+    `setBodyLBS` A.encode body
 
 data CreateUser
 
@@ -377,11 +353,9 @@ data CreateUser
 createUsersWithArrayInput 
   :: [User] -- ^ "body" -  List of user object
   -> SwaggerPetstoreRequest CreateUsersWithArrayInput ()
-createUsersWithArrayInput body = request
-  where
-    urlPath = ["/user/createWithArray"]
-    request = mkRequest "POST" urlPath
-      `setBodyLBS` A.encode body
+createUsersWithArrayInput body =
+  mkRequest "POST" ["/user/createWithArray"]
+    `setBodyLBS` A.encode body
 
 data CreateUsersWithArrayInput
 
@@ -398,11 +372,9 @@ data CreateUsersWithArrayInput
 createUsersWithListInput 
   :: [User] -- ^ "body" -  List of user object
   -> SwaggerPetstoreRequest CreateUsersWithListInput ()
-createUsersWithListInput body = request
-  where
-    urlPath = ["/user/createWithList"]
-    request = mkRequest "POST" urlPath
-      `setBodyLBS` A.encode body
+createUsersWithListInput body =
+  mkRequest "POST" ["/user/createWithList"]
+    `setBodyLBS` A.encode body
 
 data CreateUsersWithListInput
 
@@ -419,11 +391,9 @@ data CreateUsersWithListInput
 deleteUser 
   :: Text -- ^ "username" -  The name that needs to be deleted
   -> SwaggerPetstoreRequest DeleteUser ()
-deleteUser username = request
-  where
-    urlPath = ["/user/",toPath username]
-    request = mkRequest "DELETE" urlPath
-      
+deleteUser username =
+  mkRequest "DELETE" ["/user/",toPath username]
+    
 
 data DeleteUser
 
@@ -440,11 +410,9 @@ data DeleteUser
 getUserByName 
   :: Text -- ^ "username" -  The name that needs to be fetched. Use user1 for testing. 
   -> SwaggerPetstoreRequest GetUserByName User
-getUserByName username = request
-  where
-    urlPath = ["/user/",toPath username]
-    request = mkRequest "GET" urlPath
-      
+getUserByName username =
+  mkRequest "GET" ["/user/",toPath username]
+    
 
 data GetUserByName
 
@@ -462,12 +430,10 @@ loginUser
   :: Text -- ^ "username" -  The user name for login
   -> Text -- ^ "password" -  The password for login in clear text
   -> SwaggerPetstoreRequest LoginUser Text
-loginUser username password = request
-  where
-    urlPath = ["/user/login"]
-    request = mkRequest "GET" urlPath
-      `addQuery` ("username", Just (toBS8 username))
-      `addQuery` ("password", Just (toBS8 password))
+loginUser username password =
+  mkRequest "GET" ["/user/login"]
+    `addQuery` ("username", Just (toBS8 username))
+    `addQuery` ("password", Just (toBS8 password))
 
 data LoginUser
 
@@ -483,10 +449,8 @@ data LoginUser
 -- Produces: application/xml, application/json
 logoutUser 
   :: SwaggerPetstoreRequest LogoutUser ()
-logoutUser = request
-  where
-    urlPath = ["/user/logout"]
-    request = mkRequest "GET" urlPath
+logoutUser =
+  mkRequest "GET" ["/user/logout"]
 
 data LogoutUser
 
@@ -504,12 +468,10 @@ updateUser
   :: Text -- ^ "username" -  name that need to be updated
   -> User -- ^ "body" -  Updated user object
   -> SwaggerPetstoreRequest UpdateUser ()
-updateUser username body = request
-  where
-    urlPath = ["/user/",toPath username]
-    request = mkRequest "PUT" urlPath
-      
-      `setBodyLBS` A.encode body
+updateUser username body =
+  mkRequest "PUT" ["/user/",toPath username]
+    
+    `setBodyLBS` A.encode body
 
 data UpdateUser
 
