@@ -27,6 +27,8 @@ import java.io.File;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.text.WordUtils;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenConfig {
 
@@ -387,10 +389,13 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
     private boolean isModelledType(CodegenParameter param) {
         return isModelledType(param.baseType == null ? param.dataType : param.baseType);
     }
+
     private boolean isModelledType(String typeName) {
         return !languageSpecificPrimitives.contains(typeName) && !typeMapping.values().contains(typeName);
     }
+
     protected Map<String, CodegenParameter> uniqueOptionalParamsByName = new HashMap<String, CodegenParameter>();
+    protected Map<String, CodegenModel> modelNames = new HashMap<String, CodegenModel>();
 
     @Override
     public CodegenOperation fromOperation(String resourcePath, String httpMethod, Operation operation, Map<String, Model> definitions, Swagger swagger) {
@@ -417,8 +422,14 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
                        param.vendorExtensions.put("x-duplicate", true);
                    } else {
                        paramNameType = paramNameType + param.dataType;
+                       while(modelNames.containsKey(paramNameType)) {
+                           paramNameType = generateNextName(paramNameType);
+                       }
                    }
                } else {
+                   while(modelNames.containsKey(paramNameType)) {
+                       paramNameType = generateNextName(paramNameType);
+                   }
                    uniqueOptionalParamsByName.put(paramNameType, param);
                }
 
@@ -517,6 +528,9 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
         if(typeMapping.containsValue(model.classname)) {
             model.classname += "_";
         }
+        while(uniqueOptionalParamsByName.containsKey(model.classname)) {
+            model.classname = generateNextName(model.classname);
+        }
 
         // From the model name, compute the prefix for the fields.
         String prefix = camelize(model.classname, true);
@@ -537,6 +551,7 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
 //            model.vendorExtensions.put("x-customNewtype", newtype);
 //        }
 
+        modelNames.put(model.classname, model);
         return model;
     }
 
@@ -557,6 +572,18 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
     @Override
     public String escapeUnsafeCharacters(String input) {
         return input.replace("{-", "{_-").replace("-}", "-_}");
+    }
+
+    private static String generateNextName(String name) {
+        Pattern pattern = Pattern.compile("\\d+\\z");
+        Matcher matcher = pattern.matcher(name);
+        if (matcher.find()) {
+            String numStr = matcher.group();
+            int num = Integer.parseInt(numStr) + 1;
+            return name.substring(0, name.length() - numStr.length()) + num;
+        } else {
+            return name + "2";
+        }
     }
 
 }
