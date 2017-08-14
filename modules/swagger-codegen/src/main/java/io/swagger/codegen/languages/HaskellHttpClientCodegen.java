@@ -386,6 +386,14 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
         }
     }
 
+    private String encodedParamType(CodegenParameter param) {
+        if(param.isHeaderParam) { return "Header"; }
+        else if(param.isQueryParam) { return "Query"; }
+        else if(param.isBodyParam) { return "Body"; }
+        else if(param.isFormParam) { return "Form"; }
+        else { return param.dataType; }
+    }
+
     private boolean isModelledType(CodegenParameter param) {
         return isModelledType(param.baseType == null ? param.dataType : param.baseType);
     }

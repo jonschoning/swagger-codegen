@@ -30,12 +30,16 @@ import Control.Monad.Logger
 import qualified Data.Map as Map
 import qualified Data.Text as T
 
+import qualified Data.ByteString as B
 import qualified Data.ByteString.Char8 as BS8
 import qualified Data.ByteString.Lazy.Char8 as BSL
-
-import           Network.HTTP.Client
-import           Network.HTTP.Client.TLS
-import qualified Network.HTTP.Types.Method as NHTM
+import qualified Data.ByteString.Builder as BSB
+import qualified Network.HTTP.Client as NH
+import qualified Network.HTTP.Client.TLS as NH
+import qualified Network.HTTP.Client.MultipartFormData as NH
+import qualified Network.HTTP.Types.Method as NH
+import qualified Network.HTTP.Types as NH
+import qualified Network.HTTP.Types.URI as NH
 
 -- * Config
 
@@ -66,11 +70,11 @@ withNoLogging p = p { execLoggingT = runNullLoggingT}
 
 dispatch' :: {{configType}} -- ^ config
           -> {{requestType}} req res -- ^ request
-          -> IO (Response BSL.ByteString) -- ^ response
+          -> IO (NH.Response BSL.ByteString) -- ^ response
 dispatch' config request = do
   (InitRequest req) <- toInitRequest config request
-  manager <- newManager tlsManagerSettings
-  httpLbs req manager
+  manager <- NH.newManager NH.tlsManagerSettings
+  NH.httpLbs req manager
 
 dispatchJson
   :: (FromJSON res)
@@ -79,7 +83,7 @@ dispatchJson
   -> IO (Either {{title}}Error res) -- ^ response
 dispatchJson config request = do
   response <- dispatch' config request
-  let result = eitherDecode $ responseBody response
+  let result = eitherDecode $ NH.responseBody response
   case result of
     Left s -> return (Left ({{title}}Error s response))
     (Right r) -> return (Right r)
@@ -87,31 +91,34 @@ dispatchJson config request = do
 -- * InitRequest
 
 -- | wraps an http-client 'Request' with the return type parameter "r"
-newtype InitRequest r = InitRequest { unInitRequest :: Request }
+newtype InitRequest r = InitRequest { unInitRequest :: NH.Request }
 
 -- |  Build an http-client 'Request' record from the supplied config and request
 toInitRequest
-    :: MonadThrow m
-    => {{configType}} -- ^ config
+    :: {{configType}} -- ^ config
     -> {{requestType}} req res -- ^ request
-    -> m (InitRequest r) -- ^ initialized request
+    -> IO (InitRequest r) -- ^ initialized request
 toInitRequest {{configType}} {..} {{requestType}} {..} = do
-  parsedReq <- parseRequest $ BS8.unpack $ BS8.append host (BS8.concat urlPath)
-  let reqBody | rMethod == NHTM.methodGet = mempty
-              | otherwise = filterBody params
-      reqQuery  = paramsToByteString $ filterQuery params
-      initReq = parsedReq { method = rMethod
-                          , requestBody = RequestBodyLBS reqBody
-                          , queryString = reqQuery
-                          }
-  return (InitRequest initReq)
-
+  parsedReq <- NH.parseRequest $ BS8.unpack $ BS8.append host (BS8.concat urlPath)
+  let reqHeaders = encParamsHeaders params
+      reqQuery = NH.renderQuery True (encParamsQuery params)
+      req = parsedReq { NH.method = rMethod
+                        , NH.requestHeaders = reqHeaders
+                        , NH.queryString = reqQuery
+                      }
+  initReq <- case encParamsBody params of
+    EncBodyNone -> pure (req { NH.requestBody = mempty })
+    EncBodyBS bs -> pure (req { NH.requestBody = NH.RequestBodyBS bs })
+    EncBodyBSL bsl -> pure (req { NH.requestBody = NH.RequestBodyLBS bsl })
+    EncBodyFormUrlEnc query -> pure (req { NH.requestBody = NH.RequestBodyBS $ NH.renderQuery True query })
+    EncBodyMultiForm parts -> NH.formDataBody parts req
+  pure (InitRequest initReq)
 -- * Error
 
 data {{title}}Error =
   {{title}}Error {
     parseError   :: String
-  , reponseError :: Response BSL.ByteString
+  , reponseError :: NH.Response BSL.ByteString
   } deriving (Eq, Show)
 
 -- * Logging
@@ -140,30 +147,3 @@ debugLevelFilter = minLevelFilter LevelDebug
 
 minLevelFilter :: LogLevel -> LogSource -> LogLevel -> Bool
 minLevelFilter l _ l' = l' >= l
-
-
--- * Util    
-
--- | Conversion of a key value pair to a query parameterized string
-paramsToByteString
-    :: (Monoid m, IsString m)
-    => [(m, m)]
-    -> m
-paramsToByteString []           = mempty
-paramsToByteString ((x,y) : []) = x <> "=" <> y
-paramsToByteString ((x,y) : xs) =
-    mconcat [ x, "=", y, "&" ] <> paramsToByteString xs
-
--- | Find the body from the list of [Params TupleBS8 BSL.ByteString]
-filterBody :: [EncodedParam] -> BSL.ByteString
-filterBody [] = ""
-filterBody xs = case [c | Body c <- xs] of
-               [] -> ""
-               [c] -> c
-               _ -> error "Bad input"
-
--- | Find the query parameters from the list of
--- [Params TupleBS8 BSL.ByteString]
-filterQuery :: [EncodedParam] -> [TupleBS8]
-filterQuery [] = []
-filterQuery xs = [b | Query b <- xs]

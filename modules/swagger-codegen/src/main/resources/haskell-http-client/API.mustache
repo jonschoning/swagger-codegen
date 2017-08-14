@@ -26,11 +26,13 @@ import qualified Data.Text as T
 import qualified Data.Text.Encoding as TE
 import qualified Data.Vector as V
 
+import qualified Data.ByteString as B
 import qualified Data.ByteString.Char8 as BS8
 import qualified Data.ByteString.Lazy.Char8 as BSL
-import qualified Data.ByteString.Builder as BSR
+import qualified Data.ByteString.Builder as BSB
 import qualified Network.HTTP.Client as NH
 import qualified Network.HTTP.Client.TLS as NH
+import qualified Network.HTTP.Client.MultipartFormData as NH
 import qualified Network.HTTP.Types.Method as NH
 import qualified Network.HTTP.Types as NH
 import qualified Network.HTTP.Types.URI as NH
@@ -60,30 +62,61 @@ import Prelude
   where
     request = mk{{requestType}} "{{httpMethod}}" urlPath params
     urlPath = [{{#pathParams}}{{#vendorExtensions.x-pathPrefix}}"{{.}}",{{/vendorExtensions.x-pathPrefix}}toPath {{{paramName}}}{{#hasMore}},{{/hasMore}}{{/pathParams}}{{#vendorExtensions.x-pathSuffix}}{{#vendorExtensions.x-hasPathParams}},{{/vendorExtensions.x-hasPathParams}}"{{.}}"{{/vendorExtensions.x-pathSuffix}}]
-    params = []{{#isDeprecated}}
+    params = mkEncParams{{#isDeprecated}}
 {-# DEPRECATED {{operationId}} "" #-}{{/isDeprecated}}
 
 data {{{vendorExtensions.x-operationType}}}{{#vendorExtensions.x-hasOptionalParams}}{{#allParams}}{{^required}}{{#description}}
 
 -- | /Optional Param/ "{{{baseName}}}" - {{{description}}}{{/description}}
 instance HasOptionalParam {{{vendorExtensions.x-operationType}}} {{{vendorExtensions.x-paramNameType}}} where
-  addOptionalParam req ({{{vendorExtensions.x-paramNameType}}} xs) = req { params = Query ("{{{baseName}}}", TE.encodeUtf8 xs) : params req}{{/required}}{{/allParams}}{{/vendorExtensions.x-hasOptionalParams}}
+  addOptionalParam req ({{{vendorExtensions.x-paramNameType}}} xs) =
+    {{#isHeaderParam}}addHeaders req [("{{{baseName}}}", toBS8 xs)]{{/isHeaderParam}}{{#isQueryParam}}addQuery req [("{{{baseName}}}", Just (toBS8 xs))]{{/isQueryParam}}{{#isBodyParam}}undefined{{/isBodyParam}}{{#isFormParam}}addFormUrlEncFields req [("{{{baseName}}}", Just (toBS8 xs))]{{/isFormParam}}{{/required}}{{/allParams}}{{/vendorExtensions.x-hasOptionalParams}}
 {{/operation}}{{/operations}}{{/apis}}{{/apiInfo}}
 
 -- * {{requestType}}
+
 -- | Represents a request. The "req" type variable is the request type. The "res" type variable is the response type.
 data {{requestType}} req res = {{requestType}}
   { rMethod  :: NH.Method   -- ^ Method of {{requestType}}
-  , urlPath :: [BS8.ByteString]     -- ^ Endpoint of {{requestType}}
-  , params   :: [EncodedParam] -- ^ Encoded params of {{requestType}}
+  , urlPath :: [BS8.ByteString] -- ^ Endpoint of {{requestType}}
+  , params   :: EncParams -- ^ Encoded params of {{requestType}}
   }
   deriving (Show)
 
-mk{{requestType}} :: NH.Method
-                  -> [BS8.ByteString]
-                  -> [EncodedParam]
-                  -> {{requestType}} req res
-mk{{requestType}} m e p = {{requestType}} m e p
+
+mk{{requestType}} :: NH.Method -- ^ Method 
+                  -> [BS8.ByteString] -- ^ Endpoint
+                  -> EncParams  -- ^ Encoded params
+                  -> {{requestType}} req res -- ^ req: Request Type, res: Response Type
+mk{{requestType}} m u p = {{requestType}} m u p
+
+addHeaders :: {{requestType}} req res -> [NH.Header] -> {{requestType}} req res
+addHeaders req header = 
+    let encParams = params req
+    in req { params = encParams { encParamsHeaders = header ++ encParamsHeaders encParams } }
+
+addQuery :: {{requestType}} req res -> NH.Query -> {{requestType}} req res
+addQuery req query = 
+    let encParams = params req
+    in req { params = encParams { encParamsQuery = query ++ encParamsQuery encParams } }
+
+addBodyBS :: {{requestType}} req res -> B.ByteString -> {{requestType}} req res
+addBodyBS req body = 
+    let encParams = params req
+    in req { params = encParams { encParamsBody = EncBodyBS body } }
+
+addFormUrlEncFields :: {{requestType}} req res -> NH.Query -> {{requestType}} req res
+addFormUrlEncFields req field = 
+    let encParams = params req
+        EncBodyFormUrlEnc fields = encParamsBody encParams
+    in req { params = encParams { encParamsBody = EncBodyFormUrlEnc (field ++ fields) } }
+
+addMultiFormParts :: {{requestType}} req res -> [NH.Part] -> {{requestType}} req res
+addMultiFormParts req newparts = 
+    let encParams = params req
+        EncBodyMultiForm parts = encParamsBody encParams
+    in req { params = encParams { encParamsBody = EncBodyMultiForm (newparts ++ parts) } }
+
 
 -- | Type alias for query parameters
 type TupleBS8 = (BS8.ByteString, BS8.ByteString)
@@ -107,12 +140,23 @@ class HasOptionalParam req param where
 
 infixl 2 -&-
 
--- ** EncodedParam
 -- | The "wire" encoding of a param
-data EncodedParam
-  = Query TupleBS8
-  | Body BSL.ByteString
-  | Header TupleBS8
+data EncParams = EncParams
+  { encParamsQuery :: NH.Query
+  , encParamsHeaders :: NH.RequestHeaders
+  , encParamsBody :: EncBody
+  }
+  deriving (Show)
+
+mkEncParams :: EncParams
+mkEncParams = EncParams [] [] EncBodyNone
+
+data EncBody
+  = EncBodyNone
+  | EncBodyBS B.ByteString
+  | EncBodyBSL BSL.ByteString
+  | EncBodyFormUrlEnc NH.Query
+  | EncBodyMultiForm [NH.Part]
   deriving (Show)
 
 data ResultFormatType
@@ -120,10 +164,21 @@ data ResultFormatType
   | FormatXml
   deriving (Show, Eq)
 
+
 toPath
-  :: (Show a)
+  :: Show a
   => a -> BS8.ByteString
 toPath x = NH.urlEncode False (BS8.pack (show x))
+
+toBS8
+  :: Show a
+  => a -> BS8.ByteString
+toBS8 = TE.encodeUtf8 . T.pack . show
+
+toBS
+  :: Show a
+  => a -> B.ByteString
+toBS = TE.encodeUtf8 . T.pack . show
 
 -- * Optional Request Params
 {{#apiInfo}}{{#apis}}{{#operations}}{{#operation}}{{#vendorExtensions.x-hasOptionalParams}}{{#allParams}}{{^required}}{{^vendorExtensions.x-duplicate}}
