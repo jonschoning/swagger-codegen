@@ -63,7 +63,7 @@ import Prelude ((.),Maybe(..),Bool(..),Char,Double,FilePath,Float,Int,Integer,St
   -> {{/required}}{{/allParams}}{{requestType}} {{{vendorExtensions.x-operationType}}} {{vendorExtensions.x-returnType}}
 {{operationId}} {{#allParams}}{{#required}}{{{paramName}}} {{/required}}{{/allParams}}=
   _mkRequest "{{httpMethod}}" [{{#pathParams}}{{#vendorExtensions.x-pathPrefix}}"{{.}}",{{/vendorExtensions.x-pathPrefix}}toPath {{{paramName}}}{{#hasMore}},{{/hasMore}}{{/pathParams}}{{#vendorExtensions.x-pathSuffix}}{{#vendorExtensions.x-hasPathParams}},{{/vendorExtensions.x-hasPathParams}}"{{.}}"{{/vendorExtensions.x-pathSuffix}}]{{#allParams}}{{#required}}
-    {{#isHeaderParam}}`_addHeader` ("{{{baseName}}}", {{>_encode}} {{{paramName}}}){{/isHeaderParam}}{{#isQueryParam}}`_addQuery` ("{{{baseName}}}", Just ({{>_encode}} {{{paramName}}})){{/isQueryParam}}{{#isBodyParam}}`_setBodyLBS` A.encode {{{paramName}}}{{/isBodyParam}}{{#isFormParam}}`_addFormUrlField` ("{{{baseName}}}", Just ({{>_encode}} {{{paramName}}})){{/isFormParam}}{{/required}}{{/allParams}}{{#isDeprecated}}
+    {{>_addrequiredparams}}{{/required}}{{/allParams}}{{#isDeprecated}}
 
 {-# DEPRECATED {{operationId}} "" #-}{{/isDeprecated}}
 
@@ -72,7 +72,7 @@ data {{{vendorExtensions.x-operationType}}}{{#vendorExtensions.x-hasOptionalPara
 -- | /Optional Param/ "{{{baseName}}}" - {{{description}}}{{/description}}
 instance HasOptionalParam {{{vendorExtensions.x-operationType}}} {{{vendorExtensions.x-paramNameType}}} where
   applyOptionalParam req ({{{vendorExtensions.x-paramNameType}}} xs) =
-    {{#isHeaderParam}}_addHeader req ("{{{baseName}}}", {{>_encode}} xs){{/isHeaderParam}}{{#isQueryParam}}_addQuery req ("{{{baseName}}}", Just ({{>_encode}} xs)){{/isQueryParam}}{{#isBodyParam}}_setBodyLBS req (A.encode {{{paramName}}}){{/isBodyParam}}{{#isFormParam}}_addFormUrlField req ("{{{baseName}}}", Just ({{>_encode}} xs)){{/isFormParam}}{{/required}}{{/allParams}}{{/vendorExtensions.x-hasOptionalParams}}
+    {{>_addoptionalparam}}{{/required}}{{/allParams}}{{/vendorExtensions.x-hasOptionalParams}}
 {{/operation}}{{/operations}}{{/apis}}{{/apiInfo}}
 
 -- * {{requestType}}
