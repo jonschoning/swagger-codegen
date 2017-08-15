@@ -49,8 +49,8 @@ data SwaggerPetstoreConfig = SwaggerPetstoreConfig
   , filterLoggingT :: LogSource -> LogLevel -> Bool
   }
 
-mkSwaggerPetstoreConfig :: SwaggerPetstoreConfig
-mkSwaggerPetstoreConfig =
+mkConfig :: SwaggerPetstoreConfig
+mkConfig =
   SwaggerPetstoreConfig
   { host = "http://petstore.swagger.io/v2"
   , execLoggingT = runNullLoggingT
@@ -68,18 +68,18 @@ withNoLogging p = p { execLoggingT = runNullLoggingT}
 
 -- * Dispatch
 
-dispatch' :: SwaggerPetstoreConfig -- ^ config
+dispatch :: SwaggerPetstoreConfig -- ^ config
           -> SwaggerPetstoreRequest req res -- ^ request
           -> IO (NH.Response BSL.ByteString) -- ^ response
-dispatch' config request = do
+dispatch config request = do
   req <- toInitRequest config request
-  dispatch'' config req
+  dispatch' config req
   
 
-dispatch'' :: SwaggerPetstoreConfig -- ^ config
+dispatch' :: SwaggerPetstoreConfig -- ^ config
           -> InitRequest req res -- ^ request
           -> IO (NH.Response BSL.ByteString) -- ^ response
-dispatch'' _ (InitRequest req) = do
+dispatch' _ (InitRequest req) = do
   manager <- NH.newManager NH.tlsManagerSettings
   NH.httpLbs req manager
 
@@ -89,7 +89,7 @@ dispatchJson
   -> SwaggerPetstoreRequest req res -- ^ request
   -> IO (Either SwaggerPetstoreError res) -- ^ response
 dispatchJson config request = do
-  response <- dispatch' config request
+  response <- dispatch config request
   let result = eitherDecode $ NH.responseBody response
   case result of
     Left s -> return (Left (SwaggerPetstoreError s response))

@@ -19,6 +19,7 @@ import qualified Data.Aeson as A
 import qualified Data.Aeson.Types as A
 import Data.Function ((&))
 import Data.Text (Text)
+import Data.Set (Set)
 import GHC.Exts (IsString(..))
 
 import qualified Data.Map as Map
@@ -38,7 +39,8 @@ import qualified Network.HTTP.Types.Method as NH
 import qualified Network.HTTP.Types as NH
 import qualified Network.HTTP.Types.URI as NH
 
-import Prelude as P
+import qualified Prelude as P
+import Prelude ((.),Maybe(..),Bool(..),Char,Double,FilePath,Float,Int,Integer,String)
 
 -- * Operations
 {{#apiInfo}}{{#apis}}{{#operations}}{{#operation}}
@@ -60,8 +62,8 @@ import Prelude as P
   :: {{#allParams}}{{#required}}{{dataType}} -- ^ "{{{paramName}}}"{{#description}} - {{/description}} {{{description}}}
   -> {{/required}}{{/allParams}}{{requestType}} {{{vendorExtensions.x-operationType}}} {{vendorExtensions.x-returnType}}
 {{operationId}} {{#allParams}}{{#required}}{{{paramName}}} {{/required}}{{/allParams}}=
-  mkRequest "{{httpMethod}}" [{{#pathParams}}{{#vendorExtensions.x-pathPrefix}}"{{.}}",{{/vendorExtensions.x-pathPrefix}}toPath {{{paramName}}}{{#hasMore}},{{/hasMore}}{{/pathParams}}{{#vendorExtensions.x-pathSuffix}}{{#vendorExtensions.x-hasPathParams}},{{/vendorExtensions.x-hasPathParams}}"{{.}}"{{/vendorExtensions.x-pathSuffix}}]{{#allParams}}{{#required}}
-    {{#isHeaderParam}}`addHeader` ("{{{baseName}}}", toBS8 {{{paramName}}}){{/isHeaderParam}}{{#isQueryParam}}`addQuery` ("{{{baseName}}}", Just (toBS8 {{{paramName}}})){{/isQueryParam}}{{#isBodyParam}}`setBodyLBS` A.encode {{{paramName}}}{{/isBodyParam}}{{#isFormParam}}`addFormUrlField` ("{{{baseName}}}", Just (toBS8 {{{paramName}}})){{/isFormParam}}{{/required}}{{/allParams}}{{#isDeprecated}}
+  _mkRequest "{{httpMethod}}" [{{#pathParams}}{{#vendorExtensions.x-pathPrefix}}"{{.}}",{{/vendorExtensions.x-pathPrefix}}toPath {{{paramName}}}{{#hasMore}},{{/hasMore}}{{/pathParams}}{{#vendorExtensions.x-pathSuffix}}{{#vendorExtensions.x-hasPathParams}},{{/vendorExtensions.x-hasPathParams}}"{{.}}"{{/vendorExtensions.x-pathSuffix}}]{{#allParams}}{{#required}}
+    {{#isHeaderParam}}`_addHeader` ("{{{baseName}}}", toBS8 {{{paramName}}}){{/isHeaderParam}}{{#isQueryParam}}`_addQuery` ("{{{baseName}}}", Just (toBS8 {{{paramName}}})){{/isQueryParam}}{{#isBodyParam}}`_setBodyLBS` A.encode {{{paramName}}}{{/isBodyParam}}{{#isFormParam}}`_addFormUrlField` ("{{{baseName}}}", Just (toBS8 {{{paramName}}})){{/isFormParam}}{{/required}}{{/allParams}}{{#isDeprecated}}
 
 {-# DEPRECATED {{operationId}} "" #-}{{/isDeprecated}}
 
@@ -70,7 +72,7 @@ data {{{vendorExtensions.x-operationType}}}{{#vendorExtensions.x-hasOptionalPara
 -- | /Optional Param/ "{{{baseName}}}" - {{{description}}}{{/description}}
 instance HasOptionalParam {{{vendorExtensions.x-operationType}}} {{{vendorExtensions.x-paramNameType}}} where
   applyOptionalParam req ({{{vendorExtensions.x-paramNameType}}} xs) =
-    {{#isHeaderParam}}addHeader req ("{{{baseName}}}", toBS8 xs){{/isHeaderParam}}{{#isQueryParam}}addQuery req ("{{{baseName}}}", Just (toBS8 xs)){{/isQueryParam}}{{#isBodyParam}}setBodyLBS req (A.encode {{{paramName}}}){{/isBodyParam}}{{#isFormParam}}addFormUrlField req ("{{{baseName}}}", Just (toBS8 xs)){{/isFormParam}}{{/required}}{{/allParams}}{{/vendorExtensions.x-hasOptionalParams}}
+    {{#isHeaderParam}}_addHeader req ("{{{baseName}}}", toBS8 xs){{/isHeaderParam}}{{#isQueryParam}}_addQuery req ("{{{baseName}}}", Just (toBS8 xs)){{/isQueryParam}}{{#isBodyParam}}_setBodyLBS req (A.encode {{{paramName}}}){{/isBodyParam}}{{#isFormParam}}_addFormUrlField req ("{{{baseName}}}", Just (toBS8 xs)){{/isFormParam}}{{/required}}{{/allParams}}{{/vendorExtensions.x-hasOptionalParams}}
 {{/operation}}{{/operations}}{{/apis}}{{/apiInfo}}
 
 -- * {{requestType}}
@@ -81,49 +83,48 @@ data {{requestType}} req res = {{requestType}}
   , urlPath :: [BS8.ByteString] -- ^ Endpoint of {{requestType}}
   , params   :: Params -- ^ params of {{requestType}}
   }
-  deriving (Show)
+  deriving (P.Show)
 
 
 -- * {{requestType}} Helpers
 
-mkRequest :: NH.Method -- ^ Method 
+_mkRequest :: NH.Method -- ^ Method 
           -> [BS8.ByteString] -- ^ Endpoint
           -> {{requestType}} req res -- ^ req: Request Type, res: Response Type
-mkRequest m u = {{requestType}} m u mkParams
+_mkRequest m u = {{requestType}} m u _mkParams
 
-mkParams :: Params
-mkParams = Params [] [] ParamBodyNone
-
-addHeader :: {{requestType}} req res -> NH.Header -> {{requestType}} req res
-addHeader req header = 
+_mkParams :: Params
+_mkParams = Params [] [] ParamBodyNone
+_addHeader :: {{requestType}} req res -> NH.Header -> {{requestType}} req res
+_addHeader req header = 
     let _params = params req
     in req { params = _params { paramsHeaders = header : paramsHeaders _params } }
 
-addQuery :: {{requestType}} req res -> NH.QueryItem -> {{requestType}} req res
-addQuery req query = 
+_addQuery :: {{requestType}} req res -> NH.QueryItem -> {{requestType}} req res
+_addQuery req query = 
     let _params = params req
     in req { params = _params { paramsQuery = query : paramsQuery _params } }
 
-setBodyBS :: {{requestType}} req res -> B.ByteString -> {{requestType}} req res
-setBodyBS req body = 
+_setBodyBS :: {{requestType}} req res -> B.ByteString -> {{requestType}} req res
+_setBodyBS req body = 
     let _params = params req
     in req { params = _params { paramsBody = ParamBodyBS body } }
 
-setBodyLBS :: SwaggerPetstoreRequest req res -> BSL.ByteString -> SwaggerPetstoreRequest req res
-setBodyLBS req body = 
+_setBodyLBS :: {{requestType}} req res -> BSL.ByteString -> {{requestType}} req res
+_setBodyLBS req body = 
     let _params = params req
     in req { params = _params { paramsBody = ParamBodyBSL body } }
 
-addFormUrlField :: {{requestType}} req res -> NH.QueryItem -> {{requestType}} req res
-addFormUrlField req field = 
+_addFormUrlField :: {{requestType}} req res -> NH.QueryItem -> {{requestType}} req res
+_addFormUrlField req field = 
     let _params = params req
         fields = case paramsBody _params of
             ParamBodyFormUrl _fields -> _fields
             _ -> []
     in req { params = _params { paramsBody = ParamBodyFormUrl (field : fields) } }
 
-addMultiFormPart :: {{requestType}} req res -> NH.Part -> {{requestType}} req res
-addMultiFormPart req newpart = 
+_addMultiFormPart :: {{requestType}} req res -> NH.Part -> {{requestType}} req res
+_addMultiFormPart req newpart = 
     let _params = params req
         parts = case paramsBody _params of
             ParamBodyMultiForm _parts -> _parts
@@ -159,7 +160,7 @@ data Params = Params
   , paramsHeaders :: NH.RequestHeaders
   , paramsBody :: ParamBody
   }
-  deriving (Show)
+  deriving (P.Show)
 
 data ParamBody
   = ParamBodyNone
@@ -167,30 +168,30 @@ data ParamBody
   | ParamBodyBSL BSL.ByteString
   | ParamBodyFormUrl NH.Query
   | ParamBodyMultiForm [NH.Part]
-  deriving (Show)
+  deriving (P.Show)
 
 data ResultFormatType
   = FormatJson
   | FormatXml
-  deriving (Show, Eq)
+  deriving (P.Show, P.Eq)
 
 
 toPath
-  :: Show a
+  :: P.Show a
   => a -> BS8.ByteString
-toPath x = NH.urlEncode False (BS8.pack (show x))
+toPath x = NH.urlEncode False (BS8.pack (P.show x))
 
 toBS8
-  :: Show a
+  :: P.Show a
   => a -> BS8.ByteString
-toBS8 = TE.encodeUtf8 . T.pack . show
+toBS8 = TE.encodeUtf8 . T.pack . P.show
 
 toBS
-  :: Show a
+  :: P.Show a
   => a -> B.ByteString
-toBS = TE.encodeUtf8 . T.pack . show
+toBS = TE.encodeUtf8 . T.pack . P.show
 
 -- * Optional Request Params
 {{#apiInfo}}{{#apis}}{{#operations}}{{#operation}}{{#vendorExtensions.x-hasOptionalParams}}{{#allParams}}{{^required}}{{^vendorExtensions.x-duplicate}}
-newtype {{{vendorExtensions.x-paramNameType}}} = {{{vendorExtensions.x-paramNameType}}} { un{{{vendorExtensions.x-paramNameType}}} :: {{{dataType}}} } deriving (Eq, Show)
+newtype {{{vendorExtensions.x-paramNameType}}} = {{{vendorExtensions.x-paramNameType}}} { un{{{vendorExtensions.x-paramNameType}}} :: {{{dataType}}} } deriving (P.Eq, P.Show)
 {{/vendorExtensions.x-duplicate}}{{/required}}{{/allParams}}{{/vendorExtensions.x-hasOptionalParams}}{{/operation}}{{/operations}}{{/apis}}{{/apiInfo}}

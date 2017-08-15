@@ -49,8 +49,8 @@ data {{configType}} = {{configType}}
   , filterLoggingT :: LogSource -> LogLevel -> Bool
   }
 
-mk{{configType}} :: {{configType}}
-mk{{configType}} =
+mkConfig :: {{configType}}
+mkConfig =
   {{configType}}
   { host = "{{basePath}}"
   , execLoggingT = runNullLoggingT
@@ -68,18 +68,18 @@ withNoLogging p = p { execLoggingT = runNullLoggingT}
 
 -- * Dispatch
 
-dispatch' :: {{configType}} -- ^ config
+dispatch :: {{configType}} -- ^ config
           -> {{requestType}} req res -- ^ request
           -> IO (NH.Response BSL.ByteString) -- ^ response
-dispatch' config request = do
+dispatch config request = do
   req <- toInitRequest config request
-  dispatch'' config req
+  dispatch' config req
   
 
-dispatch'' :: {{configType}} -- ^ config
+dispatch' :: {{configType}} -- ^ config
           -> InitRequest req res -- ^ request
           -> IO (NH.Response BSL.ByteString) -- ^ response
-dispatch'' _ (InitRequest req) = do
+dispatch' _ (InitRequest req) = do
   manager <- NH.newManager NH.tlsManagerSettings
   NH.httpLbs req manager
 
@@ -89,7 +89,7 @@ dispatchJson
   -> {{requestType}} req res -- ^ request
   -> IO (Either {{title}}Error res) -- ^ response
 dispatchJson config request = do
-  response <- dispatch' config request
+  response <- dispatch config request
   let result = eitherDecode $ NH.responseBody response
   case result of
     Left s -> return (Left ({{title}}Error s response))

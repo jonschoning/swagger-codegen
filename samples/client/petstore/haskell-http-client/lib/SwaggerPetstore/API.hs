@@ -19,6 +19,7 @@ import qualified Data.Aeson as A
 import qualified Data.Aeson.Types as A
 import Data.Function ((&))
 import Data.Text (Text)
+import Data.Set (Set)
 import GHC.Exts (IsString(..))
 
 import qualified Data.Map as Map
@@ -38,7 +39,8 @@ import qualified Network.HTTP.Types.Method as NH
 import qualified Network.HTTP.Types as NH
 import qualified Network.HTTP.Types.URI as NH
 
-import Prelude as P
+import qualified Prelude as P
+import Prelude ((.),Maybe(..),Bool(..),Char,Double,FilePath,Float,Int,Integer,String)
 
 -- * Operations
 
@@ -60,8 +62,8 @@ addPet
   :: Pet -- ^ "body" -  Pet object that needs to be added to the store
   -> SwaggerPetstoreRequest AddPet ()
 addPet body =
-  mkRequest "POST" ["/pet"]
-    `setBodyLBS` A.encode body
+  _mkRequest "POST" ["/pet"]
+    `_setBodyLBS` A.encode body
 
 data AddPet
 
@@ -81,13 +83,13 @@ deletePet
   :: Integer -- ^ "petId" -  Pet id to delete
   -> SwaggerPetstoreRequest DeletePet ()
 deletePet petId =
-  mkRequest "DELETE" ["/pet/",toPath petId]
+  _mkRequest "DELETE" ["/pet/",toPath petId]
     
 
 data DeletePet
 instance HasOptionalParam DeletePet Api'Underscorekey where
   applyOptionalParam req (Api'Underscorekey xs) =
-    addHeader req ("api_key", toBS8 xs)
+    _addHeader req ("api_key", toBS8 xs)
 
 
 -- ** findPetsByStatus
@@ -105,8 +107,8 @@ findPetsByStatus
   :: [Text] -- ^ "status" -  Status values that need to be considered for filter
   -> SwaggerPetstoreRequest FindPetsByStatus [Pet]
 findPetsByStatus status =
-  mkRequest "GET" ["/pet/findByStatus"]
-    `addQuery` ("status", Just (toBS8 status))
+  _mkRequest "GET" ["/pet/findByStatus"]
+    `_addQuery` ("status", Just (toBS8 status))
 
 data FindPetsByStatus
 
@@ -126,8 +128,8 @@ findPetsByTags
   :: [Text] -- ^ "tags" -  Tags to filter by
   -> SwaggerPetstoreRequest FindPetsByTags [Pet]
 findPetsByTags tags =
-  mkRequest "GET" ["/pet/findByTags"]
-    `addQuery` ("tags", Just (toBS8 tags))
+  _mkRequest "GET" ["/pet/findByTags"]
+    `_addQuery` ("tags", Just (toBS8 tags))
 
 {-# DEPRECATED findPetsByTags "" #-}
 
@@ -149,7 +151,7 @@ getPetById
   :: Integer -- ^ "petId" -  ID of pet to return
   -> SwaggerPetstoreRequest GetPetById Pet
 getPetById petId =
-  mkRequest "GET" ["/pet/",toPath petId]
+  _mkRequest "GET" ["/pet/",toPath petId]
     
 
 data GetPetById
@@ -172,8 +174,8 @@ updatePet
   :: Pet -- ^ "body" -  Pet object that needs to be added to the store
   -> SwaggerPetstoreRequest UpdatePet ()
 updatePet body =
-  mkRequest "PUT" ["/pet"]
-    `setBodyLBS` A.encode body
+  _mkRequest "PUT" ["/pet"]
+    `_setBodyLBS` A.encode body
 
 data UpdatePet
 
@@ -195,7 +197,7 @@ updatePetWithForm
   :: Integer -- ^ "petId" -  ID of pet that needs to be updated
   -> SwaggerPetstoreRequest UpdatePetWithForm ()
 updatePetWithForm petId =
-  mkRequest "POST" ["/pet/",toPath petId]
+  _mkRequest "POST" ["/pet/",toPath petId]
     
 
 data UpdatePetWithForm
@@ -203,12 +205,12 @@ data UpdatePetWithForm
 -- | /Optional Param/ "name" - Updated name of the pet
 instance HasOptionalParam UpdatePetWithForm Name where
   applyOptionalParam req (Name xs) =
-    addFormUrlField req ("name", Just (toBS8 xs))
+    _addFormUrlField req ("name", Just (toBS8 xs))
 
 -- | /Optional Param/ "status" - Updated status of the pet
 instance HasOptionalParam UpdatePetWithForm Status where
   applyOptionalParam req (Status xs) =
-    addFormUrlField req ("status", Just (toBS8 xs))
+    _addFormUrlField req ("status", Just (toBS8 xs))
 
 
 -- ** uploadFile
@@ -228,7 +230,7 @@ uploadFile
   :: Integer -- ^ "petId" -  ID of pet to update
   -> SwaggerPetstoreRequest UploadFile ApiResponse
 uploadFile petId =
-  mkRequest "POST" ["/pet/",toPath petId,"/uploadImage"]
+  _mkRequest "POST" ["/pet/",toPath petId,"/uploadImage"]
     
 
 data UploadFile
@@ -236,12 +238,12 @@ data UploadFile
 -- | /Optional Param/ "additionalMetadata" - Additional data to pass to server
 instance HasOptionalParam UploadFile AdditionalMetadata where
   applyOptionalParam req (AdditionalMetadata xs) =
-    addFormUrlField req ("additionalMetadata", Just (toBS8 xs))
+    _addFormUrlField req ("additionalMetadata", Just (toBS8 xs))
 
 -- | /Optional Param/ "file" - file to upload
 instance HasOptionalParam UploadFile File where
   applyOptionalParam req (File xs) =
-    addFormUrlField req ("file", Just (toBS8 xs))
+    _addFormUrlField req ("file", Just (toBS8 xs))
 
 
 -- ** deleteOrder
@@ -257,7 +259,7 @@ deleteOrder
   :: Integer -- ^ "orderId" -  ID of the order that needs to be deleted
   -> SwaggerPetstoreRequest DeleteOrder ()
 deleteOrder orderId =
-  mkRequest "DELETE" ["/store/order/",toPath orderId]
+  _mkRequest "DELETE" ["/store/order/",toPath orderId]
     
 
 data DeleteOrder
@@ -277,7 +279,7 @@ data DeleteOrder
 getInventory 
   :: SwaggerPetstoreRequest GetInventory (Map.Map String Int)
 getInventory =
-  mkRequest "GET" ["/store/inventory"]
+  _mkRequest "GET" ["/store/inventory"]
 
 data GetInventory
 
@@ -295,9 +297,7 @@ getOrderById
   :: Integer -- ^ "orderId" -  ID of pet that needs to be fetched
   -> SwaggerPetstoreRequest GetOrderById Order
 getOrderById orderId =
-  mkRequest
-    "GET"
-    ["/store/order/",toPath orderId]
+  _mkRequest "GET" ["/store/order/",toPath orderId]
     
 
 data GetOrderById
@@ -316,8 +316,8 @@ placeOrder
   :: Order -- ^ "body" -  order placed for purchasing the pet
   -> SwaggerPetstoreRequest PlaceOrder Order
 placeOrder body =
-  mkRequest "POST" ["/store/order"]
-    `setBodyLBS` A.encode body
+  _mkRequest "POST" ["/store/order"]
+    `_setBodyLBS` A.encode body
 
 data PlaceOrder
 
@@ -335,8 +335,8 @@ createUser
   :: User -- ^ "body" -  Created user object
   -> SwaggerPetstoreRequest CreateUser ()
 createUser body =
-  mkRequest "POST" ["/user"]
-    `setBodyLBS` A.encode body
+  _mkRequest "POST" ["/user"]
+    `_setBodyLBS` A.encode body
 
 data CreateUser
 
@@ -354,8 +354,8 @@ createUsersWithArrayInput
   :: [User] -- ^ "body" -  List of user object
   -> SwaggerPetstoreRequest CreateUsersWithArrayInput ()
 createUsersWithArrayInput body =
-  mkRequest "POST" ["/user/createWithArray"]
-    `setBodyLBS` A.encode body
+  _mkRequest "POST" ["/user/createWithArray"]
+    `_setBodyLBS` A.encode body
 
 data CreateUsersWithArrayInput
 
@@ -373,8 +373,8 @@ createUsersWithListInput
   :: [User] -- ^ "body" -  List of user object
   -> SwaggerPetstoreRequest CreateUsersWithListInput ()
 createUsersWithListInput body =
-  mkRequest "POST" ["/user/createWithList"]
-    `setBodyLBS` A.encode body
+  _mkRequest "POST" ["/user/createWithList"]
+    `_setBodyLBS` A.encode body
 
 data CreateUsersWithListInput
 
@@ -392,7 +392,7 @@ deleteUser
   :: Text -- ^ "username" -  The name that needs to be deleted
   -> SwaggerPetstoreRequest DeleteUser ()
 deleteUser username =
-  mkRequest "DELETE" ["/user/",toPath username]
+  _mkRequest "DELETE" ["/user/",toPath username]
     
 
 data DeleteUser
@@ -411,7 +411,7 @@ getUserByName
   :: Text -- ^ "username" -  The name that needs to be fetched. Use user1 for testing. 
   -> SwaggerPetstoreRequest GetUserByName User
 getUserByName username =
-  mkRequest "GET" ["/user/",toPath username]
+  _mkRequest "GET" ["/user/",toPath username]
     
 
 data GetUserByName
@@ -431,9 +431,9 @@ loginUser
   -> Text -- ^ "password" -  The password for login in clear text
   -> SwaggerPetstoreRequest LoginUser Text
 loginUser username password =
-  mkRequest "GET" ["/user/login"]
-    `addQuery` ("username", Just (toBS8 username))
-    `addQuery` ("password", Just (toBS8 password))
+  _mkRequest "GET" ["/user/login"]
+    `_addQuery` ("username", Just (toBS8 username))
+    `_addQuery` ("password", Just (toBS8 password))
 
 data LoginUser
 
@@ -450,7 +450,7 @@ data LoginUser
 logoutUser 
   :: SwaggerPetstoreRequest LogoutUser ()
 logoutUser =
-  mkRequest "GET" ["/user/logout"]
+  _mkRequest "GET" ["/user/logout"]
 
 data LogoutUser
 
@@ -469,9 +469,9 @@ updateUser
   -> User -- ^ "body" -  Updated user object
   -> SwaggerPetstoreRequest UpdateUser ()
 updateUser username body =
-  mkRequest "PUT" ["/user/",toPath username]
+  _mkRequest "PUT" ["/user/",toPath username]
     
-    `setBodyLBS` A.encode body
+    `_setBodyLBS` A.encode body
 
 data UpdateUser
 
@@ -484,49 +484,48 @@ data SwaggerPetstoreRequest req res = SwaggerPetstoreRequest
   , urlPath :: [BS8.ByteString] -- ^ Endpoint of SwaggerPetstoreRequest
   , params   :: Params -- ^ params of SwaggerPetstoreRequest
   }
-  deriving (Show)
+  deriving (P.Show)
 
 
 -- * SwaggerPetstoreRequest Helpers
 
-mkRequest :: NH.Method -- ^ Method 
+_mkRequest :: NH.Method -- ^ Method 
           -> [BS8.ByteString] -- ^ Endpoint
           -> SwaggerPetstoreRequest req res -- ^ req: Request Type, res: Response Type
-mkRequest m u = SwaggerPetstoreRequest m u mkParams
+_mkRequest m u = SwaggerPetstoreRequest m u _mkParams
 
-mkParams :: Params
-mkParams = Params [] [] ParamBodyNone
-
-addHeader :: SwaggerPetstoreRequest req res -> NH.Header -> SwaggerPetstoreRequest req res
-addHeader req header = 
+_mkParams :: Params
+_mkParams = Params [] [] ParamBodyNone
+_addHeader :: SwaggerPetstoreRequest req res -> NH.Header -> SwaggerPetstoreRequest req res
+_addHeader req header = 
     let _params = params req
     in req { params = _params { paramsHeaders = header : paramsHeaders _params } }
 
-addQuery :: SwaggerPetstoreRequest req res -> NH.QueryItem -> SwaggerPetstoreRequest req res
-addQuery req query = 
+_addQuery :: SwaggerPetstoreRequest req res -> NH.QueryItem -> SwaggerPetstoreRequest req res
+_addQuery req query = 
     let _params = params req
     in req { params = _params { paramsQuery = query : paramsQuery _params } }
 
-setBodyBS :: SwaggerPetstoreRequest req res -> B.ByteString -> SwaggerPetstoreRequest req res
-setBodyBS req body = 
+_setBodyBS :: SwaggerPetstoreRequest req res -> B.ByteString -> SwaggerPetstoreRequest req res
+_setBodyBS req body = 
     let _params = params req
     in req { params = _params { paramsBody = ParamBodyBS body } }
 
-setBodyLBS :: SwaggerPetstoreRequest req res -> BSL.ByteString -> SwaggerPetstoreRequest req res
-setBodyLBS req body = 
+_setBodyLBS :: SwaggerPetstoreRequest req res -> BSL.ByteString -> SwaggerPetstoreRequest req res
+_setBodyLBS req body = 
     let _params = params req
     in req { params = _params { paramsBody = ParamBodyBSL body } }
 
-addFormUrlField :: SwaggerPetstoreRequest req res -> NH.QueryItem -> SwaggerPetstoreRequest req res
-addFormUrlField req field = 
+_addFormUrlField :: SwaggerPetstoreRequest req res -> NH.QueryItem -> SwaggerPetstoreRequest req res
+_addFormUrlField req field = 
     let _params = params req
         fields = case paramsBody _params of
             ParamBodyFormUrl _fields -> _fields
             _ -> []
     in req { params = _params { paramsBody = ParamBodyFormUrl (field : fields) } }
 
-addMultiFormPart :: SwaggerPetstoreRequest req res -> NH.Part -> SwaggerPetstoreRequest req res
-addMultiFormPart req newpart = 
+_addMultiFormPart :: SwaggerPetstoreRequest req res -> NH.Part -> SwaggerPetstoreRequest req res
+_addMultiFormPart req newpart = 
     let _params = params req
         parts = case paramsBody _params of
             ParamBodyMultiForm _parts -> _parts
@@ -562,7 +561,7 @@ data Params = Params
   , paramsHeaders :: NH.RequestHeaders
   , paramsBody :: ParamBody
   }
-  deriving (Show)
+  deriving (P.Show)
 
 data ParamBody
   = ParamBodyNone
@@ -570,37 +569,37 @@ data ParamBody
   | ParamBodyBSL BSL.ByteString
   | ParamBodyFormUrl NH.Query
   | ParamBodyMultiForm [NH.Part]
-  deriving (Show)
+  deriving (P.Show)
 
 data ResultFormatType
   = FormatJson
   | FormatXml
-  deriving (Show, Eq)
+  deriving (P.Show, P.Eq)
 
 
 toPath
-  :: Show a
+  :: P.Show a
   => a -> BS8.ByteString
-toPath x = NH.urlEncode False (BS8.pack (show x))
+toPath x = NH.urlEncode False (BS8.pack (P.show x))
 
 toBS8
-  :: Show a
+  :: P.Show a
   => a -> BS8.ByteString
-toBS8 = TE.encodeUtf8 . T.pack . show
+toBS8 = TE.encodeUtf8 . T.pack . P.show
 
 toBS
-  :: Show a
+  :: P.Show a
   => a -> B.ByteString
-toBS = TE.encodeUtf8 . T.pack . show
+toBS = TE.encodeUtf8 . T.pack . P.show
 
 -- * Optional Request Params
 
-newtype Api'Underscorekey = Api'Underscorekey { unApi'Underscorekey :: Text } deriving (Eq, Show)
+newtype Api'Underscorekey = Api'Underscorekey { unApi'Underscorekey :: Text } deriving (P.Eq, P.Show)
 
-newtype Name = Name { unName :: Text } deriving (Eq, Show)
+newtype Name = Name { unName :: Text } deriving (P.Eq, P.Show)
 
-newtype Status = Status { unStatus :: Text } deriving (Eq, Show)
+newtype Status = Status { unStatus :: Text } deriving (P.Eq, P.Show)
 
-newtype AdditionalMetadata = AdditionalMetadata { unAdditionalMetadata :: Text } deriving (Eq, Show)
+newtype AdditionalMetadata = AdditionalMetadata { unAdditionalMetadata :: Text } deriving (P.Eq, P.Show)
 
-newtype File = File { unFile :: FilePath } deriving (Eq, Show)
+newtype File = File { unFile :: FilePath } deriving (P.Eq, P.Show)
