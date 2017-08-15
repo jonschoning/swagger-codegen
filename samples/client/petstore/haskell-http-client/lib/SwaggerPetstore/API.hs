@@ -89,7 +89,7 @@ deletePet petId =
 data DeletePet
 instance HasOptionalParam DeletePet Api'Underscorekey where
   applyOptionalParam req (Api'Underscorekey xs) =
-    _addHeader req ("api_key", toBS8 xs)
+    _addHeader req ("api_key", TE.encodeUtf8 xs)
 
 
 -- ** findPetsByStatus
@@ -108,7 +108,7 @@ findPetsByStatus
   -> SwaggerPetstoreRequest FindPetsByStatus [Pet]
 findPetsByStatus status =
   _mkRequest "GET" ["/pet/findByStatus"]
-    `_addQuery` ("status", Just (toBS8 status))
+    `_addQuery` ("status", Just (showBS status))
 
 data FindPetsByStatus
 
@@ -129,7 +129,7 @@ findPetsByTags
   -> SwaggerPetstoreRequest FindPetsByTags [Pet]
 findPetsByTags tags =
   _mkRequest "GET" ["/pet/findByTags"]
-    `_addQuery` ("tags", Just (toBS8 tags))
+    `_addQuery` ("tags", Just (showBS tags))
 
 {-# DEPRECATED findPetsByTags "" #-}
 
@@ -205,12 +205,12 @@ data UpdatePetWithForm
 -- | /Optional Param/ "name" - Updated name of the pet
 instance HasOptionalParam UpdatePetWithForm Name where
   applyOptionalParam req (Name xs) =
-    _addFormUrlField req ("name", Just (toBS8 xs))
+    _addFormUrlField req ("name", Just (TE.encodeUtf8 xs))
 
 -- | /Optional Param/ "status" - Updated status of the pet
 instance HasOptionalParam UpdatePetWithForm Status where
   applyOptionalParam req (Status xs) =
-    _addFormUrlField req ("status", Just (toBS8 xs))
+    _addFormUrlField req ("status", Just (TE.encodeUtf8 xs))
 
 
 -- ** uploadFile
@@ -238,12 +238,12 @@ data UploadFile
 -- | /Optional Param/ "additionalMetadata" - Additional data to pass to server
 instance HasOptionalParam UploadFile AdditionalMetadata where
   applyOptionalParam req (AdditionalMetadata xs) =
-    _addFormUrlField req ("additionalMetadata", Just (toBS8 xs))
+    _addFormUrlField req ("additionalMetadata", Just (TE.encodeUtf8 xs))
 
 -- | /Optional Param/ "file" - file to upload
 instance HasOptionalParam UploadFile File where
   applyOptionalParam req (File xs) =
-    _addFormUrlField req ("file", Just (toBS8 xs))
+    _addFormUrlField req ("file", Just (showBS xs))
 
 
 -- ** deleteOrder
@@ -432,8 +432,8 @@ loginUser
   -> SwaggerPetstoreRequest LoginUser Text
 loginUser username password =
   _mkRequest "GET" ["/user/login"]
-    `_addQuery` ("username", Just (toBS8 username))
-    `_addQuery` ("password", Just (toBS8 password))
+    `_addQuery` ("username", Just (TE.encodeUtf8 username))
+    `_addQuery` ("password", Just (TE.encodeUtf8 password))
 
 data LoginUser
 
@@ -496,6 +496,7 @@ _mkRequest m u = SwaggerPetstoreRequest m u _mkParams
 
 _mkParams :: Params
 _mkParams = Params [] [] ParamBodyNone
+
 _addHeader :: SwaggerPetstoreRequest req res -> NH.Header -> SwaggerPetstoreRequest req res
 _addHeader req header = 
     let _params = params req
@@ -533,9 +534,6 @@ _addMultiFormPart req newpart =
     in req { params = _params { paramsBody = ParamBodyMultiForm (newpart : parts) } }
 
 
--- | Type alias for query parameters
-type TupleBS8 = (BS8.ByteString, BS8.ByteString)
-
 -- * Params
 
 -- ** HasOptionalParam
@@ -571,26 +569,15 @@ data ParamBody
   | ParamBodyMultiForm [NH.Part]
   deriving (P.Show)
 
-data ResultFormatType
-  = FormatJson
-  | FormatXml
-  deriving (P.Show, P.Eq)
-
-
 toPath
   :: P.Show a
   => a -> BS8.ByteString
 toPath x = NH.urlEncode False (BS8.pack (P.show x))
 
-toBS8
-  :: P.Show a
-  => a -> BS8.ByteString
-toBS8 = TE.encodeUtf8 . T.pack . P.show
-
-toBS
+showBS
   :: P.Show a
   => a -> B.ByteString
-toBS = TE.encodeUtf8 . T.pack . P.show
+showBS = fromString . P.show
 
 -- * Optional Request Params
 

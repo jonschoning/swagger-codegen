@@ -63,7 +63,7 @@ import Prelude ((.),Maybe(..),Bool(..),Char,Double,FilePath,Float,Int,Integer,St
   -> {{/required}}{{/allParams}}{{requestType}} {{{vendorExtensions.x-operationType}}} {{vendorExtensions.x-returnType}}
 {{operationId}} {{#allParams}}{{#required}}{{{paramName}}} {{/required}}{{/allParams}}=
   _mkRequest "{{httpMethod}}" [{{#pathParams}}{{#vendorExtensions.x-pathPrefix}}"{{.}}",{{/vendorExtensions.x-pathPrefix}}toPath {{{paramName}}}{{#hasMore}},{{/hasMore}}{{/pathParams}}{{#vendorExtensions.x-pathSuffix}}{{#vendorExtensions.x-hasPathParams}},{{/vendorExtensions.x-hasPathParams}}"{{.}}"{{/vendorExtensions.x-pathSuffix}}]{{#allParams}}{{#required}}
-    {{#isHeaderParam}}`_addHeader` ("{{{baseName}}}", toBS8 {{{paramName}}}){{/isHeaderParam}}{{#isQueryParam}}`_addQuery` ("{{{baseName}}}", Just (toBS8 {{{paramName}}})){{/isQueryParam}}{{#isBodyParam}}`_setBodyLBS` A.encode {{{paramName}}}{{/isBodyParam}}{{#isFormParam}}`_addFormUrlField` ("{{{baseName}}}", Just (toBS8 {{{paramName}}})){{/isFormParam}}{{/required}}{{/allParams}}{{#isDeprecated}}
+    {{#isHeaderParam}}`_addHeader` ("{{{baseName}}}", {{>_encode}} {{{paramName}}}){{/isHeaderParam}}{{#isQueryParam}}`_addQuery` ("{{{baseName}}}", Just ({{>_encode}} {{{paramName}}})){{/isQueryParam}}{{#isBodyParam}}`_setBodyLBS` A.encode {{{paramName}}}{{/isBodyParam}}{{#isFormParam}}`_addFormUrlField` ("{{{baseName}}}", Just ({{>_encode}} {{{paramName}}})){{/isFormParam}}{{/required}}{{/allParams}}{{#isDeprecated}}
 
 {-# DEPRECATED {{operationId}} "" #-}{{/isDeprecated}}
 
@@ -72,7 +72,7 @@ data {{{vendorExtensions.x-operationType}}}{{#vendorExtensions.x-hasOptionalPara
 -- | /Optional Param/ "{{{baseName}}}" - {{{description}}}{{/description}}
 instance HasOptionalParam {{{vendorExtensions.x-operationType}}} {{{vendorExtensions.x-paramNameType}}} where
   applyOptionalParam req ({{{vendorExtensions.x-paramNameType}}} xs) =
-    {{#isHeaderParam}}_addHeader req ("{{{baseName}}}", toBS8 xs){{/isHeaderParam}}{{#isQueryParam}}_addQuery req ("{{{baseName}}}", Just (toBS8 xs)){{/isQueryParam}}{{#isBodyParam}}_setBodyLBS req (A.encode {{{paramName}}}){{/isBodyParam}}{{#isFormParam}}_addFormUrlField req ("{{{baseName}}}", Just (toBS8 xs)){{/isFormParam}}{{/required}}{{/allParams}}{{/vendorExtensions.x-hasOptionalParams}}
+    {{#isHeaderParam}}_addHeader req ("{{{baseName}}}", {{>_encode}} xs){{/isHeaderParam}}{{#isQueryParam}}_addQuery req ("{{{baseName}}}", Just ({{>_encode}} xs)){{/isQueryParam}}{{#isBodyParam}}_setBodyLBS req (A.encode {{{paramName}}}){{/isBodyParam}}{{#isFormParam}}_addFormUrlField req ("{{{baseName}}}", Just ({{>_encode}} xs)){{/isFormParam}}{{/required}}{{/allParams}}{{/vendorExtensions.x-hasOptionalParams}}
 {{/operation}}{{/operations}}{{/apis}}{{/apiInfo}}
 
 -- * {{requestType}}
@@ -95,6 +95,7 @@ _mkRequest m u = {{requestType}} m u _mkParams
 
 _mkParams :: Params
 _mkParams = Params [] [] ParamBodyNone
+
 _addHeader :: {{requestType}} req res -> NH.Header -> {{requestType}} req res
 _addHeader req header = 
     let _params = params req
@@ -132,9 +133,6 @@ _addMultiFormPart req newpart =
     in req { params = _params { paramsBody = ParamBodyMultiForm (newpart : parts) } }
 
 
--- | Type alias for query parameters
-type TupleBS8 = (BS8.ByteString, BS8.ByteString)
-
 -- * Params
 
 -- ** HasOptionalParam
@@ -170,26 +168,15 @@ data ParamBody
   | ParamBodyMultiForm [NH.Part]
   deriving (P.Show)
 
-data ResultFormatType
-  = FormatJson
-  | FormatXml
-  deriving (P.Show, P.Eq)
-
-
 toPath
   :: P.Show a
   => a -> BS8.ByteString
 toPath x = NH.urlEncode False (BS8.pack (P.show x))
 
-toBS8
-  :: P.Show a
-  => a -> BS8.ByteString
-toBS8 = TE.encodeUtf8 . T.pack . P.show
-
-toBS
+showBS
   :: P.Show a
   => a -> B.ByteString
-toBS = TE.encodeUtf8 . T.pack . P.show
+showBS = fromString . P.show
 
 -- * Optional Request Params
 {{#apiInfo}}{{#apis}}{{#operations}}{{#operation}}{{#vendorExtensions.x-hasOptionalParams}}{{#allParams}}{{^required}}{{^vendorExtensions.x-duplicate}}

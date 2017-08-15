@@ -124,6 +124,14 @@ toInitRequest SwaggerPetstoreConfig {..} SwaggerPetstoreRequest {..} = do
 
   pure (InitRequest req)
 
+-- | convenience method for modifying the underlying Request
+modifyInitRequest :: InitRequest req res -> (NH.Request -> NH.Request) -> InitRequest req res
+modifyInitRequest (InitRequest req) f = InitRequest (f req)
+
+-- | convenience method for modifying the underlying Request (monadic)
+modifyInitRequestM :: Monad m => InitRequest req res -> (NH.Request -> m NH.Request) -> m (InitRequest req res)
+modifyInitRequestM (InitRequest req) f = fmap InitRequest (f req)
+
 -- * Error
 
 data SwaggerPetstoreError =

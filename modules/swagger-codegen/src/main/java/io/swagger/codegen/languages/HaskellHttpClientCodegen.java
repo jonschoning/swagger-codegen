@@ -277,9 +277,13 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
 
         // lib
         supportingFiles.add(new SupportingFile("TopLevel.mustache", "lib/", apiName + ".hs"));
-        supportingFiles.add(new SupportingFile("API.mustache", "lib/" + apiName, "API.hs"));
         supportingFiles.add(new SupportingFile("Client.mustache", "lib/" + apiName, "Client.hs"));
+
+        supportingFiles.add(new SupportingFile("API.mustache", "lib/" + apiName, "API.hs"));
         supportingFiles.add(new SupportingFile("Model.mustache", "lib/" + apiName, "Model.hs"));
+
+//        modelTemplateFiles.put("API.mustache", ".hs");
+//        apiTemplateFiles.put("Model.mustache", ".hs");
 
         // lens
         if (additionalProperties.containsKey(GENERATE_LENSES)) {
@@ -317,6 +321,16 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
         super.preprocessSwagger(swagger);
     }
 
+//    @Override
+//    public String apiFileFolder() {
+//        String apiName = (String)additionalProperties.get("title");
+//        return outputFolder + File.separator + "lib/" + apiName;
+//    }
+//    @Override
+//    public String modelFileFolder() {
+//        String apiName = (String)additionalProperties.get("title");
+//        return outputFolder + File.separator + "lib/" + apiName;
+//    }
 
     /**
      * Optional - type declaration.  This is a String which is used by the templates to instantiate your
@@ -558,6 +572,12 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
 
         modelNames.put(model.classname, model);
         return model;
+    }
+
+    @Override
+    public String toModelFilename(String name) {
+        // should be the same as the model name
+        return toModelName(name);
     }
 
     @Override
