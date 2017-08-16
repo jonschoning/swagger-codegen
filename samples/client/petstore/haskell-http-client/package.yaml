@@ -41,7 +41,7 @@ library:
   - SwaggerPetstore.API
   - SwaggerPetstore.Client
   - SwaggerPetstore.Model
-  - SwaggerPetstore.Lens
+  
   dependencies:
   - aeson >=1.0 && <2.0
   - bytestring >=0.10.0 && <0.11
@@ -58,6 +58,7 @@ library:
   - random >=1.1
   - exceptions >= 0.4
   - monad-logger >=0.3 && <0.4
+  - case-insensitive
 tests:
   tests:
     main: Test.hs

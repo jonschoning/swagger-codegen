@@ -429,6 +429,9 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
         op.vendorExtensions.put("x-operationType", capitalize(op.operationId));
 
         for (CodegenParameter param : op.allParams) {
+           if(param.isCollectionFormatMulti) {
+               param.vendorExtensions.put("x-collectionFormat", mapCollectionFormat(param.collectionFormat));
+           }
            if(!param.required)  {
                op.vendorExtensions.put("x-hasOptionalParams", true);
                param.vendorExtensions.put("x-operationType", capitalize(op.operationId));
@@ -496,6 +499,18 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
         op.vendorExtensions.put("x-returnType", returnType);
 
         return op;
+    }
+
+    private String mapCollectionFormat(String collectionFormat) {
+        switch(collectionFormat) {
+            case "csv": return "CommaSeparated";
+            case "tsv": return "TabSeparated";
+            case "ssv": return "SpaceSeparated";
+            case "pipes": return "PipeSeparated";
+            case "multi": return "MultiParamArray";
+            default:
+                throw new UnsupportedOperationException();
+        }
     }
 
     private String toHsVarName(String paramName) {

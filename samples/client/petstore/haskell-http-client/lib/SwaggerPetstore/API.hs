@@ -43,9 +43,13 @@ import qualified Network.HTTP.Types.URI as NH
 import qualified Web.HttpApiData as WH
 import qualified Web.FormUrlEncoded as WF
 
-import qualified Prelude as P
-import Prelude ((.),Maybe(..),Bool(..),Char,Double,FilePath,Float,Int,Integer,String)
 import qualified Data.Foldable as P
+import qualified Prelude as P
+import Prelude ((.),(<$>),(<*>),Maybe(..),Bool(..),Char,Double,FilePath,Float,Int,Integer,String,fmap,undefined)
+import GHC.Base ((<|>))
+import Data.Monoid ((<>))
+import qualified Control.Applicative as P (liftA2)
+import qualified GHC.Base as P (Alternative)
 
 -- * Operations
 
@@ -100,7 +104,7 @@ data DeletePet
 -- instance Produces DeletePet application/json
 instance HasOptionalParam DeletePet Api'Underscorekey where
   applyOptionalParam req (Api'Underscorekey xs) =
-    _addHeader req ("api_key", WH.toHeader xs)
+    req `_addHeader` toHeader ("api_key", xs)
 
 
 -- ** findPetsByStatus
@@ -119,7 +123,7 @@ findPetsByStatus
   -> SwaggerPetstoreRequest FindPetsByStatus [Pet]
 findPetsByStatus status =
   _mkRequest "GET" ["/pet/findByStatus"]
-    `_addQuery` ("status", Just (toParamMulti "multi" toQueryParam status))
+    `_addQuery` toMultiItem MultiParamArray toQueryItem ("status", Just (status))
 
 data FindPetsByStatus
 -- instance Produces FindPetsByStatus application/xml
@@ -142,7 +146,7 @@ findPetsByTags
   -> SwaggerPetstoreRequest FindPetsByTags [Pet]
 findPetsByTags tags =
   _mkRequest "GET" ["/pet/findByTags"]
-    `_addQuery` ("tags", Just (toParamMulti "multi" toQueryParam tags))
+    `_addQuery` toMultiItem MultiParamArray toQueryItem ("tags", Just (tags))
 
 {-# DEPRECATED findPetsByTags "" #-}
 
@@ -229,12 +233,12 @@ data UpdatePetWithForm
 -- | /Optional Param/ "name" - Updated name of the pet
 instance HasOptionalParam UpdatePetWithForm Name where
   applyOptionalParam req (Name xs) =
-    _addFormUrlField req ("name", Just (TE.encodeUtf8 xs))
+    req `_addFormUrlField` [("name", Just (TE.encodeUtf8 xs))]
 
 -- | /Optional Param/ "status" - Updated status of the pet
 instance HasOptionalParam UpdatePetWithForm Status where
   applyOptionalParam req (Status xs) =
-    _addFormUrlField req ("status", Just (TE.encodeUtf8 xs))
+    req `_addFormUrlField` [("status", Just (TE.encodeUtf8 xs))]
 
 
 -- ** uploadFile
@@ -264,12 +268,12 @@ data UploadFile
 -- | /Optional Param/ "additionalMetadata" - Additional data to pass to server
 instance HasOptionalParam UploadFile AdditionalMetadata where
   applyOptionalParam req (AdditionalMetadata xs) =
-    _addFormUrlField req ("additionalMetadata", Just (TE.encodeUtf8 xs))
+    req `_addFormUrlField` [("additionalMetadata", Just (TE.encodeUtf8 xs))]
 
 -- | /Optional Param/ "file" - file to upload
 instance HasOptionalParam UploadFile File where
   applyOptionalParam req (File xs) =
-    _addFormUrlField req ("file", Just (showBS xs))
+    req `_addFormUrlField` [("file", Just (showBS xs))]
 
 
 -- ** deleteOrder
@@ -475,8 +479,8 @@ loginUser
   -> SwaggerPetstoreRequest LoginUser Text
 loginUser username password =
   _mkRequest "GET" ["/user/login"]
-    `_addQuery` ("username", Just ( toQueryParam username))
-    `_addQuery` ("password", Just ( toQueryParam password))
+    `_addQuery`  toQueryItem ("username", Just (username))
+    `_addQuery`  toQueryItem ("password", Just (password))
 
 data LoginUser
 -- instance Produces LoginUser application/xml
@@ -546,15 +550,15 @@ _mkRequest m u = SwaggerPetstoreRequest m u _mkParams
 _mkParams :: Params
 _mkParams = Params [] [] ParamBodyNone
 
-_addHeader :: SwaggerPetstoreRequest req res -> NH.Header -> SwaggerPetstoreRequest req res
+_addHeader :: SwaggerPetstoreRequest req res -> [NH.Header] -> SwaggerPetstoreRequest req res
 _addHeader req header = 
     let _params = params req
-    in req { params = _params { paramsHeaders = header : paramsHeaders _params } }
+    in req { params = _params { paramsHeaders = header P.++ paramsHeaders _params } }
 
-_addQuery :: SwaggerPetstoreRequest req res -> NH.QueryItem -> SwaggerPetstoreRequest req res
+_addQuery :: SwaggerPetstoreRequest req res -> [NH.QueryItem] -> SwaggerPetstoreRequest req res
 _addQuery req query = 
     let _params = params req 
-    in req { params = _params { paramsQuery = query : paramsQuery _params } }
+    in req { params = _params { paramsQuery = query P.++ paramsQuery _params } }
 
 _setBodyBS :: SwaggerPetstoreRequest req res -> B.ByteString -> SwaggerPetstoreRequest req res
 _setBodyBS req body = 
@@ -566,13 +570,13 @@ _setBodyLBS req body =
     let _params = params req
     in req { params = _params { paramsBody = ParamBodyBSL body } }
 
-_addFormUrlField :: SwaggerPetstoreRequest req res -> NH.QueryItem -> SwaggerPetstoreRequest req res
+_addFormUrlField :: SwaggerPetstoreRequest req res -> [NH.QueryItem] -> SwaggerPetstoreRequest req res
 _addFormUrlField req field = 
     let _params = params req
         fields = case paramsBody _params of
             ParamBodyFormUrl _fields -> _fields
             _ -> []
-    in req { params = _params { paramsBody = ParamBodyFormUrl (field : fields) } }
+    in req { params = _params { paramsBody = ParamBodyFormUrl (field P.++ fields) } }
 
 _addMultiFormPart :: SwaggerPetstoreRequest req res -> NH.Part -> SwaggerPetstoreRequest req res
 _addMultiFormPart req newpart = 
@@ -629,20 +633,49 @@ toPath
   => a -> BSL.ByteString
 toPath = BSB.toLazyByteString . WH.toEncodedUrlPiece
 
+
+toHeader :: WH.ToHttpApiData a => (NH.HeaderName, a) -> [NH.Header]
+toHeader x = [fmap WH.toHeader x]
+
 toQueryParam :: WH.ToHttpApiData a => a -> BS8.ByteString
 toQueryParam = TE.encodeUtf8 . WH.toQueryParam
 
-toParamMulti :: P.Foldable f => String -> (a -> BS8.ByteString) -> f a -> BS8.ByteString
-toParamMulti "csv" f xs = sepTextBy ',' f xs
-toParamMulti "tsv" f xs = sepTextBy '\t' f xs
-toParamMulti "ssv" f xs = sepTextBy ' ' f xs
-toParamMulti "pipes" f xs = sepTextBy '|' f xs
-toParamMulti "multi" _ _ = P.error "toParamMulti: no multi"
-toParamMulti _ _ _ = P.error "toParamMulti: bad sep"
+toQueryItem :: WH.ToHttpApiData a => (BS8.ByteString, Maybe a) -> [NH.QueryItem]
+toQueryItem x = [(fmap . fmap) toQueryParam x]
+  
+toMultiItem :: P.Foldable f => CollectionFormat -> ((BS8.ByteString, Maybe a) -> [NH.QueryItem]) -> (BS8.ByteString, Maybe (f a)) -> [NH.QueryItem]
+toMultiItem c f xs = case c of
+  CommaSeparated -> go (BS8.singleton ',') f
+  SpaceSeparated -> go (BS8.singleton ' ') f
+  TabSeparated -> go (BS8.singleton '\t') f
+  PipeSeparated -> go (BS8.singleton '|') f
+  MultiParamArray -> traverse2 f xs
+  where 
+    go sep g = [P.foldl1 (P.liftA2 (altCombine sep)) (traverse2 g xs)]
+    altCombine sep a b = (combine sep <$> a <*> b) <|> a <|> b
+    combine sep x y = x <> sep <> y
 
-sepTextBy :: P.Foldable f => Char -> (a -> BS8.ByteString) -> f a -> BS8.ByteString
-sepTextBy sep f = BS8.intercalate (BS8.singleton sep) . P.fmap f . P.toList 
+traverse2
+  :: (P.Foldable f, P.Traversable m, P.Traversable t)
+  => (t (m a) -> [b]) -> t (m (f a)) -> [b]
+traverse2 f = P.concatMap f . (P.traverse . P.traverse) P.toList
+  
+data CollectionFormat
+  = CommaSeparated -- ^ CSV format for multiple parameters.
+  | SpaceSeparated -- ^ Also called "SSV"
+  | TabSeparated -- ^ Also called "TSV"
+  | PipeSeparated -- ^ `value1|value2|value2`
+  | MultiParamArray -- ^ Using multiple GET parameters, e.g. `foo=bar&foo=baz`. Only for GET params.
 
+-- toParamMulti :: P.Foldable f => String -> (a -> BS8.ByteString) -> f a -> BS8.ByteString
+-- toParamMulti "csv" f xs = sepTextBy ',' f xs
+-- toParamMulti "tsv" f xs = sepTextBy '\t' f xs
+-- toParamMulti "ssv" f xs = sepTextBy ' ' f xs
+-- toParamMulti "pipes" f xs = sepTextBy '|' f xs
+-- toParamMulti "multi" _ _ = P.error "toParamMulti: no multi"
+-- toParamMulti _ _ _ = P.error "toParamMulti: bad sep"
+-- sepTextBy :: P.Foldable f => Char -> (a -> BS8.ByteString) -> f a -> BS8.ByteString
+-- sepTextBy sep f = BS8.intercalate (BS8.singleton sep) . fmap f . P.toList 
 
 showBS
   :: P.Show a
