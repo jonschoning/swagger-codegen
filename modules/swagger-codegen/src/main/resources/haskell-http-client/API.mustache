@@ -18,10 +18,6 @@ import {{title}}.Model as M
 import Control.Monad.IO.Class
 import qualified Data.Aeson as A
 import qualified Data.Aeson.Types as A
-import Data.Function ((&))
-import Data.Text (Text)
-import Data.Set (Set)
-import GHC.Exts (IsString(..))
 
 import qualified Data.Map as Map
 import qualified Data.Text as T
@@ -43,10 +39,15 @@ import qualified Network.HTTP.Types.URI as NH
 import qualified Web.HttpApiData as WH
 import qualified Web.FormUrlEncoded as WF
 
+import Data.Function ((&))
 import Data.Monoid ((<>))
+import Data.Set (Set)
+import Data.Text (Text)
 import GHC.Base ((<|>))
-import Prelude ((.),(<$>),(<*>),Maybe(..),Bool(..),Char,Double,FilePath,Float,Int,Integer,String,fmap,undefined)
+import GHC.Exts (IsString(..))
+import Prelude ((.),(<$>),(<*>),Maybe(..),Bool(..),Char,Double,FilePath,Float,Int,Integer,String,fmap,undefined,mempty)
 import qualified Data.Foldable as P
+import qualified Data.Functor.Identity as P (Identity(..))
 import qualified Data.Maybe as P
 import qualified GHC.Base as P (Alternative)
 import qualified Prelude as P
@@ -72,7 +73,7 @@ import qualified Prelude as P
   -> {{/required}}{{/allParams}}{{requestType}} {{{vendorExtensions.x-operationType}}} {{vendorExtensions.x-returnType}}
 {{operationId}} {{#allParams}}{{#required}}{{{paramName}}} {{/required}}{{/allParams}}=
   _mkRequest "{{httpMethod}}" [{{#pathParams}}{{#vendorExtensions.x-pathPrefix}}"{{.}}",{{/vendorExtensions.x-pathPrefix}}toPath {{{paramName}}}{{#hasMore}},{{/hasMore}}{{/pathParams}}{{#vendorExtensions.x-pathSuffix}}{{#vendorExtensions.x-hasPathParams}},{{/vendorExtensions.x-hasPathParams}}"{{.}}"{{/vendorExtensions.x-pathSuffix}}]{{#allParams}}{{#required}}
-    {{#isHeaderParam}}`_addHeader` {{>_multiHeader}} toHeader ("{{{baseName}}}", {{{paramName}}}){{/isHeaderParam}}{{#isQueryParam}}`_addQuery` {{>_multiQuery}} toQuery ("{{{baseName}}}", Just {{{paramName}}}){{/isQueryParam}}{{#isFormParam}}`_addFormUrlField` [("{{{baseName}}}", Just ({{>_encode}} {{{paramName}}}))]{{/isFormParam}}{{#isBodyParam}}`_setBodyLBS` A.encode {{{paramName}}}{{/isBodyParam}}{{/required}}{{/allParams}}{{#isDeprecated}}
+    {{#isHeaderParam}}`_addHeader` {{>_multiHeader}} toHeader ("{{{baseName}}}", {{{paramName}}}){{/isHeaderParam}}{{#isQueryParam}}`_addQuery` {{>_multiQuery}} toQuery ("{{{baseName}}}", Just {{{paramName}}}){{/isQueryParam}}{{#isFormParam}}`_addForm` toForm ("{{{baseName}}}", {{{paramName}}}){{/isFormParam}}{{#isBodyParam}}`_setBodyLBS` A.encode {{{paramName}}}{{/isBodyParam}}{{/required}}{{/allParams}}{{#isDeprecated}}
 
 {-# DEPRECATED {{operationId}} "" #-}{{/isDeprecated}}
 
@@ -83,7 +84,7 @@ data {{{vendorExtensions.x-operationType}}}{{#hasConsumes}}{{#consumes}}
 -- | /Optional Param/ "{{{baseName}}}" - {{{description}}}{{/description}}
 instance HasOptionalParam {{{vendorExtensions.x-operationType}}} {{{vendorExtensions.x-paramNameType}}} where
   applyOptionalParam req ({{{vendorExtensions.x-paramNameType}}} xs) =
-    {{#isHeaderParam}}req `_addHeader` {{>_multiHeader}} toHeader ("{{{baseName}}}", xs){{/isHeaderParam}}{{#isQueryParam}}req `_addQuery` {{>_multiQuery}} toQuery ("{{{baseName}}}", Just xs){{/isQueryParam}}{{#isFormParam}}req `_addFormUrlField` [("{{{baseName}}}", Just ({{>_encode}} xs))]{{/isFormParam}}{{#isBodyParam}}req `_setBodyLBS` A.encode xs{{/isBodyParam}}{{/required}}{{/allParams}}{{/vendorExtensions.x-hasOptionalParams}}
+    {{#isHeaderParam}}req `_addHeader` {{>_multiHeader}} toHeader ("{{{baseName}}}", xs){{/isHeaderParam}}{{#isQueryParam}}req `_addQuery` {{>_multiQuery}} toQuery ("{{{baseName}}}", Just xs){{/isQueryParam}}{{#isFormParam}}req `_addForm` toForm ("{{{baseName}}}", xs){{/isFormParam}}{{#isBodyParam}}req `_setBodyLBS` A.encode xs{{/isBodyParam}}{{/required}}{{/allParams}}{{/vendorExtensions.x-hasOptionalParams}}
 {{/operation}}{{/operations}}{{/apis}}{{/apiInfo}}
  
 -- * {{requestType}}
@@ -117,6 +118,22 @@ _addQuery req query =
     let _params = params req 
     in req { params = _params { paramsQuery = query P.++ paramsQuery _params } }
 
+_addForm :: {{requestType}} req res -> WF.Form -> {{requestType}} req res
+_addForm req newform = 
+    let _params = params req
+        form = case paramsBody _params of
+            ParamBodyForm _form -> _form
+            _ -> mempty
+    in req { params = _params { paramsBody = ParamBodyForm (newform <> form) } }
+
+_addMultiFormPart :: {{requestType}} req res -> NH.Part -> {{requestType}} req res
+_addMultiFormPart req newpart = 
+    let _params = params req
+        parts = case paramsBody _params of
+            ParamBodyMultiForm _parts -> _parts
+            _ -> []
+    in req { params = _params { paramsBody = ParamBodyMultiForm (newpart : parts) } }
+
 _setBodyBS :: {{requestType}} req res -> B.ByteString -> {{requestType}} req res
 _setBodyBS req body = 
     let _params = params req
@@ -127,21 +144,6 @@ _setBodyLBS req body =
     let _params = params req
     in req { params = _params { paramsBody = ParamBodyBSL body } }
 
-_addFormUrlField :: {{requestType}} req res -> [NH.QueryItem] -> {{requestType}} req res
-_addFormUrlField req field = 
-    let _params = params req
-        fields = case paramsBody _params of
-            ParamBodyFormUrl _fields -> _fields
-            _ -> []
-    in req { params = _params { paramsBody = ParamBodyFormUrl (field P.++ fields) } }
-
-_addMultiFormPart :: {{requestType}} req res -> NH.Part -> {{requestType}} req res
-_addMultiFormPart req newpart = 
-    let _params = params req
-        parts = case paramsBody _params of
-            ParamBodyMultiForm _parts -> _parts
-            _ -> []
-    in req { params = _params { paramsBody = ParamBodyMultiForm (newpart : parts) } }
 
 
 -- * Params
@@ -179,10 +181,10 @@ data Params = Params
 
 data ParamBody
   = ParamBodyNone
+  | ParamBodyForm WF.Form
+  | ParamBodyMultiForm [NH.Part]
   | ParamBodyBS B.ByteString
   | ParamBodyBSL BSL.ByteString
-  | ParamBodyFormUrl NH.Query
-  | ParamBodyMultiForm [NH.Part]
   deriving (P.Show)
 
 toPath
@@ -204,6 +206,9 @@ toQuery x = [(fmap . fmap) toQueryParam x]
 toQueryMulti :: WH.ToHttpApiData a => CollectionFormat -> (BS8.ByteString, Maybe [a]) -> NH.Query
 toQueryMulti c xs = _toMultiA c toQuery xs
 
+toForm :: WH.ToHttpApiData v => (BS8.ByteString, v) -> WF.Form
+toForm (k,v) = WF.toForm [(BS8.unpack k,v)]
+
 _toMulti
   :: P.Traversable f
   => CollectionFormat -> (f a -> [(b, BS8.ByteString)]) -> f [a] -> [(b, BS8.ByteString)]
@@ -220,14 +225,13 @@ _toMultiA c encode xs = case c of
   PipeSeparated -> go (BS8.singleton '|')
   MultiParamArray -> expandList
   where
-    go sep = [P.foldl1 (\(sk, sv) (_,v) -> (sk, altCombine sep sv v)) expandList]
-    altCombine sep a b = (combine sep <$> a <*> b) <|> a <|> b
+    go sep =
+      [P.foldl1 (\(sk, sv) (_, v) -> (sk, (combine sep <$> sv <*> v) <|> sv <|> v)) expandList]
     combine sep x y = x <> sep <> y
     expandList = (P.concatMap encode . (P.traverse . P.traverse) P.toList) xs
     {-# INLINE go #-}
-    {-# INLINE altCombine #-}
-    {-# INLINE combine #-}
     {-# INLINE expandList #-}
+    {-# INLINE combine #-}
   
 data CollectionFormat
   = CommaSeparated -- ^ CSV format for multiple parameters.

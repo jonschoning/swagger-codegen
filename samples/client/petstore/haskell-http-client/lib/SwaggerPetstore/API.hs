@@ -18,10 +18,6 @@ import SwaggerPetstore.Model as M
 import Control.Monad.IO.Class
 import qualified Data.Aeson as A
 import qualified Data.Aeson.Types as A
-import Data.Function ((&))
-import Data.Text (Text)
-import Data.Set (Set)
-import GHC.Exts (IsString(..))
 
 import qualified Data.Map as Map
 import qualified Data.Text as T
@@ -43,10 +39,15 @@ import qualified Network.HTTP.Types.URI as NH
 import qualified Web.HttpApiData as WH
 import qualified Web.FormUrlEncoded as WF
 
+import Data.Function ((&))
 import Data.Monoid ((<>))
+import Data.Set (Set)
+import Data.Text (Text)
 import GHC.Base ((<|>))
-import Prelude ((.),(<$>),(<*>),Maybe(..),Bool(..),Char,Double,FilePath,Float,Int,Integer,String,fmap,undefined)
+import GHC.Exts (IsString(..))
+import Prelude ((.),(<$>),(<*>),Maybe(..),Bool(..),Char,Double,FilePath,Float,Int,Integer,String,fmap,undefined,mempty)
 import qualified Data.Foldable as P
+import qualified Data.Functor.Identity as P (Identity(..))
 import qualified Data.Maybe as P
 import qualified GHC.Base as P (Alternative)
 import qualified Prelude as P
@@ -233,12 +234,12 @@ data UpdatePetWithForm
 -- | /Optional Param/ "name" - Updated name of the pet
 instance HasOptionalParam UpdatePetWithForm Name where
   applyOptionalParam req (Name xs) =
-    req `_addFormUrlField` [("name", Just (TE.encodeUtf8 xs))]
+    req `_addForm` toForm ("name", xs)
 
 -- | /Optional Param/ "status" - Updated status of the pet
 instance HasOptionalParam UpdatePetWithForm Status where
   applyOptionalParam req (Status xs) =
-    req `_addFormUrlField` [("status", Just (TE.encodeUtf8 xs))]
+    req `_addForm` toForm ("status", xs)
 
 
 -- ** uploadFile
@@ -268,12 +269,12 @@ data UploadFile
 -- | /Optional Param/ "additionalMetadata" - Additional data to pass to server
 instance HasOptionalParam UploadFile AdditionalMetadata where
   applyOptionalParam req (AdditionalMetadata xs) =
-    req `_addFormUrlField` [("additionalMetadata", Just (TE.encodeUtf8 xs))]
+    req `_addForm` toForm ("additionalMetadata", xs)
 
 -- | /Optional Param/ "file" - file to upload
 instance HasOptionalParam UploadFile File where
   applyOptionalParam req (File xs) =
-    req `_addFormUrlField` [("file", Just (showBS xs))]
+    req `_addForm` toForm ("file", xs)
 
 
 -- ** deleteOrder
@@ -560,6 +561,22 @@ _addQuery req query =
     let _params = params req 
     in req { params = _params { paramsQuery = query P.++ paramsQuery _params } }
 
+_addForm :: SwaggerPetstoreRequest req res -> WF.Form -> SwaggerPetstoreRequest req res
+_addForm req newform = 
+    let _params = params req
+        form = case paramsBody _params of
+            ParamBodyForm _form -> _form
+            _ -> mempty
+    in req { params = _params { paramsBody = ParamBodyForm (newform <> form) } }
+
+_addMultiFormPart :: SwaggerPetstoreRequest req res -> NH.Part -> SwaggerPetstoreRequest req res
+_addMultiFormPart req newpart = 
+    let _params = params req
+        parts = case paramsBody _params of
+            ParamBodyMultiForm _parts -> _parts
+            _ -> []
+    in req { params = _params { paramsBody = ParamBodyMultiForm (newpart : parts) } }
+
 _setBodyBS :: SwaggerPetstoreRequest req res -> B.ByteString -> SwaggerPetstoreRequest req res
 _setBodyBS req body = 
     let _params = params req
@@ -570,21 +587,6 @@ _setBodyLBS req body =
     let _params = params req
     in req { params = _params { paramsBody = ParamBodyBSL body } }
 
-_addFormUrlField :: SwaggerPetstoreRequest req res -> [NH.QueryItem] -> SwaggerPetstoreRequest req res
-_addFormUrlField req field = 
-    let _params = params req
-        fields = case paramsBody _params of
-            ParamBodyFormUrl _fields -> _fields
-            _ -> []
-    in req { params = _params { paramsBody = ParamBodyFormUrl (field P.++ fields) } }
-
-_addMultiFormPart :: SwaggerPetstoreRequest req res -> NH.Part -> SwaggerPetstoreRequest req res
-_addMultiFormPart req newpart = 
-    let _params = params req
-        parts = case paramsBody _params of
-            ParamBodyMultiForm _parts -> _parts
-            _ -> []
-    in req { params = _params { paramsBody = ParamBodyMultiForm (newpart : parts) } }
 
 
 -- * Params
@@ -622,10 +624,10 @@ data Params = Params
 
 data ParamBody
   = ParamBodyNone
+  | ParamBodyForm WF.Form
+  | ParamBodyMultiForm [NH.Part]
   | ParamBodyBS B.ByteString
   | ParamBodyBSL BSL.ByteString
-  | ParamBodyFormUrl NH.Query
-  | ParamBodyMultiForm [NH.Part]
   deriving (P.Show)
 
 toPath
@@ -647,6 +649,9 @@ toQuery x = [(fmap . fmap) toQueryParam x]
 toQueryMulti :: WH.ToHttpApiData a => CollectionFormat -> (BS8.ByteString, Maybe [a]) -> NH.Query
 toQueryMulti c xs = _toMultiA c toQuery xs
 
+toForm :: WH.ToHttpApiData v => (BS8.ByteString, v) -> WF.Form
+toForm (k,v) = WF.toForm [(BS8.unpack k,v)]
+
 _toMulti
   :: P.Traversable f
   => CollectionFormat -> (f a -> [(b, BS8.ByteString)]) -> f [a] -> [(b, BS8.ByteString)]
@@ -663,14 +668,13 @@ _toMultiA c encode xs = case c of
   PipeSeparated -> go (BS8.singleton '|')
   MultiParamArray -> expandList
   where
-    go sep = [P.foldl1 (\(sk, sv) (_,v) -> (sk, altCombine sep sv v)) expandList]
-    altCombine sep a b = (combine sep <$> a <*> b) <|> a <|> b
+    go sep =
+      [P.foldl1 (\(sk, sv) (_, v) -> (sk, (combine sep <$> sv <*> v) <|> sv <|> v)) expandList]
     combine sep x y = x <> sep <> y
     expandList = (P.concatMap encode . (P.traverse . P.traverse) P.toList) xs
     {-# INLINE go #-}
-    {-# INLINE altCombine #-}
-    {-# INLINE combine #-}
     {-# INLINE expandList #-}
+    {-# INLINE combine #-}
   
 data CollectionFormat
   = CommaSeparated -- ^ CSV format for multiple parameters.
