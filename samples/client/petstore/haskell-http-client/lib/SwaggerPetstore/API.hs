@@ -125,7 +125,7 @@ findPetsByStatus
   -> SwaggerPetstoreRequest FindPetsByStatus [Pet]
 findPetsByStatus status =
   _mkRequest "GET" ["/pet/findByStatus"]
-    `_addQuery` toQueryMulti MultiParamArray ("status", Just status)
+    `_addQuery` toQueryColl MultiParamArray ("status", Just status)
 
 data FindPetsByStatus
 -- instance Produces FindPetsByStatus application/xml
@@ -148,7 +148,7 @@ findPetsByTags
   -> SwaggerPetstoreRequest FindPetsByTags [Pet]
 findPetsByTags tags =
   _mkRequest "GET" ["/pet/findByTags"]
-    `_addQuery` toQueryMulti MultiParamArray ("tags", Just tags)
+    `_addQuery` toQueryColl MultiParamArray ("tags", Just tags)
 
 {-# DEPRECATED findPetsByTags "" #-}
 
@@ -646,31 +646,28 @@ toQuery :: WH.ToHttpApiData a => (BS8.ByteString, Maybe a) -> [NH.QueryItem]
 toQuery x = [(fmap . fmap) toQueryParam x]
   where toQueryParam = TE.encodeUtf8 . WH.toQueryParam
 
-toHeaderMulti :: WH.ToHttpApiData a => CollectionFormat -> (NH.HeaderName, [a]) -> [NH.Header]
-toHeaderMulti c xs = _toMulti c toHeader xs
+toHeaderColl :: WH.ToHttpApiData a => CollectionFormat -> (NH.HeaderName, [a]) -> [NH.Header]
+toHeaderColl c xs = _toColl c toHeader xs
 
-toFormMulti :: WH.ToHttpApiData v => CollectionFormat -> (BS8.ByteString, [v]) -> WF.Form
-toFormMulti c xs = WF.toForm $ fmap unpack $ _toMulti c toHeader $ pack xs
+toFormColl :: WH.ToHttpApiData v => CollectionFormat -> (BS8.ByteString, [v]) -> WF.Form
+toFormColl c xs = WF.toForm $ fmap unpack $ _toColl c toHeader $ pack xs
   where
     pack (k,v) = (CI.mk k, v)
     unpack (k,v) = (BS8.unpack (CI.original k), BS8.unpack v)
 
-toQueryMulti :: WH.ToHttpApiData a => CollectionFormat -> (BS8.ByteString, Maybe [a]) -> NH.Query
-toQueryMulti c xs = _toMultiA c toQuery xs
+toQueryColl :: WH.ToHttpApiData a => CollectionFormat -> (BS8.ByteString, Maybe [a]) -> NH.Query
+toQueryColl c xs = _toCollA c toQuery xs
 
-_toMulti :: P.Traversable f => CollectionFormat -> (f a -> [(b, BS8.ByteString)]) -> f [a] -> [(b, BS8.ByteString)]
-_toMulti c encode xs = _toMulti' c encode BS8.singleton xs
-
-_toMulti' :: (P.Monoid c, P.Traversable f) => CollectionFormat -> (f a -> [(b, c)]) -> (Char -> c) -> f [a] -> [(b, c)]
-_toMulti' c encode one xs = fmap (fmap P.fromJust) (_toMultiA' c fencode one (fmap Just xs))
+_toColl :: P.Traversable f => CollectionFormat -> (f a -> [(b, BS8.ByteString)]) -> f [a] -> [(b, BS8.ByteString)]
+_toColl c encode xs = fmap (fmap P.fromJust) (_toCollA' c fencode BS8.singleton (fmap Just xs))
   where fencode = fmap (fmap Just) . encode . fmap P.fromJust
         {-# INLINE fencode #-}
 
-_toMultiA :: (P.Traversable f, P.Traversable t, P.Alternative t) => CollectionFormat -> (f (t a) -> [(b, t BS8.ByteString)]) -> f (t [a]) -> [(b, t BS8.ByteString)]
-_toMultiA c encode xs = _toMultiA' c encode BS8.singleton xs
+_toCollA :: (P.Traversable f, P.Traversable t, P.Alternative t) => CollectionFormat -> (f (t a) -> [(b, t BS8.ByteString)]) -> f (t [a]) -> [(b, t BS8.ByteString)]
+_toCollA c encode xs = _toCollA' c encode BS8.singleton xs
 
-_toMultiA' :: (P.Monoid c, P.Traversable f, P.Traversable t, P.Alternative t) => CollectionFormat -> (f (t a) -> [(b, t c)]) -> (Char -> c) -> f (t [a]) -> [(b, t c)]
-_toMultiA' c encode one xs = case c of
+_toCollA' :: (P.Monoid c, P.Traversable f, P.Traversable t, P.Alternative t) => CollectionFormat -> (f (t a) -> [(b, t c)]) -> (Char -> c) -> f (t [a]) -> [(b, t c)]
+_toCollA' c encode one xs = case c of
   CommaSeparated -> go (one ',')
   SpaceSeparated -> go (one ' ')
   TabSeparated -> go (one '\t')

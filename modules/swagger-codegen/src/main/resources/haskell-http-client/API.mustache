@@ -74,7 +74,7 @@ import qualified Data.CaseInsensitive as CI
   -> {{/required}}{{/allParams}}{{requestType}} {{{vendorExtensions.x-operationType}}} {{vendorExtensions.x-returnType}}
 {{operationId}} {{#allParams}}{{#required}}{{{paramName}}} {{/required}}{{/allParams}}=
   _mkRequest "{{httpMethod}}" [{{#pathParams}}{{#vendorExtensions.x-pathPrefix}}"{{.}}",{{/vendorExtensions.x-pathPrefix}}toPath {{{paramName}}}{{#hasMore}},{{/hasMore}}{{/pathParams}}{{#vendorExtensions.x-pathSuffix}}{{#vendorExtensions.x-hasPathParams}},{{/vendorExtensions.x-hasPathParams}}"{{.}}"{{/vendorExtensions.x-pathSuffix}}]{{#allParams}}{{#required}}
-    {{#isHeaderParam}}`_addHeader` {{>_multiHeader}} ("{{{baseName}}}", {{{paramName}}}){{/isHeaderParam}}{{#isQueryParam}}`_addQuery` {{>_multiQuery}} ("{{{baseName}}}", Just {{{paramName}}}){{/isQueryParam}}{{#isFormParam}}`_addForm` {{>_multiForm}} ("{{{baseName}}}", {{{paramName}}}){{/isFormParam}}{{#isBodyParam}}`_setBodyLBS` A.encode {{{paramName}}}{{/isBodyParam}}{{/required}}{{/allParams}}{{#isDeprecated}}
+    {{#isHeaderParam}}`_addHeader` {{>_headerColl}} ("{{{baseName}}}", {{{paramName}}}){{/isHeaderParam}}{{#isQueryParam}}`_addQuery` {{>_queryColl}} ("{{{baseName}}}", Just {{{paramName}}}){{/isQueryParam}}{{#isFormParam}}`_addForm` {{>_formColl}} ("{{{baseName}}}", {{{paramName}}}){{/isFormParam}}{{#isBodyParam}}`_setBodyLBS` A.encode {{{paramName}}}{{/isBodyParam}}{{/required}}{{/allParams}}{{#isDeprecated}}
 
 {-# DEPRECATED {{operationId}} "" #-}{{/isDeprecated}}
 
@@ -85,7 +85,7 @@ data {{{vendorExtensions.x-operationType}}}{{#hasConsumes}}{{#consumes}}
 -- | /Optional Param/ "{{{baseName}}}" - {{{description}}}{{/description}}
 instance HasOptionalParam {{{vendorExtensions.x-operationType}}} {{{vendorExtensions.x-paramNameType}}} where
   applyOptionalParam req ({{{vendorExtensions.x-paramNameType}}} xs) =
-    {{#isHeaderParam}}req `_addHeader` {{>_multiHeader}} ("{{{baseName}}}", xs){{/isHeaderParam}}{{#isQueryParam}}req `_addQuery` {{>_multiQuery}} ("{{{baseName}}}", Just xs){{/isQueryParam}}{{#isFormParam}}req `_addForm` {{>_multiForm}} ("{{{baseName}}}", xs){{/isFormParam}}{{#isBodyParam}}req `_setBodyLBS` A.encode xs{{/isBodyParam}}{{/required}}{{/allParams}}{{/vendorExtensions.x-hasOptionalParams}}
+    {{#isHeaderParam}}req `_addHeader` {{>_headerColl}} ("{{{baseName}}}", xs){{/isHeaderParam}}{{#isQueryParam}}req `_addQuery` {{>_queryColl}} ("{{{baseName}}}", Just xs){{/isQueryParam}}{{#isFormParam}}req `_addForm` {{>_formColl}} ("{{{baseName}}}", xs){{/isFormParam}}{{#isBodyParam}}req `_setBodyLBS` A.encode xs{{/isBodyParam}}{{/required}}{{/allParams}}{{/vendorExtensions.x-hasOptionalParams}}
 {{/operation}}{{/operations}}{{/apis}}{{/apiInfo}}
  
 -- * {{requestType}}
@@ -203,31 +203,28 @@ toQuery :: WH.ToHttpApiData a => (BS8.ByteString, Maybe a) -> [NH.QueryItem]
 toQuery x = [(fmap . fmap) toQueryParam x]
   where toQueryParam = TE.encodeUtf8 . WH.toQueryParam
 
-toHeaderMulti :: WH.ToHttpApiData a => CollectionFormat -> (NH.HeaderName, [a]) -> [NH.Header]
-toHeaderMulti c xs = _toMulti c toHeader xs
+toHeaderColl :: WH.ToHttpApiData a => CollectionFormat -> (NH.HeaderName, [a]) -> [NH.Header]
+toHeaderColl c xs = _toColl c toHeader xs
 
-toFormMulti :: WH.ToHttpApiData v => CollectionFormat -> (BS8.ByteString, [v]) -> WF.Form
-toFormMulti c xs = WF.toForm $ fmap unpack $ _toMulti c toHeader $ pack xs
+toFormColl :: WH.ToHttpApiData v => CollectionFormat -> (BS8.ByteString, [v]) -> WF.Form
+toFormColl c xs = WF.toForm $ fmap unpack $ _toColl c toHeader $ pack xs
   where
     pack (k,v) = (CI.mk k, v)
     unpack (k,v) = (BS8.unpack (CI.original k), BS8.unpack v)
 
-toQueryMulti :: WH.ToHttpApiData a => CollectionFormat -> (BS8.ByteString, Maybe [a]) -> NH.Query
-toQueryMulti c xs = _toMultiA c toQuery xs
+toQueryColl :: WH.ToHttpApiData a => CollectionFormat -> (BS8.ByteString, Maybe [a]) -> NH.Query
+toQueryColl c xs = _toCollA c toQuery xs
 
-_toMulti :: P.Traversable f => CollectionFormat -> (f a -> [(b, BS8.ByteString)]) -> f [a] -> [(b, BS8.ByteString)]
-_toMulti c encode xs = _toMulti' c encode BS8.singleton xs
-
-_toMulti' :: (P.Monoid c, P.Traversable f) => CollectionFormat -> (f a -> [(b, c)]) -> (Char -> c) -> f [a] -> [(b, c)]
-_toMulti' c encode one xs = fmap (fmap P.fromJust) (_toMultiA' c fencode one (fmap Just xs))
+_toColl :: P.Traversable f => CollectionFormat -> (f a -> [(b, BS8.ByteString)]) -> f [a] -> [(b, BS8.ByteString)]
+_toColl c encode xs = fmap (fmap P.fromJust) (_toCollA' c fencode BS8.singleton (fmap Just xs))
   where fencode = fmap (fmap Just) . encode . fmap P.fromJust
         {-# INLINE fencode #-}
 
-_toMultiA :: (P.Traversable f, P.Traversable t, P.Alternative t) => CollectionFormat -> (f (t a) -> [(b, t BS8.ByteString)]) -> f (t [a]) -> [(b, t BS8.ByteString)]
-_toMultiA c encode xs = _toMultiA' c encode BS8.singleton xs
+_toCollA :: (P.Traversable f, P.Traversable t, P.Alternative t) => CollectionFormat -> (f (t a) -> [(b, t BS8.ByteString)]) -> f (t [a]) -> [(b, t BS8.ByteString)]
+_toCollA c encode xs = _toCollA' c encode BS8.singleton xs
 
-_toMultiA' :: (P.Monoid c, P.Traversable f, P.Traversable t, P.Alternative t) => CollectionFormat -> (f (t a) -> [(b, t c)]) -> (Char -> c) -> f (t [a]) -> [(b, t c)]
-_toMultiA' c encode one xs = case c of
+_toCollA' :: (P.Monoid c, P.Traversable f, P.Traversable t, P.Alternative t) => CollectionFormat -> (f (t a) -> [(b, t c)]) -> (Char -> c) -> f (t [a]) -> [(b, t c)]
+_toCollA' c encode one xs = case c of
   CommaSeparated -> go (one ',')
   SpaceSeparated -> go (one ' ')
   TabSeparated -> go (one '\t')

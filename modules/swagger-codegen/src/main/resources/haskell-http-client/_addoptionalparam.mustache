@@ -1,1 +1,0 @@
-{{#isHeaderParam}}_addHeader req ("{{{baseName}}}", {{>_encode}} xs){{/isHeaderParam}}{{#isQueryParam}}_addQuery req ("{{{baseName}}}", Just ({{>_encode}} xs)){{/isQueryParam}}{{#isBodyParam}}_setBodyLBS req (A.encode {{{paramName}}}){{/isBodyParam}}{{#isFormParam}}_addFormUrlField req ("{{{baseName}}}", Just ({{>_encode}} xs)){{/isFormParam}}
