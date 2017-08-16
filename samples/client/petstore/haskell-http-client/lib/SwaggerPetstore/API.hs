@@ -3,6 +3,7 @@ Module : SwaggerPetstore.API
 -}
 
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE DeriveFunctor #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RankNTypes #-}
@@ -39,8 +40,12 @@ import qualified Network.HTTP.Types.Method as NH
 import qualified Network.HTTP.Types as NH
 import qualified Network.HTTP.Types.URI as NH
 
+import qualified Web.HttpApiData as WH
+import qualified Web.FormUrlEncoded as WF
+
 import qualified Prelude as P
 import Prelude ((.),Maybe(..),Bool(..),Char,Double,FilePath,Float,Int,Integer,String)
+import qualified Data.Foldable as P
 
 -- * Operations
 
@@ -66,6 +71,10 @@ addPet body =
     `_setBodyLBS` A.encode body
 
 data AddPet
+-- instance Consumes AddPet application/json
+-- instance Consumes AddPet application/xml
+-- instance Produces AddPet application/xml
+-- instance Produces AddPet application/json
 
 
 -- ** deletePet
@@ -87,9 +96,11 @@ deletePet petId =
     
 
 data DeletePet
+-- instance Produces DeletePet application/xml
+-- instance Produces DeletePet application/json
 instance HasOptionalParam DeletePet Api'Underscorekey where
   applyOptionalParam req (Api'Underscorekey xs) =
-    _addHeader req ("api_key", TE.encodeUtf8 xs)
+    _addHeader req ("api_key", WH.toHeader xs)
 
 
 -- ** findPetsByStatus
@@ -108,9 +119,11 @@ findPetsByStatus
   -> SwaggerPetstoreRequest FindPetsByStatus [Pet]
 findPetsByStatus status =
   _mkRequest "GET" ["/pet/findByStatus"]
-    `_addQuery` ("status", Just (showBS status))
+    `_addQuery` ("status", Just (toParamMulti "multi" toQueryParam status))
 
 data FindPetsByStatus
+-- instance Produces FindPetsByStatus application/xml
+-- instance Produces FindPetsByStatus application/json
 
 
 -- ** findPetsByTags
@@ -129,11 +142,13 @@ findPetsByTags
   -> SwaggerPetstoreRequest FindPetsByTags [Pet]
 findPetsByTags tags =
   _mkRequest "GET" ["/pet/findByTags"]
-    `_addQuery` ("tags", Just (showBS tags))
+    `_addQuery` ("tags", Just (toParamMulti "multi" toQueryParam tags))
 
 {-# DEPRECATED findPetsByTags "" #-}
 
 data FindPetsByTags
+-- instance Produces FindPetsByTags application/xml
+-- instance Produces FindPetsByTags application/json
 
 
 -- ** getPetById
@@ -155,6 +170,8 @@ getPetById petId =
     
 
 data GetPetById
+-- instance Produces GetPetById application/xml
+-- instance Produces GetPetById application/json
 
 
 -- ** updatePet
@@ -178,6 +195,10 @@ updatePet body =
     `_setBodyLBS` A.encode body
 
 data UpdatePet
+-- instance Consumes UpdatePet application/json
+-- instance Consumes UpdatePet application/xml
+-- instance Produces UpdatePet application/xml
+-- instance Produces UpdatePet application/json
 
 
 -- ** updatePetWithForm
@@ -201,6 +222,9 @@ updatePetWithForm petId =
     
 
 data UpdatePetWithForm
+-- instance Consumes UpdatePetWithForm application/x-www-form-urlencoded
+-- instance Produces UpdatePetWithForm application/xml
+-- instance Produces UpdatePetWithForm application/json
 
 -- | /Optional Param/ "name" - Updated name of the pet
 instance HasOptionalParam UpdatePetWithForm Name where
@@ -234,6 +258,8 @@ uploadFile petId =
     
 
 data UploadFile
+-- instance Consumes UploadFile multipart/form-data
+-- instance Produces UploadFile application/json
 
 -- | /Optional Param/ "additionalMetadata" - Additional data to pass to server
 instance HasOptionalParam UploadFile AdditionalMetadata where
@@ -263,6 +289,8 @@ deleteOrder orderId =
     
 
 data DeleteOrder
+-- instance Produces DeleteOrder application/xml
+-- instance Produces DeleteOrder application/json
 
 
 -- ** getInventory
@@ -282,6 +310,7 @@ getInventory =
   _mkRequest "GET" ["/store/inventory"]
 
 data GetInventory
+-- instance Produces GetInventory application/json
 
 
 -- ** getOrderById
@@ -301,6 +330,8 @@ getOrderById orderId =
     
 
 data GetOrderById
+-- instance Produces GetOrderById application/xml
+-- instance Produces GetOrderById application/json
 
 
 -- ** placeOrder
@@ -320,6 +351,8 @@ placeOrder body =
     `_setBodyLBS` A.encode body
 
 data PlaceOrder
+-- instance Produces PlaceOrder application/xml
+-- instance Produces PlaceOrder application/json
 
 
 -- ** createUser
@@ -339,6 +372,8 @@ createUser body =
     `_setBodyLBS` A.encode body
 
 data CreateUser
+-- instance Produces CreateUser application/xml
+-- instance Produces CreateUser application/json
 
 
 -- ** createUsersWithArrayInput
@@ -358,6 +393,8 @@ createUsersWithArrayInput body =
     `_setBodyLBS` A.encode body
 
 data CreateUsersWithArrayInput
+-- instance Produces CreateUsersWithArrayInput application/xml
+-- instance Produces CreateUsersWithArrayInput application/json
 
 
 -- ** createUsersWithListInput
@@ -377,6 +414,8 @@ createUsersWithListInput body =
     `_setBodyLBS` A.encode body
 
 data CreateUsersWithListInput
+-- instance Produces CreateUsersWithListInput application/xml
+-- instance Produces CreateUsersWithListInput application/json
 
 
 -- ** deleteUser
@@ -396,6 +435,8 @@ deleteUser username =
     
 
 data DeleteUser
+-- instance Produces DeleteUser application/xml
+-- instance Produces DeleteUser application/json
 
 
 -- ** getUserByName
@@ -415,6 +456,8 @@ getUserByName username =
     
 
 data GetUserByName
+-- instance Produces GetUserByName application/xml
+-- instance Produces GetUserByName application/json
 
 
 -- ** loginUser
@@ -432,10 +475,12 @@ loginUser
   -> SwaggerPetstoreRequest LoginUser Text
 loginUser username password =
   _mkRequest "GET" ["/user/login"]
-    `_addQuery` ("username", Just (TE.encodeUtf8 username))
-    `_addQuery` ("password", Just (TE.encodeUtf8 password))
+    `_addQuery` ("username", Just ( toQueryParam username))
+    `_addQuery` ("password", Just ( toQueryParam password))
 
 data LoginUser
+-- instance Produces LoginUser application/xml
+-- instance Produces LoginUser application/json
 
 
 -- ** logoutUser
@@ -453,6 +498,8 @@ logoutUser =
   _mkRequest "GET" ["/user/logout"]
 
 data LogoutUser
+-- instance Produces LogoutUser application/xml
+-- instance Produces LogoutUser application/json
 
 
 -- ** updateUser
@@ -474,14 +521,16 @@ updateUser username body =
     `_setBodyLBS` A.encode body
 
 data UpdateUser
+-- instance Produces UpdateUser application/xml
+-- instance Produces UpdateUser application/json
 
-
+ 
 -- * SwaggerPetstoreRequest
 
 -- | Represents a request. The "req" type variable is the request type. The "res" type variable is the response type.
 data SwaggerPetstoreRequest req res = SwaggerPetstoreRequest
   { rMethod  :: NH.Method   -- ^ Method of SwaggerPetstoreRequest
-  , urlPath :: [BS8.ByteString] -- ^ Endpoint of SwaggerPetstoreRequest
+  , urlPath :: [BSL.ByteString] -- ^ Endpoint of SwaggerPetstoreRequest
   , params   :: Params -- ^ params of SwaggerPetstoreRequest
   }
   deriving (P.Show)
@@ -490,7 +539,7 @@ data SwaggerPetstoreRequest req res = SwaggerPetstoreRequest
 -- * SwaggerPetstoreRequest Helpers
 
 _mkRequest :: NH.Method -- ^ Method 
-          -> [BS8.ByteString] -- ^ Endpoint
+          -> [BSL.ByteString] -- ^ Endpoint
           -> SwaggerPetstoreRequest req res -- ^ req: Request Type, res: Response Type
 _mkRequest m u = SwaggerPetstoreRequest m u _mkParams
 
@@ -504,7 +553,7 @@ _addHeader req header =
 
 _addQuery :: SwaggerPetstoreRequest req res -> NH.QueryItem -> SwaggerPetstoreRequest req res
 _addQuery req query = 
-    let _params = params req
+    let _params = params req 
     in req { params = _params { paramsQuery = query : paramsQuery _params } }
 
 _setBodyBS :: SwaggerPetstoreRequest req res -> B.ByteString -> SwaggerPetstoreRequest req res
@@ -535,6 +584,12 @@ _addMultiFormPart req newpart =
 
 
 -- * Params
+
+-- ** Consumes
+class Consumes req content where
+
+-- ** Produces
+class Produces req accept where
 
 -- ** HasOptionalParam
 -- | Designates the optional parameters of a request
@@ -570,9 +625,24 @@ data ParamBody
   deriving (P.Show)
 
 toPath
-  :: P.Show a
-  => a -> BS8.ByteString
-toPath x = NH.urlEncode False (BS8.pack (P.show x))
+  :: WH.ToHttpApiData a
+  => a -> BSL.ByteString
+toPath = BSB.toLazyByteString . WH.toEncodedUrlPiece
+
+toQueryParam :: WH.ToHttpApiData a => a -> BS8.ByteString
+toQueryParam = TE.encodeUtf8 . WH.toQueryParam
+
+toParamMulti :: P.Foldable f => String -> (a -> BS8.ByteString) -> f a -> BS8.ByteString
+toParamMulti "csv" f xs = sepTextBy ',' f xs
+toParamMulti "tsv" f xs = sepTextBy '\t' f xs
+toParamMulti "ssv" f xs = sepTextBy ' ' f xs
+toParamMulti "pipes" f xs = sepTextBy '|' f xs
+toParamMulti "multi" _ _ = P.error "toParamMulti: no multi"
+toParamMulti _ _ _ = P.error "toParamMulti: bad sep"
+
+sepTextBy :: P.Foldable f => Char -> (a -> BS8.ByteString) -> f a -> BS8.ByteString
+sepTextBy sep f = BS8.intercalate (BS8.singleton sep) . P.fmap f . P.toList 
+
 
 showBS
   :: P.Show a

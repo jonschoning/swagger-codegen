@@ -3,6 +3,7 @@ Module : {{title}}.API
 -}
 
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE DeriveFunctor #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RankNTypes #-}
@@ -39,8 +40,12 @@ import qualified Network.HTTP.Types.Method as NH
 import qualified Network.HTTP.Types as NH
 import qualified Network.HTTP.Types.URI as NH
 
+import qualified Web.HttpApiData as WH
+import qualified Web.FormUrlEncoded as WF
+
 import qualified Prelude as P
 import Prelude ((.),Maybe(..),Bool(..),Char,Double,FilePath,Float,Int,Integer,String)
+import qualified Data.Foldable as P
 
 -- * Operations
 {{#apiInfo}}{{#apis}}{{#operations}}{{#operation}}
@@ -63,24 +68,26 @@ import Prelude ((.),Maybe(..),Bool(..),Char,Double,FilePath,Float,Int,Integer,St
   -> {{/required}}{{/allParams}}{{requestType}} {{{vendorExtensions.x-operationType}}} {{vendorExtensions.x-returnType}}
 {{operationId}} {{#allParams}}{{#required}}{{{paramName}}} {{/required}}{{/allParams}}=
   _mkRequest "{{httpMethod}}" [{{#pathParams}}{{#vendorExtensions.x-pathPrefix}}"{{.}}",{{/vendorExtensions.x-pathPrefix}}toPath {{{paramName}}}{{#hasMore}},{{/hasMore}}{{/pathParams}}{{#vendorExtensions.x-pathSuffix}}{{#vendorExtensions.x-hasPathParams}},{{/vendorExtensions.x-hasPathParams}}"{{.}}"{{/vendorExtensions.x-pathSuffix}}]{{#allParams}}{{#required}}
-    {{>_addrequiredparams}}{{/required}}{{/allParams}}{{#isDeprecated}}
+    {{#isHeaderParam}}`_addHeader` ("{{{baseName}}}", WH.toHeader {{{paramName}}}){{/isHeaderParam}}{{#isQueryParam}}`_addQuery` ("{{{baseName}}}", Just ({{>_multi}} toQueryParam {{{paramName}}})){{/isQueryParam}}{{#isBodyParam}}`_setBodyLBS` A.encode {{{paramName}}}{{/isBodyParam}}{{#isFormParam}}`_addFormUrlField` ("{{{baseName}}}", Just ({{>_encode}} {{{paramName}}})){{/isFormParam}}{{/required}}{{/allParams}}{{#isDeprecated}}
 
 {-# DEPRECATED {{operationId}} "" #-}{{/isDeprecated}}
 
-data {{{vendorExtensions.x-operationType}}}{{#vendorExtensions.x-hasOptionalParams}}{{#allParams}}{{^required}}{{#description}}
+data {{{vendorExtensions.x-operationType}}}{{#hasConsumes}}{{#consumes}}
+-- instance Consumes {{{vendorExtensions.x-operationType}}} {{{mediaType}}}{{/consumes}}{{/hasConsumes}}{{#hasProduces}}{{#produces}}
+-- instance Produces {{{vendorExtensions.x-operationType}}} {{{mediaType}}}{{/produces}}{{/hasProduces}}{{#vendorExtensions.x-hasOptionalParams}}{{#allParams}}{{^required}}{{#description}}
 
 -- | /Optional Param/ "{{{baseName}}}" - {{{description}}}{{/description}}
 instance HasOptionalParam {{{vendorExtensions.x-operationType}}} {{{vendorExtensions.x-paramNameType}}} where
   applyOptionalParam req ({{{vendorExtensions.x-paramNameType}}} xs) =
-    {{>_addoptionalparam}}{{/required}}{{/allParams}}{{/vendorExtensions.x-hasOptionalParams}}
+    {{#isHeaderParam}}_addHeader req ("{{{baseName}}}", WH.toHeader xs){{/isHeaderParam}}{{#isQueryParam}}_addQuery req ("{{{baseName}}}", Just (toQueryParam xs)){{/isQueryParam}}{{#isBodyParam}}_setBodyLBS req (A.encode {{{paramName}}}){{/isBodyParam}}{{#isFormParam}}_addFormUrlField req ("{{{baseName}}}", Just ({{>_encode}} xs)){{/isFormParam}}{{/required}}{{/allParams}}{{/vendorExtensions.x-hasOptionalParams}}
 {{/operation}}{{/operations}}{{/apis}}{{/apiInfo}}
-
+ 
 -- * {{requestType}}
 
 -- | Represents a request. The "req" type variable is the request type. The "res" type variable is the response type.
 data {{requestType}} req res = {{requestType}}
   { rMethod  :: NH.Method   -- ^ Method of {{requestType}}
-  , urlPath :: [BS8.ByteString] -- ^ Endpoint of {{requestType}}
+  , urlPath :: [BSL.ByteString] -- ^ Endpoint of {{requestType}}
   , params   :: Params -- ^ params of {{requestType}}
   }
   deriving (P.Show)
@@ -89,7 +96,7 @@ data {{requestType}} req res = {{requestType}}
 -- * {{requestType}} Helpers
 
 _mkRequest :: NH.Method -- ^ Method 
-          -> [BS8.ByteString] -- ^ Endpoint
+          -> [BSL.ByteString] -- ^ Endpoint
           -> {{requestType}} req res -- ^ req: Request Type, res: Response Type
 _mkRequest m u = {{requestType}} m u _mkParams
 
@@ -103,7 +110,7 @@ _addHeader req header =
 
 _addQuery :: {{requestType}} req res -> NH.QueryItem -> {{requestType}} req res
 _addQuery req query = 
-    let _params = params req
+    let _params = params req 
     in req { params = _params { paramsQuery = query : paramsQuery _params } }
 
 _setBodyBS :: {{requestType}} req res -> B.ByteString -> {{requestType}} req res
@@ -134,6 +141,12 @@ _addMultiFormPart req newpart =
 
 
 -- * Params
+
+-- ** Consumes
+class Consumes req content where
+
+-- ** Produces
+class Produces req accept where
 
 -- ** HasOptionalParam
 -- | Designates the optional parameters of a request
@@ -169,9 +182,24 @@ data ParamBody
   deriving (P.Show)
 
 toPath
-  :: P.Show a
-  => a -> BS8.ByteString
-toPath x = NH.urlEncode False (BS8.pack (P.show x))
+  :: WH.ToHttpApiData a
+  => a -> BSL.ByteString
+toPath = BSB.toLazyByteString . WH.toEncodedUrlPiece
+
+toQueryParam :: WH.ToHttpApiData a => a -> BS8.ByteString
+toQueryParam = TE.encodeUtf8 . WH.toQueryParam
+
+toParamMulti :: P.Foldable f => String -> (a -> BS8.ByteString) -> f a -> BS8.ByteString
+toParamMulti "csv" f xs = sepTextBy ',' f xs
+toParamMulti "tsv" f xs = sepTextBy '\t' f xs
+toParamMulti "ssv" f xs = sepTextBy ' ' f xs
+toParamMulti "pipes" f xs = sepTextBy '|' f xs
+toParamMulti "multi" _ _ = P.error "toParamMulti: no multi"
+toParamMulti _ _ _ = P.error "toParamMulti: bad sep"
+
+sepTextBy :: P.Foldable f => Char -> (a -> BS8.ByteString) -> f a -> BS8.ByteString
+sepTextBy sep f = BS8.intercalate (BS8.singleton sep) . P.fmap f . P.toList 
+
 
 showBS
   :: P.Show a

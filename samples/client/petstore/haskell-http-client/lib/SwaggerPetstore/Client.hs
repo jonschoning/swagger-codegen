@@ -44,7 +44,7 @@ import qualified Network.HTTP.Types.URI as NH
 -- * Config
 
 data SwaggerPetstoreConfig = SwaggerPetstoreConfig
-  { host  :: BS8.ByteString
+  { host  :: BSL.ByteString
   , execLoggingT :: ExecLoggingT
   , filterLoggingT :: LogSource -> LogLevel -> Bool
   }
@@ -108,7 +108,7 @@ toInitRequest
     -> SwaggerPetstoreRequest req res -- ^ request
     -> IO (InitRequest req res) -- ^ initialized request
 toInitRequest SwaggerPetstoreConfig {..} SwaggerPetstoreRequest {..} = do
-  parsedReq <- NH.parseRequest $ BS8.unpack $ BS8.append host (BS8.concat urlPath)
+  parsedReq <- NH.parseRequest $ BSL.unpack $ BSL.append host (BSL.concat urlPath)
   let reqHeaders = paramsHeaders params
       reqQuery = NH.renderQuery True (paramsQuery params)
       pReq = parsedReq { NH.method = rMethod
