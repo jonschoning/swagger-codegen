@@ -45,12 +45,13 @@ import Data.Set (Set)
 import Data.Text (Text)
 import GHC.Base ((<|>))
 import GHC.Exts (IsString(..))
-import Prelude ((.),(<$>),(<*>),Maybe(..),Bool(..),Char,Double,FilePath,Float,Int,Integer,String,fmap,undefined,mempty)
+import Prelude (($), (.),(<$>),(<*>),Maybe(..),Bool(..),Char,Double,FilePath,Float,Int,Integer,String,fmap,undefined,mempty)
 import qualified Data.Foldable as P
 import qualified Data.Functor.Identity as P (Identity(..))
 import qualified Data.Maybe as P
 import qualified GHC.Base as P (Alternative)
 import qualified Prelude as P
+import qualified Data.CaseInsensitive as CI
 
 -- * Operations
 
@@ -105,7 +106,7 @@ data DeletePet
 -- instance Produces DeletePet application/json
 instance HasOptionalParam DeletePet Api'Underscorekey where
   applyOptionalParam req (Api'Underscorekey xs) =
-    req `_addHeader`  toHeader ("api_key", xs)
+    req `_addHeader` toHeader ("api_key", xs)
 
 
 -- ** findPetsByStatus
@@ -124,7 +125,7 @@ findPetsByStatus
   -> SwaggerPetstoreRequest FindPetsByStatus [Pet]
 findPetsByStatus status =
   _mkRequest "GET" ["/pet/findByStatus"]
-    `_addQuery` _toMultiA MultiParamArray toQuery ("status", Just status)
+    `_addQuery` toQueryMulti MultiParamArray ("status", Just status)
 
 data FindPetsByStatus
 -- instance Produces FindPetsByStatus application/xml
@@ -147,7 +148,7 @@ findPetsByTags
   -> SwaggerPetstoreRequest FindPetsByTags [Pet]
 findPetsByTags tags =
   _mkRequest "GET" ["/pet/findByTags"]
-    `_addQuery` _toMultiA MultiParamArray toQuery ("tags", Just tags)
+    `_addQuery` toQueryMulti MultiParamArray ("tags", Just tags)
 
 {-# DEPRECATED findPetsByTags "" #-}
 
@@ -480,8 +481,8 @@ loginUser
   -> SwaggerPetstoreRequest LoginUser Text
 loginUser username password =
   _mkRequest "GET" ["/user/login"]
-    `_addQuery`  toQuery ("username", Just username)
-    `_addQuery`  toQuery ("password", Just password)
+    `_addQuery` toQuery ("username", Just username)
+    `_addQuery` toQuery ("password", Just password)
 
 data LoginUser
 -- instance Produces LoginUser application/xml
@@ -638,34 +639,42 @@ toPath = BSB.toLazyByteString . WH.toEncodedUrlPiece
 toHeader :: WH.ToHttpApiData a => (NH.HeaderName, a) -> [NH.Header]
 toHeader x = [fmap WH.toHeader x]
 
-toHeaderMulti :: WH.ToHttpApiData a => CollectionFormat -> (NH.HeaderName, [a]) -> [NH.Header]
-toHeaderMulti c xs = _toMulti c toHeader xs
+toForm :: WH.ToHttpApiData v => (BS8.ByteString, v) -> WF.Form
+toForm (k,v) = WF.toForm [(BS8.unpack k,v)]
 
 toQuery :: WH.ToHttpApiData a => (BS8.ByteString, Maybe a) -> [NH.QueryItem]
 toQuery x = [(fmap . fmap) toQueryParam x]
   where toQueryParam = TE.encodeUtf8 . WH.toQueryParam
-        {-# INLINE toQueryParam #-}
+
+toHeaderMulti :: WH.ToHttpApiData a => CollectionFormat -> (NH.HeaderName, [a]) -> [NH.Header]
+toHeaderMulti c xs = _toMulti c toHeader xs
+
+toFormMulti :: WH.ToHttpApiData v => CollectionFormat -> (BS8.ByteString, [v]) -> WF.Form
+toFormMulti c xs = WF.toForm $ fmap unpack $ _toMulti c toHeader $ pack xs
+  where
+    pack (k,v) = (CI.mk k, v)
+    unpack (k,v) = (BS8.unpack (CI.original k), BS8.unpack v)
 
 toQueryMulti :: WH.ToHttpApiData a => CollectionFormat -> (BS8.ByteString, Maybe [a]) -> NH.Query
 toQueryMulti c xs = _toMultiA c toQuery xs
 
-toForm :: WH.ToHttpApiData v => (BS8.ByteString, v) -> WF.Form
-toForm (k,v) = WF.toForm [(BS8.unpack k,v)]
+_toMulti :: P.Traversable f => CollectionFormat -> (f a -> [(b, BS8.ByteString)]) -> f [a] -> [(b, BS8.ByteString)]
+_toMulti c encode xs = _toMulti' c encode BS8.singleton xs
 
-_toMulti
-  :: P.Traversable f
-  => CollectionFormat -> (f a -> [(b, BS8.ByteString)]) -> f [a] -> [(b, BS8.ByteString)]
-_toMulti c encode xs = fmap (fmap P.fromJust) (_toMultiA c fencode (fmap Just xs))
+_toMulti' :: (P.Monoid c, P.Traversable f) => CollectionFormat -> (f a -> [(b, c)]) -> (Char -> c) -> f [a] -> [(b, c)]
+_toMulti' c encode one xs = fmap (fmap P.fromJust) (_toMultiA' c fencode one (fmap Just xs))
   where fencode = fmap (fmap Just) . encode . fmap P.fromJust
         {-# INLINE fencode #-}
-_toMultiA
-  :: (P.Traversable f, P.Traversable t, P.Alternative t)
-  => CollectionFormat -> (f (t a) -> [(b, t BS8.ByteString)]) -> f (t [a]) -> [(b, t BS8.ByteString)]
-_toMultiA c encode xs = case c of
-  CommaSeparated -> go (BS8.singleton ',')
-  SpaceSeparated -> go (BS8.singleton ' ')
-  TabSeparated -> go (BS8.singleton '\t')
-  PipeSeparated -> go (BS8.singleton '|')
+
+_toMultiA :: (P.Traversable f, P.Traversable t, P.Alternative t) => CollectionFormat -> (f (t a) -> [(b, t BS8.ByteString)]) -> f (t [a]) -> [(b, t BS8.ByteString)]
+_toMultiA c encode xs = _toMultiA' c encode BS8.singleton xs
+
+_toMultiA' :: (P.Monoid c, P.Traversable f, P.Traversable t, P.Alternative t) => CollectionFormat -> (f (t a) -> [(b, t c)]) -> (Char -> c) -> f (t [a]) -> [(b, t c)]
+_toMultiA' c encode one xs = case c of
+  CommaSeparated -> go (one ',')
+  SpaceSeparated -> go (one ' ')
+  TabSeparated -> go (one '\t')
+  PipeSeparated -> go (one '|')
   MultiParamArray -> expandList
   where
     go sep =
