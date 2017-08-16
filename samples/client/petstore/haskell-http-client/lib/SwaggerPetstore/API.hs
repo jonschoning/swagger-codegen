@@ -123,7 +123,7 @@ findPetsByStatus
   -> SwaggerPetstoreRequest FindPetsByStatus [Pet]
 findPetsByStatus status =
   _mkRequest "GET" ["/pet/findByStatus"]
-    `_addQuery` toMultiItem MultiParamArray toQueryItem ("status", Just (status))
+    `_addQuery` toMultiItem MultiParamArray toQueryItem ("status", Just status)
 
 data FindPetsByStatus
 -- instance Produces FindPetsByStatus application/xml
@@ -146,7 +146,7 @@ findPetsByTags
   -> SwaggerPetstoreRequest FindPetsByTags [Pet]
 findPetsByTags tags =
   _mkRequest "GET" ["/pet/findByTags"]
-    `_addQuery` toMultiItem MultiParamArray toQueryItem ("tags", Just (tags))
+    `_addQuery` toMultiItem MultiParamArray toQueryItem ("tags", Just tags)
 
 {-# DEPRECATED findPetsByTags "" #-}
 
@@ -479,8 +479,8 @@ loginUser
   -> SwaggerPetstoreRequest LoginUser Text
 loginUser username password =
   _mkRequest "GET" ["/user/login"]
-    `_addQuery`  toQueryItem ("username", Just (username))
-    `_addQuery`  toQueryItem ("password", Just (password))
+    `_addQuery`  toQueryItem ("username", Just username)
+    `_addQuery`  toQueryItem ("password", Just password)
 
 data LoginUser
 -- instance Produces LoginUser application/xml
@@ -637,28 +637,35 @@ toPath = BSB.toLazyByteString . WH.toEncodedUrlPiece
 toHeader :: WH.ToHttpApiData a => (NH.HeaderName, a) -> [NH.Header]
 toHeader x = [fmap WH.toHeader x]
 
-toQueryParam :: WH.ToHttpApiData a => a -> BS8.ByteString
-toQueryParam = TE.encodeUtf8 . WH.toQueryParam
+toMultiHeader :: CollectionFormat -> ((BS8.ByteString, b) -> [NH.Header]) -> (BS8.ByteString, [b]) -> [NH.Header]
+toMultiHeader c f xs = case c of
+  CommaSeparated -> go (BS8.singleton ',')
+  SpaceSeparated -> go (BS8.singleton ' ')
+  TabSeparated -> go (BS8.singleton '\t')
+  PipeSeparated -> go (BS8.singleton '|')
+  MultiParamArray -> expandList
+  where 
+    go sep = [P.foldl1 (\(sk, sv) (_,v) -> (sk, combine sep sv v)) expandList]
+    combine sep x y = x <> sep <> y
+    expandList = (P.concatMap f . P.traverse P.toList) xs
 
 toQueryItem :: WH.ToHttpApiData a => (BS8.ByteString, Maybe a) -> [NH.QueryItem]
 toQueryItem x = [(fmap . fmap) toQueryParam x]
+  where toQueryParam = TE.encodeUtf8 . WH.toQueryParam
   
 toMultiItem :: P.Foldable f => CollectionFormat -> ((BS8.ByteString, Maybe a) -> [NH.QueryItem]) -> (BS8.ByteString, Maybe (f a)) -> [NH.QueryItem]
 toMultiItem c f xs = case c of
-  CommaSeparated -> go (BS8.singleton ',') f
-  SpaceSeparated -> go (BS8.singleton ' ') f
-  TabSeparated -> go (BS8.singleton '\t') f
-  PipeSeparated -> go (BS8.singleton '|') f
-  MultiParamArray -> traverse2 f xs
-  where 
-    go sep g = [P.foldl1 (P.liftA2 (altCombine sep)) (traverse2 g xs)]
+  CommaSeparated -> go (BS8.singleton ',')
+  SpaceSeparated -> go (BS8.singleton ' ')
+  TabSeparated -> go (BS8.singleton '\t')
+  PipeSeparated -> go (BS8.singleton '|')
+  MultiParamArray -> expandList
+  where
+    go sep = [P.foldl1 (\(sk, sv) (_,v) -> (sk, altCombine sep sv v)) expandList]
     altCombine sep a b = (combine sep <$> a <*> b) <|> a <|> b
     combine sep x y = x <> sep <> y
-
-traverse2
-  :: (P.Foldable f, P.Traversable m, P.Traversable t)
-  => (t (m a) -> [b]) -> t (m (f a)) -> [b]
-traverse2 f = P.concatMap f . (P.traverse . P.traverse) P.toList
+    expandList = (P.concatMap f . (P.traverse . P.traverse) P.toList) xs
+  
   
 data CollectionFormat
   = CommaSeparated -- ^ CSV format for multiple parameters.
