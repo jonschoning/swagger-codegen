@@ -512,6 +512,21 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
                 throw new UnsupportedOperationException();
         }
     }
+    private String getMimeTypeType(String mimeType) {
+        if(StringUtils.isBlank(mimeType)) { return "NoContent" }
+        if(mimeType.startsWith("application/json")) {return "JSON";}
+        if(mimeType.startsWith("application/xml")) {return "XML";}
+        if(mimeType.startsWith("application/x-www-form-urlencoded")) {return "FormUrlEncoded";}
+        if(mimeType.startsWith("multipart/form-data")) {return "MultipartFormData";}
+        if(mimeType.startsWith("text/plain")) {return "PlainText";}
+        return capitalize(toHsVarName(mimeType));
+    }
+//    data JSON deriving (P.Typeable)
+//    data XML deriving (P.Typeable)
+//    data PlainText deriving (P.Typeable)
+//    data FormUrlEncoded deriving (P.Typeable)
+//    data MultipartFormData deriving (P.Typeable)
+//    data NoContent deriving (P.Typeable)
 
     private String toHsVarName(String paramName) {
         return toVarName(camelize(fixOperatorChars(fixModelChars(paramName)), true));

@@ -767,19 +767,19 @@ instance MimeType IdentityPassThough where
 class MimeType mtype => MimeRender mtype i o where
     mimeRender  :: P.Proxy mtype -> i -> o
 
--- | `encode`
+-- | `A.encode`
 instance A.ToJSON a => MimeRender JSON a BL.ByteString where mimeRender _ = A.encode
--- | @urlEncodeAsForm@
+-- | @WH.urlEncodeAsForm@
 instance WH.ToForm a => MimeRender FormUrlEncoded a BL.ByteString where mimeRender _ = WH.urlEncodeAsForm
--- | `TextL.encodeUtf8`
+-- | `TL.encodeUtf8`
 instance MimeRender PlainText TL.Text BL.ByteString where mimeRender _ = TL.encodeUtf8
--- | @fromStrict . TextS.encodeUtf8@
+-- | @BL.fromStrict . T.encodeUtf8@
 instance MimeRender PlainText T.Text BL.ByteString where mimeRender _ = BL.fromStrict . T.encodeUtf8
--- | @BC.pack@
+-- | @BCL.pack@
 instance MimeRender PlainText String BL.ByteString where mimeRender _ = BCL.pack
--- | @P.mempty@
+-- | @()@
 instance MimeRender NoContent a () where mimeRender _ _ = ()
--- | @BC.pack@
+-- | @P.id@
 instance MimeRender IdentityPassThough a a where mimeRender _ = P.id
 
 -- ** MimeUnrender
