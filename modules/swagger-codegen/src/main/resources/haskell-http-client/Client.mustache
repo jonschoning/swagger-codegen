@@ -12,28 +12,26 @@ module {{title}}.Client where
 import {{title}}.Model
 import {{title}}.API
 
-import Control.Monad.Except (ExceptT)
-import Control.Monad.IO.Class
-import Data.Aeson 
-import Data.Aeson.Types 
+import qualified Control.Monad.IO.Class as P
+import qualified Data.Aeson as A
+import qualified Data.Aeson.Types as A
 import Data.Function ((&))
 import Data.Monoid ((<>))
 import Data.Text (Text)
 import GHC.Exts (IsString(..))
-import GHC.Generics (Generic)
 import Web.FormUrlEncoded as WH
 import Web.HttpApiData as WH
 import Control.Monad.Catch (MonadThrow)
 
-import Control.Monad.Logger
+import qualified Control.Monad.Logger as LG
 
 import qualified Data.Map as Map
 import qualified Data.Text as T
 
 import qualified Data.ByteString as B
-import qualified Data.ByteString.Char8 as BS8
-import qualified Data.ByteString.Lazy.Char8 as BSL
-import qualified Data.ByteString.Builder as BSB
+import qualified Data.ByteString.Char8 as BC
+import qualified Data.ByteString.Lazy.Char8 as BCL
+import qualified Data.ByteString.Builder as BB
 import qualified Network.HTTP.Client as NH
 import qualified Network.HTTP.Client.TLS as NH
 import qualified Network.HTTP.Client.MultipartFormData as NH
@@ -44,9 +42,9 @@ import qualified Network.HTTP.Types.URI as NH
 -- * Config
 
 data {{configType}} = {{configType}}
-  { host  :: BSL.ByteString
+  { host  :: BCL.ByteString
   , execLoggingT :: ExecLoggingT
-  , filterLoggingT :: LogSource -> LogLevel -> Bool
+  , filterLoggingT :: LG.LogSource -> LG.LogLevel -> Bool
   }
 
 mkConfig :: {{configType}}
@@ -58,10 +56,10 @@ mkConfig =
   }
 
 withStdoutLogging :: {{configType}} -> {{configType}}
-withStdoutLogging p = p { execLoggingT = runStdoutLoggingT}
+withStdoutLogging p = p { execLoggingT = LG.runStdoutLoggingT}
 
 withStderrLogging :: {{configType}} -> {{configType}}
-withStderrLogging p = p { execLoggingT = runStderrLoggingT}
+withStderrLogging p = p { execLoggingT = LG.runStderrLoggingT}
 
 withNoLogging :: {{configType}} -> {{configType}}
 withNoLogging p = p { execLoggingT = runNullLoggingT}
@@ -70,7 +68,7 @@ withNoLogging p = p { execLoggingT = runNullLoggingT}
 
 dispatch :: {{configType}} -- ^ config
           -> {{requestType}} req res -- ^ request
-          -> IO (NH.Response BSL.ByteString) -- ^ response
+          -> IO (NH.Response BCL.ByteString) -- ^ response
 dispatch config request = do
   req <- toInitRequest config request
   dispatch' config req
@@ -78,19 +76,19 @@ dispatch config request = do
 
 dispatch' :: {{configType}} -- ^ config
           -> InitRequest req res -- ^ request
-          -> IO (NH.Response BSL.ByteString) -- ^ response
+          -> IO (NH.Response BCL.ByteString) -- ^ response
 dispatch' _ (InitRequest req) = do
   manager <- NH.newManager NH.tlsManagerSettings
   NH.httpLbs req manager
 
 dispatchJson
-  :: (FromJSON res)
+  :: (A.FromJSON res)
   => {{configType}} -- ^ config
   -> {{requestType}} req res -- ^ request
   -> IO (Either {{title}}Error res) -- ^ response
 dispatchJson config request = do
   response <- dispatch config request
-  let result = eitherDecode $ NH.responseBody response
+  let result = A.eitherDecode $ NH.responseBody response
   case result of
     Left s -> return (Left ({{title}}Error s response))
     (Right r) -> return (Right r)
@@ -108,7 +106,7 @@ toInitRequest
     -> {{requestType}} req res -- ^ request
     -> IO (InitRequest req res) -- ^ initialized request
 toInitRequest {{configType}} {..} {{requestType}} {..} = do
-  parsedReq <- NH.parseRequest $ BSL.unpack $ BSL.append host (BSL.concat urlPath)
+  parsedReq <- NH.parseRequest $ BCL.unpack $ BCL.append host (BCL.concat urlPath)
   let reqHeaders = paramsHeaders params
       reqQuery = NH.renderQuery True (paramsQuery params)
       pReq = parsedReq { NH.method = rMethod
@@ -117,8 +115,8 @@ toInitRequest {{configType}} {..} {{requestType}} {..} = do
                        }
   req <- case paramsBody params of
     ParamBodyNone -> pure (pReq { NH.requestBody = mempty })
-    ParamBodyBS bs -> pure (pReq { NH.requestBody = NH.RequestBodyBS bs })
-    ParamBodyBSL bsl -> pure (pReq { NH.requestBody = NH.RequestBodyLBS bsl })
+    ParamBodyB bs -> pure (pReq { NH.requestBody = NH.RequestBodyBS bs })
+    ParamBodyBL bl -> pure (pReq { NH.requestBody = NH.RequestBodyLBS bl })
     ParamBodyForm form -> pure (pReq { NH.requestBody = NH.RequestBodyLBS (WH.urlEncodeForm form) })
     ParamBodyMultiForm parts -> NH.formDataBody parts pReq
 
@@ -137,32 +135,32 @@ modifyInitRequestM (InitRequest req) f = fmap InitRequest (f req)
 data {{title}}Error =
   {{title}}Error {
     parseError   :: String
-  , reponseError :: NH.Response BSL.ByteString
+  , reponseError :: NH.Response BCL.ByteString
   } deriving (Eq, Show)
 
 -- * Logging
 
-type ExecLoggingT = forall m. MonadIO m =>
-                              forall a. LoggingT m a -> m a
+type ExecLoggingT = forall m. P.MonadIO m =>
+                              forall a. LG.LoggingT m a -> m a
 
 -- ** Null Logger
 
-nullLogger :: Loc -> LogSource -> LogLevel -> LogStr -> IO ()
+nullLogger :: LG.Loc -> LG.LogSource -> LG.LogLevel -> LG.LogStr -> IO ()
 nullLogger _ _ _ _ = return ()
 
-runNullLoggingT :: LoggingT m a -> m a
-runNullLoggingT = (`runLoggingT` nullLogger)
+runNullLoggingT :: LG.LoggingT m a -> m a
+runNullLoggingT = (`LG.runLoggingT` nullLogger)
 
 -- ** Logging Filters
 
-errorLevelFilter :: LogSource -> LogLevel -> Bool
-errorLevelFilter = minLevelFilter LevelError
+errorLevelFilter :: LG.LogSource -> LG.LogLevel -> Bool
+errorLevelFilter = minLevelFilter LG.LevelError
 
-infoLevelFilter :: LogSource -> LogLevel -> Bool
-infoLevelFilter = minLevelFilter LevelInfo
+infoLevelFilter :: LG.LogSource -> LG.LogLevel -> Bool
+infoLevelFilter = minLevelFilter LG.LevelInfo
 
-debugLevelFilter :: LogSource -> LogLevel -> Bool
-debugLevelFilter = minLevelFilter LevelDebug
+debugLevelFilter :: LG.LogSource -> LG.LogLevel -> Bool
+debugLevelFilter = minLevelFilter LG.LevelDebug
 
-minLevelFilter :: LogLevel -> LogSource -> LogLevel -> Bool
+minLevelFilter :: LG.LogLevel -> LG.LogSource -> LG.LogLevel -> Bool
 minLevelFilter l _ l' = l' >= l

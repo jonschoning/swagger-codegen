@@ -9,6 +9,7 @@ Module : SwaggerPetstore.API
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE FlexibleInstances #-}
 {-# OPTIONS_GHC -fno-warn-unused-binds -fno-warn-unused-imports #-}
 
 module SwaggerPetstore.API where
@@ -19,9 +20,10 @@ import qualified Data.Aeson as A
 import qualified Data.Aeson.Types as A
 
 import qualified Data.ByteString as B
-import qualified Data.ByteString.Builder as BSB
-import qualified Data.ByteString.Char8 as BS8
-import qualified Data.ByteString.Lazy.Char8 as BSL
+import qualified Data.ByteString.Lazy as BL
+import qualified Data.ByteString.Builder as BB
+import qualified Data.ByteString.Char8 as BC
+import qualified Data.ByteString.Lazy.Char8 as BCL
 
 import qualified Network.HTTP.Client as NH
 import qualified Network.HTTP.Client.MultipartFormData as NH
@@ -34,6 +36,7 @@ import qualified Network.HTTP.Types.URI as NH
 import qualified Web.HttpApiData as WH
 import qualified Web.FormUrlEncoded as WH
 
+import qualified Control.Monad.IO.Class as P
 import qualified Data.CaseInsensitive as CI
 import qualified Data.Data as P (Typeable)
 import qualified Data.Foldable as P
@@ -42,12 +45,13 @@ import qualified Data.Map as Map
 import qualified Data.Maybe as P
 import qualified Data.Proxy as P (Proxy)
 import qualified Data.Text as T
-import qualified Data.Text.Encoding as TE
+import qualified Data.Text.Encoding as T
+import qualified Data.Text.Lazy as TL
+import qualified Data.Text.Lazy.Encoding as TL
 import qualified Data.Vector as V
 import qualified Data.Void as Void
 import qualified GHC.Base as P (Alternative)
 
-import Control.Monad.IO.Class
 import Data.Function ((&))
 import Data.Monoid ((<>))
 import Data.Set (Set)
@@ -540,7 +544,7 @@ data UpdateUser
 -- | Represents a request. The "req" type variable is the request type. The "res" type variable is the response type.
 data SwaggerPetstoreRequest req res = SwaggerPetstoreRequest
   { rMethod  :: NH.Method   -- ^ Method of SwaggerPetstoreRequest
-  , urlPath :: [BSL.ByteString] -- ^ Endpoint of SwaggerPetstoreRequest
+  , urlPath :: [BCL.ByteString] -- ^ Endpoint of SwaggerPetstoreRequest
   , params   :: Params -- ^ params of SwaggerPetstoreRequest
   }
   deriving (P.Show)
@@ -549,7 +553,7 @@ data SwaggerPetstoreRequest req res = SwaggerPetstoreRequest
 -- * SwaggerPetstoreRequest Helpers
 
 _mkRequest :: NH.Method -- ^ Method 
-          -> [BSL.ByteString] -- ^ Endpoint
+          -> [BCL.ByteString] -- ^ Endpoint
           -> SwaggerPetstoreRequest req res -- ^ req: Request Type, res: Response Type
 _mkRequest m u = SwaggerPetstoreRequest m u _mkParams
 
@@ -585,12 +589,12 @@ _addMultiFormPart req newpart =
 _setBodyBS :: SwaggerPetstoreRequest req res -> B.ByteString -> SwaggerPetstoreRequest req res
 _setBodyBS req body = 
     let _params = params req
-    in req { params = _params { paramsBody = ParamBodyBS body } }
+    in req { params = _params { paramsBody = ParamBodyB body } }
 
-_setBodyLBS :: SwaggerPetstoreRequest req res -> BSL.ByteString -> SwaggerPetstoreRequest req res
+_setBodyLBS :: SwaggerPetstoreRequest req res -> BL.ByteString -> SwaggerPetstoreRequest req res
 _setBodyLBS req body = 
     let _params = params req
-    in req { params = _params { paramsBody = ParamBodyBSL body } }
+    in req { params = _params { paramsBody = ParamBodyBL body } }
 
 
 
@@ -631,44 +635,44 @@ data ParamBody
   = ParamBodyNone
   | ParamBodyForm WH.Form
   | ParamBodyMultiForm [NH.Part]
-  | ParamBodyBS B.ByteString
-  | ParamBodyBSL BSL.ByteString
+  | ParamBodyB B.ByteString
+  | ParamBodyBL BL.ByteString
   deriving (P.Show)
 
 toPath
   :: WH.ToHttpApiData a
-  => a -> BSL.ByteString
-toPath = BSB.toLazyByteString . WH.toEncodedUrlPiece
+  => a -> BCL.ByteString
+toPath = BB.toLazyByteString . WH.toEncodedUrlPiece
 
 toHeader :: WH.ToHttpApiData a => (NH.HeaderName, a) -> [NH.Header]
 toHeader x = [fmap WH.toHeader x]
 
-toForm :: WH.ToHttpApiData v => (BS8.ByteString, v) -> WH.Form
-toForm (k,v) = WH.toForm [(BS8.unpack k,v)]
+toForm :: WH.ToHttpApiData v => (BC.ByteString, v) -> WH.Form
+toForm (k,v) = WH.toForm [(BC.unpack k,v)]
 
-toQuery :: WH.ToHttpApiData a => (BS8.ByteString, Maybe a) -> [NH.QueryItem]
+toQuery :: WH.ToHttpApiData a => (BC.ByteString, Maybe a) -> [NH.QueryItem]
 toQuery x = [(fmap . fmap) toQueryParam x]
-  where toQueryParam = TE.encodeUtf8 . WH.toQueryParam
+  where toQueryParam = T.encodeUtf8 . WH.toQueryParam
 
 toHeaderColl :: WH.ToHttpApiData a => CollectionFormat -> (NH.HeaderName, [a]) -> [NH.Header]
 toHeaderColl c xs = _toColl c toHeader xs
 
-toFormColl :: WH.ToHttpApiData v => CollectionFormat -> (BS8.ByteString, [v]) -> WH.Form
+toFormColl :: WH.ToHttpApiData v => CollectionFormat -> (BC.ByteString, [v]) -> WH.Form
 toFormColl c xs = WH.toForm $ fmap unpack $ _toColl c toHeader $ pack xs
   where
     pack (k,v) = (CI.mk k, v)
-    unpack (k,v) = (BS8.unpack (CI.original k), BS8.unpack v)
+    unpack (k,v) = (BC.unpack (CI.original k), BC.unpack v)
 
-toQueryColl :: WH.ToHttpApiData a => CollectionFormat -> (BS8.ByteString, Maybe [a]) -> NH.Query
+toQueryColl :: WH.ToHttpApiData a => CollectionFormat -> (BC.ByteString, Maybe [a]) -> NH.Query
 toQueryColl c xs = _toCollA c toQuery xs
 
-_toColl :: P.Traversable f => CollectionFormat -> (f a -> [(b, BS8.ByteString)]) -> f [a] -> [(b, BS8.ByteString)]
-_toColl c encode xs = fmap (fmap P.fromJust) (_toCollA' c fencode BS8.singleton (fmap Just xs))
+_toColl :: P.Traversable f => CollectionFormat -> (f a -> [(b, BC.ByteString)]) -> f [a] -> [(b, BC.ByteString)]
+_toColl c encode xs = fmap (fmap P.fromJust) (_toCollA' c fencode BC.singleton (fmap Just xs))
   where fencode = fmap (fmap Just) . encode . fmap P.fromJust
         {-# INLINE fencode #-}
 
-_toCollA :: (P.Traversable f, P.Traversable t, P.Alternative t) => CollectionFormat -> (f (t a) -> [(b, t BS8.ByteString)]) -> f (t [a]) -> [(b, t BS8.ByteString)]
-_toCollA c encode xs = _toCollA' c encode BS8.singleton xs
+_toCollA :: (P.Traversable f, P.Traversable t, P.Alternative t) => CollectionFormat -> (f (t a) -> [(b, t BC.ByteString)]) -> f (t [a]) -> [(b, t BC.ByteString)]
+_toCollA c encode xs = _toCollA' c encode BC.singleton xs
 
 _toCollA' :: (P.Monoid c, P.Traversable f, P.Traversable t, P.Alternative t) => CollectionFormat -> (f (t a) -> [(b, t c)]) -> (Char -> c) -> f (t [a]) -> [(b, t c)]
 _toCollA' c encode one xs = case c of
@@ -708,14 +712,14 @@ class MimeType mtype  where
   mimeTypes = (: []) . mimeType
   {-# MINIMAL mimeType | mimeTypes #-}
 
--- | application\/json
+-- | @application/json@
 instance MimeType JSON where
   mimeTypes _ =
     [ "application" ME.// "json" ME./: ("charset", "utf-8")
     , "application" ME.// "json"
     ]
 
--- | @application/xml
+-- | @application/xml@
 instance MimeType XML where
   mimeType _ = "application" ME.// "xml"
 
@@ -727,7 +731,29 @@ instance MimeType FormUrlEncoded where
 instance MimeType PlainText where
   mimeType _ = "text" ME.// "plain" ME./: ("charset", "utf-8")
 
+-- ** MimeRender & MimeUnrender
 
+class MimeType mtype => MimeRender mtype a where
+    mimeRender  :: P.Proxy mtype -> a -> BL.ByteString
+
+class MimeType mtype => MimeUnrender mtype a where
+    mimeUnrender :: P.Proxy mtype -> BL.ByteString -> P.Either String a
+    mimeUnrender p = mimeUnrenderWithType p (mimeType p)
+    mimeUnrenderWithType :: P.Proxy mtype -> ME.MediaType -> BL.ByteString -> P.Either String a
+    mimeUnrenderWithType p _ = mimeUnrender p
+    {-# MINIMAL mimeUnrender | mimeUnrenderWithType #-}
+    
+-- | `encode`
+instance A.ToJSON a => MimeRender JSON a where mimeRender _ = A.encode
+-- | @urlEncodeAsForm@
+instance WH.ToForm a => MimeRender FormUrlEncoded a where mimeRender _ = WH.urlEncodeAsForm
+-- | `TextL.encodeUtf8`
+instance MimeRender PlainText TL.Text where mimeRender _ = TL.encodeUtf8
+-- | @fromStrict . TextS.encodeUtf8@
+instance MimeRender PlainText T.Text where mimeRender _ = BL.fromStrict . T.encodeUtf8
+-- | @BC.pack@
+instance MimeRender PlainText String where mimeRender _ = BCL.pack
+    
 -- * Optional Request Params
 
 newtype Api'Underscorekey = Api'Underscorekey { unApi'Underscorekey :: Text } deriving (P.Eq, P.Show)

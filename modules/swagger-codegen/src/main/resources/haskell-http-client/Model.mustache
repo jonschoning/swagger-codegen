@@ -19,20 +19,12 @@ import Data.Aeson (FromJSON(..), ToJSON(..))
 import Data.Aeson.Types 
 import Data.Data (Data, Typeable)
 import Data.Text (Text)
-import GHC.Generics (Generic)
 import Control.Applicative
 
 import qualified Data.Map as Map
-import qualified Data.Text as T
-import qualified Data.Vector as V
-
-import qualified Data.ByteString.Char8 as BS8
-import qualified Data.ByteString.Lazy.Char8 as BSL
-
-import           Network.HTTP.Client
-import qualified Network.HTTP.Types.Method as NHTM
 
 import Prelude 
+
 
 {{#imports}}import {{import}}
 {{/imports}}
