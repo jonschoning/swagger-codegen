@@ -141,10 +141,10 @@ data Params = Params
 -- | Request Body
 data ParamBody
   = ParamBodyNone
-  | ParamBodyForm WH.Form
-  | ParamBodyMultiForm [NH.Part]
   | ParamBodyB B.ByteString
   | ParamBodyBL BL.ByteString
+  | ParamBodyFormUrlEncoded WH.Form
+  | ParamBodyMultipartFormData [NH.Part]
   deriving (P.Show)
 
 -- ** {{requestType}} Utils
@@ -171,17 +171,17 @@ _addForm :: {{requestType}} req res -> WH.Form -> {{requestType}} req res
 _addForm req newform = 
     let _params = params req
         form = case paramsBody _params of
-            ParamBodyForm _form -> _form
+            ParamBodyFormUrlEncoded _form -> _form
             _ -> mempty
-    in req { params = _params { paramsBody = ParamBodyForm (newform <> form) } }
+    in req { params = _params { paramsBody = ParamBodyFormUrlEncoded (newform <> form) } }
 
 _addMultiFormPart :: {{requestType}} req res -> NH.Part -> {{requestType}} req res
 _addMultiFormPart req newpart = 
     let _params = params req
         parts = case paramsBody _params of
-            ParamBodyMultiForm _parts -> _parts
+            ParamBodyMultipartFormData _parts -> _parts
             _ -> []
-    in req { params = _params { paramsBody = ParamBodyMultiForm (newpart : parts) } }
+    in req { params = _params { paramsBody = ParamBodyMultipartFormData (newpart : parts) } }
 
 _setBodyBS :: {{requestType}} req res -> B.ByteString -> {{requestType}} req res
 _setBodyBS req body = 
@@ -264,13 +264,22 @@ data JSON deriving (P.Typeable)
 data XML deriving (P.Typeable)
 data PlainText deriving (P.Typeable)
 data FormUrlEncoded deriving (P.Typeable)
+data MultipartFormData deriving (P.Typeable)
 data NoContent deriving (P.Typeable)
+data IdentityPassThough deriving (P.Typeable)
 
 class MimeType mtype  where
-  mimeType :: P.Proxy mtype -> ME.MediaType
-  mimeType = P.head . mimeTypes
+  mimeType :: P.Proxy mtype -> Maybe ME.MediaType
+  mimeType p =
+    case mimeTypes p of
+      [] -> Nothing
+      (x:_) -> Just x
   mimeTypes :: P.Proxy mtype -> [ME.MediaType]
-  mimeTypes = (: []) . mimeType
+  mimeTypes p =
+    case mimeType p of
+      Just x -> [x]
+      Nothing -> []
+    
   {-# MINIMAL mimeType | mimeTypes #-}
 
 -- | @application/json@
@@ -282,38 +291,52 @@ instance MimeType JSON where
 
 -- | @application/xml@
 instance MimeType XML where
-  mimeType _ = "application" ME.// "xml"
+  mimeType _ = Just $ "application" ME.// "xml"
 
 -- | @application/x-www-form-urlencoded@
 instance MimeType FormUrlEncoded where
-  mimeType _ = "application" ME.// "x-www-form-urlencoded"
+  mimeType _ = Just $ "application" ME.// "x-www-form-urlencoded"
+
+-- | @multipart/form-data@
+instance MimeType MultipartFormData where
+  mimeType _ = Just $ "multipart" ME.// "form-data"
 
 -- | @text/plain;charset=utf-8@
 instance MimeType PlainText where
-  mimeType _ = "text" ME.// "plain" ME./: ("charset", "utf-8")
+  mimeType _ = Just $ "text" ME.// "plain" ME./: ("charset", "utf-8")
+
+instance MimeType NoContent where
+  mimeType _ = Nothing
+
+instance MimeType IdentityPassThough where
+  mimeType _ = Nothing
 
 -- ** MimeRender
 
-class MimeType mtype => MimeRender mtype a where
-    mimeRender  :: P.Proxy mtype -> a -> BL.ByteString
+class MimeType mtype => MimeRender mtype i o where
+    mimeRender  :: P.Proxy mtype -> i -> o
 
 -- | `encode`
-instance A.ToJSON a => MimeRender JSON a where mimeRender _ = A.encode
+instance A.ToJSON a => MimeRender JSON a BL.ByteString where mimeRender _ = A.encode
 -- | @urlEncodeAsForm@
-instance WH.ToForm a => MimeRender FormUrlEncoded a where mimeRender _ = WH.urlEncodeAsForm
+instance WH.ToForm a => MimeRender FormUrlEncoded a BL.ByteString where mimeRender _ = WH.urlEncodeAsForm
 -- | `TextL.encodeUtf8`
-instance MimeRender PlainText TL.Text where mimeRender _ = TL.encodeUtf8
+instance MimeRender PlainText TL.Text BL.ByteString where mimeRender _ = TL.encodeUtf8
 -- | @fromStrict . TextS.encodeUtf8@
-instance MimeRender PlainText T.Text where mimeRender _ = BL.fromStrict . T.encodeUtf8
+instance MimeRender PlainText T.Text BL.ByteString where mimeRender _ = BL.fromStrict . T.encodeUtf8
 -- | @BC.pack@
-instance MimeRender PlainText String where mimeRender _ = BCL.pack
+instance MimeRender PlainText String BL.ByteString where mimeRender _ = BCL.pack
+-- | @P.mempty@
+instance MimeRender NoContent a () where mimeRender _ _ = ()
+-- | @BC.pack@
+instance MimeRender IdentityPassThough a a where mimeRender _ = P.id
 
 -- ** MimeUnrender
 
-class MimeType mtype => MimeUnrender mtype a where
-    mimeUnrender :: P.Proxy mtype -> BL.ByteString -> P.Either String a
+class MimeType mtype => MimeUnrender mtype i o where
+    mimeUnrender :: P.Proxy mtype -> i -> P.Either String o
     mimeUnrender p = mimeUnrenderWithType p (mimeType p)
-    mimeUnrenderWithType :: P.Proxy mtype -> ME.MediaType -> BL.ByteString -> P.Either String a
+    mimeUnrenderWithType :: P.Proxy mtype -> Maybe ME.MediaType -> i -> P.Either String o
     mimeUnrenderWithType p _ = mimeUnrender p
     {-# MINIMAL mimeUnrender | mimeUnrenderWithType #-}
 

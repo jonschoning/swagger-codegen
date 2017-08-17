@@ -117,8 +117,8 @@ toInitRequest {{configType}} {..} {{requestType}} {..} = do
     ParamBodyNone -> pure (pReq { NH.requestBody = mempty })
     ParamBodyB bs -> pure (pReq { NH.requestBody = NH.RequestBodyBS bs })
     ParamBodyBL bl -> pure (pReq { NH.requestBody = NH.RequestBodyLBS bl })
-    ParamBodyForm form -> pure (pReq { NH.requestBody = NH.RequestBodyLBS (WH.urlEncodeForm form) })
-    ParamBodyMultiForm parts -> NH.formDataBody parts pReq
+    ParamBodyFormUrlEncoded form -> pure (pReq { NH.requestBody = NH.RequestBodyLBS (WH.urlEncodeForm form) })
+    ParamBodyMultipartFormData parts -> NH.formDataBody parts pReq
 
   pure (InitRequest req)
 
