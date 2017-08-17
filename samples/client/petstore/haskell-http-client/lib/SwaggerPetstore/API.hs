@@ -539,6 +539,38 @@ data UpdateUser
 -- instance Produces UpdateUser application/json
 
  
+-- * HasOptionalParam
+
+-- | Designates the optional parameters of a request
+class HasOptionalParam req param where
+  {-# MINIMAL applyOptionalParam | (-&-) #-}
+
+  -- | Apply an optional parameter to a request
+  applyOptionalParam :: forall res. SwaggerPetstoreRequest req res -> param -> SwaggerPetstoreRequest req res
+  applyOptionalParam = (-&-)
+  {-# INLINE applyOptionalParam #-}
+
+  -- | infix operator \/ alias for 'addOptionalParam'
+  (-&-) :: forall res. SwaggerPetstoreRequest req res -> param -> SwaggerPetstoreRequest req res
+  (-&-) = applyOptionalParam
+  {-# INLINE (-&-) #-}
+
+infixl 2 -&-
+
+-- * Optional Request Parameter Types
+
+
+newtype Api'Underscorekey = Api'Underscorekey { unApi'Underscorekey :: Text } deriving (P.Eq, P.Show)
+
+newtype Name = Name { unName :: Text } deriving (P.Eq, P.Show)
+
+newtype Status = Status { unStatus :: Text } deriving (P.Eq, P.Show)
+
+newtype AdditionalMetadata = AdditionalMetadata { unAdditionalMetadata :: Text } deriving (P.Eq, P.Show)
+
+newtype File = File { unFile :: FilePath } deriving (P.Eq, P.Show)
+
+
 -- * SwaggerPetstoreRequest
 
 -- | Represents a request. The "req" type variable is the request type. The "res" type variable is the response type.
@@ -549,8 +581,24 @@ data SwaggerPetstoreRequest req res = SwaggerPetstoreRequest
   }
   deriving (P.Show)
 
+-- | Request Params
+data Params = Params
+  { paramsQuery :: NH.Query
+  , paramsHeaders :: NH.RequestHeaders
+  , paramsBody :: ParamBody
+  }
+  deriving (P.Show)
 
--- * SwaggerPetstoreRequest Helpers
+-- | Request Body
+data ParamBody
+  = ParamBodyNone
+  | ParamBodyForm WH.Form
+  | ParamBodyMultiForm [NH.Part]
+  | ParamBodyB B.ByteString
+  | ParamBodyBL BL.ByteString
+  deriving (P.Show)
+
+-- ** SwaggerPetstoreRequest Utils
 
 _mkRequest :: NH.Method -- ^ Method 
           -> [BCL.ByteString] -- ^ Endpoint
@@ -597,47 +645,7 @@ _setBodyLBS req body =
     in req { params = _params { paramsBody = ParamBodyBL body } }
 
 
-
--- * Params
-
--- ** Consumes
-class Consumes req content where
-
--- ** Produces
-class Produces req accept where
-
--- ** HasOptionalParam
--- | Designates the optional parameters of a request
-class HasOptionalParam req param where
-  {-# MINIMAL applyOptionalParam | (-&-) #-}
-
-  -- | Apply an optional parameter to a request
-  applyOptionalParam :: forall res. SwaggerPetstoreRequest req res -> param -> SwaggerPetstoreRequest req res
-  applyOptionalParam = (-&-)
-  {-# INLINE applyOptionalParam #-}
-
-  -- | infix operator \/ alias for 'addOptionalParam'
-  (-&-) :: forall res. SwaggerPetstoreRequest req res -> param -> SwaggerPetstoreRequest req res
-  (-&-) = applyOptionalParam
-  {-# INLINE (-&-) #-}
-
-infixl 2 -&-
-
--- | Request Params
-data Params = Params
-  { paramsQuery :: NH.Query
-  , paramsHeaders :: NH.RequestHeaders
-  , paramsBody :: ParamBody
-  }
-  deriving (P.Show)
-
-data ParamBody
-  = ParamBodyNone
-  | ParamBodyForm WH.Form
-  | ParamBodyMultiForm [NH.Part]
-  | ParamBodyB B.ByteString
-  | ParamBodyBL BL.ByteString
-  deriving (P.Show)
+-- ** Params Utils
 
 toPath
   :: WH.ToHttpApiData a
@@ -653,6 +661,16 @@ toForm (k,v) = WH.toForm [(BC.unpack k,v)]
 toQuery :: WH.ToHttpApiData a => (BC.ByteString, Maybe a) -> [NH.QueryItem]
 toQuery x = [(fmap . fmap) toQueryParam x]
   where toQueryParam = T.encodeUtf8 . WH.toQueryParam
+
+-- *** Swagger `CollectionFormat` Utils
+
+-- | Determines the format of the array if type array is used.
+data CollectionFormat
+  = CommaSeparated -- ^ CSV format for multiple parameters.
+  | SpaceSeparated -- ^ Also called "SSV"
+  | TabSeparated -- ^ Also called "TSV"
+  | PipeSeparated -- ^ `value1|value2|value2`
+  | MultiParamArray -- ^ Using multiple GET parameters, e.g. `foo=bar&foo=baz`. This is valid only for parameters in "query" ('NH.Query') or "formData" ('WH.Form')
 
 toHeaderColl :: WH.ToHttpApiData a => CollectionFormat -> (NH.HeaderName, [a]) -> [NH.Header]
 toHeaderColl c xs = _toColl c toHeader xs
@@ -690,12 +708,6 @@ _toCollA' c encode one xs = case c of
     {-# INLINE expandList #-}
     {-# INLINE combine #-}
   
-data CollectionFormat
-  = CommaSeparated -- ^ CSV format for multiple parameters.
-  | SpaceSeparated -- ^ Also called "SSV"
-  | TabSeparated -- ^ Also called "TSV"
-  | PipeSeparated -- ^ `value1|value2|value2`
-  | MultiParamArray -- ^ Using multiple GET parameters, e.g. `foo=bar&foo=baz`. Only for GET params.
 
 -- * Mime Types
 
@@ -731,18 +743,11 @@ instance MimeType FormUrlEncoded where
 instance MimeType PlainText where
   mimeType _ = "text" ME.// "plain" ME./: ("charset", "utf-8")
 
--- ** MimeRender & MimeUnrender
+-- ** MimeRender
 
 class MimeType mtype => MimeRender mtype a where
     mimeRender  :: P.Proxy mtype -> a -> BL.ByteString
 
-class MimeType mtype => MimeUnrender mtype a where
-    mimeUnrender :: P.Proxy mtype -> BL.ByteString -> P.Either String a
-    mimeUnrender p = mimeUnrenderWithType p (mimeType p)
-    mimeUnrenderWithType :: P.Proxy mtype -> ME.MediaType -> BL.ByteString -> P.Either String a
-    mimeUnrenderWithType p _ = mimeUnrender p
-    {-# MINIMAL mimeUnrender | mimeUnrenderWithType #-}
-    
 -- | `encode`
 instance A.ToJSON a => MimeRender JSON a where mimeRender _ = A.encode
 -- | @urlEncodeAsForm@
@@ -753,16 +758,20 @@ instance MimeRender PlainText TL.Text where mimeRender _ = TL.encodeUtf8
 instance MimeRender PlainText T.Text where mimeRender _ = BL.fromStrict . T.encodeUtf8
 -- | @BC.pack@
 instance MimeRender PlainText String where mimeRender _ = BCL.pack
-    
--- * Optional Request Params
 
-newtype Api'Underscorekey = Api'Underscorekey { unApi'Underscorekey :: Text } deriving (P.Eq, P.Show)
+-- ** MimeUnrender
 
-newtype Name = Name { unName :: Text } deriving (P.Eq, P.Show)
+class MimeType mtype => MimeUnrender mtype a where
+    mimeUnrender :: P.Proxy mtype -> BL.ByteString -> P.Either String a
+    mimeUnrender p = mimeUnrenderWithType p (mimeType p)
+    mimeUnrenderWithType :: P.Proxy mtype -> ME.MediaType -> BL.ByteString -> P.Either String a
+    mimeUnrenderWithType p _ = mimeUnrender p
+    {-# MINIMAL mimeUnrender | mimeUnrenderWithType #-}
 
-newtype Status = Status { unStatus :: Text } deriving (P.Eq, P.Show)
+-- * Consumes
 
-newtype AdditionalMetadata = AdditionalMetadata { unAdditionalMetadata :: Text } deriving (P.Eq, P.Show)
+class Consumes req mtype where
 
-newtype File = File { unFile :: FilePath } deriving (P.Eq, P.Show)
+-- * Produces
 
+class Produces req mtype where
