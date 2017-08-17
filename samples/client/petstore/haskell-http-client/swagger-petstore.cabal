@@ -34,7 +34,7 @@ library
       lib
   ghc-options: -Wall
   build-depends:
-      base >=4.6 && <5.0
+      base >=4.7 && <5.0
     , transformers >=0.4.0.0
     , mtl >=2.2.1
     , unordered-containers
@@ -71,7 +71,7 @@ test-suite tests
       tests
   ghc-options: -fno-warn-orphans
   build-depends:
-      base >=4.6 && <5.0
+      base >=4.7 && <5.0
     , transformers >=0.4.0.0
     , mtl >=2.2.1
     , unordered-containers

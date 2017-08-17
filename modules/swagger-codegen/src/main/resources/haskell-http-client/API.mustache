@@ -15,43 +15,47 @@ module {{title}}.API where
 
 import {{title}}.Model as M
 
-import Control.Monad.IO.Class
 import qualified Data.Aeson as A
 import qualified Data.Aeson.Types as A
 
+import qualified Data.ByteString as B
+import qualified Data.ByteString.Builder as BSB
+import qualified Data.ByteString.Char8 as BS8
+import qualified Data.ByteString.Lazy.Char8 as BSL
+
+import qualified Network.HTTP.Client as NH
+import qualified Network.HTTP.Client.MultipartFormData as NH
+import qualified Network.HTTP.Client.TLS as NH
+import qualified Network.HTTP.Media as ME
+import qualified Network.HTTP.Types as NH
+import qualified Network.HTTP.Types.Method as NH
+import qualified Network.HTTP.Types.URI as NH
+
+import qualified Web.HttpApiData as WH
+import qualified Web.FormUrlEncoded as WH
+
+import qualified Data.CaseInsensitive as CI
+import qualified Data.Data as P (Typeable)
+import qualified Data.Foldable as P
+import qualified Data.Functor.Identity as P (Identity(..))
 import qualified Data.Map as Map
+import qualified Data.Maybe as P
+import qualified Data.Proxy as P (Proxy)
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as TE
 import qualified Data.Vector as V
 import qualified Data.Void as Void
+import qualified GHC.Base as P (Alternative)
 
-import qualified Data.ByteString as B
-import qualified Data.ByteString.Char8 as BS8
-import qualified Data.ByteString.Lazy.Char8 as BSL
-import qualified Data.ByteString.Builder as BSB
-import qualified Network.HTTP.Client as NH
-import qualified Network.HTTP.Client.TLS as NH
-import qualified Network.HTTP.Client.MultipartFormData as NH
-import qualified Network.HTTP.Types.Method as NH
-import qualified Network.HTTP.Types as NH
-import qualified Network.HTTP.Types.URI as NH
-
-import qualified Web.HttpApiData as WH
-import qualified Web.FormUrlEncoded as WF
-
+import Control.Monad.IO.Class
 import Data.Function ((&))
 import Data.Monoid ((<>))
 import Data.Set (Set)
 import Data.Text (Text)
 import GHC.Base ((<|>))
-import GHC.Exts (IsString(..))
+
 import Prelude (($), (.),(<$>),(<*>),Maybe(..),Bool(..),Char,Double,FilePath,Float,Int,Integer,String,fmap,undefined,mempty)
-import qualified Data.Foldable as P
-import qualified Data.Functor.Identity as P (Identity(..))
-import qualified Data.Maybe as P
-import qualified GHC.Base as P (Alternative)
 import qualified Prelude as P
-import qualified Data.CaseInsensitive as CI
 
 -- * Operations
 {{#apiInfo}}{{#apis}}{{#operations}}{{#operation}}
@@ -119,7 +123,7 @@ _addQuery req query =
     let _params = params req 
     in req { params = _params { paramsQuery = query P.++ paramsQuery _params } }
 
-_addForm :: {{requestType}} req res -> WF.Form -> {{requestType}} req res
+_addForm :: {{requestType}} req res -> WH.Form -> {{requestType}} req res
 _addForm req newform = 
     let _params = params req
         form = case paramsBody _params of
@@ -182,7 +186,7 @@ data Params = Params
 
 data ParamBody
   = ParamBodyNone
-  | ParamBodyForm WF.Form
+  | ParamBodyForm WH.Form
   | ParamBodyMultiForm [NH.Part]
   | ParamBodyBS B.ByteString
   | ParamBodyBSL BSL.ByteString
@@ -196,8 +200,8 @@ toPath = BSB.toLazyByteString . WH.toEncodedUrlPiece
 toHeader :: WH.ToHttpApiData a => (NH.HeaderName, a) -> [NH.Header]
 toHeader x = [fmap WH.toHeader x]
 
-toForm :: WH.ToHttpApiData v => (BS8.ByteString, v) -> WF.Form
-toForm (k,v) = WF.toForm [(BS8.unpack k,v)]
+toForm :: WH.ToHttpApiData v => (BS8.ByteString, v) -> WH.Form
+toForm (k,v) = WH.toForm [(BS8.unpack k,v)]
 
 toQuery :: WH.ToHttpApiData a => (BS8.ByteString, Maybe a) -> [NH.QueryItem]
 toQuery x = [(fmap . fmap) toQueryParam x]
@@ -206,8 +210,8 @@ toQuery x = [(fmap . fmap) toQueryParam x]
 toHeaderColl :: WH.ToHttpApiData a => CollectionFormat -> (NH.HeaderName, [a]) -> [NH.Header]
 toHeaderColl c xs = _toColl c toHeader xs
 
-toFormColl :: WH.ToHttpApiData v => CollectionFormat -> (BS8.ByteString, [v]) -> WF.Form
-toFormColl c xs = WF.toForm $ fmap unpack $ _toColl c toHeader $ pack xs
+toFormColl :: WH.ToHttpApiData v => CollectionFormat -> (BS8.ByteString, [v]) -> WH.Form
+toFormColl c xs = WH.toForm $ fmap unpack $ _toColl c toHeader $ pack xs
   where
     pack (k,v) = (CI.mk k, v)
     unpack (k,v) = (BS8.unpack (CI.original k), BS8.unpack v)
@@ -246,10 +250,40 @@ data CollectionFormat
   | PipeSeparated -- ^ `value1|value2|value2`
   | MultiParamArray -- ^ Using multiple GET parameters, e.g. `foo=bar&foo=baz`. Only for GET params.
 
-showBS
-  :: P.Show a
-  => a -> B.ByteString
-showBS = fromString . P.show
+-- * Mime Types
+
+data JSON deriving (P.Typeable)
+data XML deriving (P.Typeable)
+data PlainText deriving (P.Typeable)
+data FormUrlEncoded deriving (P.Typeable)
+data NoContent deriving (P.Typeable)
+
+class MimeType mtype  where
+  mimeType :: P.Proxy mtype -> ME.MediaType
+  mimeType = P.head . mimeTypes
+  mimeTypes :: P.Proxy mtype -> [ME.MediaType]
+  mimeTypes = (: []) . mimeType
+  {-# MINIMAL mimeType | mimeTypes #-}
+
+-- | application\/json
+instance MimeType JSON where
+  mimeTypes _ =
+    [ "application" ME.// "json" ME./: ("charset", "utf-8")
+    , "application" ME.// "json"
+    ]
+
+-- | @application/xml
+instance MimeType XML where
+  mimeType _ = "application" ME.// "xml"
+
+-- | @application/x-www-form-urlencoded@
+instance MimeType FormUrlEncoded where
+  mimeType _ = "application" ME.// "x-www-form-urlencoded"
+
+-- | @text/plain;charset=utf-8@
+instance MimeType PlainText where
+  mimeType _ = "text" ME.// "plain" ME./: ("charset", "utf-8")
+
 
 -- * Optional Request Params
 {{#apiInfo}}{{#apis}}{{#operations}}{{#operation}}{{#vendorExtensions.x-hasOptionalParams}}{{#allParams}}{{^required}}{{^vendorExtensions.x-duplicate}}

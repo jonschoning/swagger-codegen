@@ -21,7 +21,7 @@ import Data.Monoid ((<>))
 import Data.Text (Text)
 import GHC.Exts (IsString(..))
 import GHC.Generics (Generic)
-import Web.FormUrlEncoded as WF
+import Web.FormUrlEncoded as WH
 import Web.HttpApiData as WH
 import Control.Monad.Catch (MonadThrow)
 
@@ -119,7 +119,7 @@ toInitRequest SwaggerPetstoreConfig {..} SwaggerPetstoreRequest {..} = do
     ParamBodyNone -> pure (pReq { NH.requestBody = mempty })
     ParamBodyBS bs -> pure (pReq { NH.requestBody = NH.RequestBodyBS bs })
     ParamBodyBSL bsl -> pure (pReq { NH.requestBody = NH.RequestBodyLBS bsl })
-    ParamBodyForm form -> pure (pReq { NH.requestBody = NH.RequestBodyLBS (WF.urlEncodeForm form) })
+    ParamBodyForm form -> pure (pReq { NH.requestBody = NH.RequestBodyLBS (WH.urlEncodeForm form) })
     ParamBodyMultiForm parts -> NH.formDataBody parts pReq
 
   pure (InitRequest req)
