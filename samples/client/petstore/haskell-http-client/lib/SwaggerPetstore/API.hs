@@ -85,10 +85,10 @@ addPet body =
     `_setBodyLBS` A.encode body
 
 data AddPet
--- instance Consumes AddPet application/json
--- instance Consumes AddPet application/xml
--- instance Produces AddPet application/xml
--- instance Produces AddPet application/json
+-- instance Consumes AddPet application/json MimeJSON
+-- instance Consumes AddPet application/xml MimeXML
+-- instance Produces AddPet application/xml MimeXML
+-- instance Produces AddPet application/json MimeJSON
 
 
 -- ** deletePet
@@ -110,10 +110,10 @@ deletePet petId =
     
 
 data DeletePet
--- instance Produces DeletePet application/xml
--- instance Produces DeletePet application/json
-instance HasOptionalParam DeletePet Api'Underscorekey where
-  applyOptionalParam req (Api'Underscorekey xs) =
+-- instance Produces DeletePet application/xml MimeXML
+-- instance Produces DeletePet application/json MimeJSON
+instance HasOptionalParam DeletePet ApiUnderscorekey where
+  applyOptionalParam req (ApiUnderscorekey xs) =
     req `_addHeader` toHeader ("api_key", xs)
 
 
@@ -136,8 +136,8 @@ findPetsByStatus status =
     `_addQuery` toQueryColl MultiParamArray ("status", Just status)
 
 data FindPetsByStatus
--- instance Produces FindPetsByStatus application/xml
--- instance Produces FindPetsByStatus application/json
+-- instance Produces FindPetsByStatus application/xml MimeXML
+-- instance Produces FindPetsByStatus application/json MimeJSON
 
 
 -- ** findPetsByTags
@@ -161,8 +161,8 @@ findPetsByTags tags =
 {-# DEPRECATED findPetsByTags "" #-}
 
 data FindPetsByTags
--- instance Produces FindPetsByTags application/xml
--- instance Produces FindPetsByTags application/json
+-- instance Produces FindPetsByTags application/xml MimeXML
+-- instance Produces FindPetsByTags application/json MimeJSON
 
 
 -- ** getPetById
@@ -184,8 +184,8 @@ getPetById petId =
     
 
 data GetPetById
--- instance Produces GetPetById application/xml
--- instance Produces GetPetById application/json
+-- instance Produces GetPetById application/xml MimeXML
+-- instance Produces GetPetById application/json MimeJSON
 
 
 -- ** updatePet
@@ -209,10 +209,10 @@ updatePet body =
     `_setBodyLBS` A.encode body
 
 data UpdatePet
--- instance Consumes UpdatePet application/json
--- instance Consumes UpdatePet application/xml
--- instance Produces UpdatePet application/xml
--- instance Produces UpdatePet application/json
+-- instance Consumes UpdatePet application/json MimeJSON
+-- instance Consumes UpdatePet application/xml MimeXML
+-- instance Produces UpdatePet application/xml MimeXML
+-- instance Produces UpdatePet application/json MimeJSON
 
 
 -- ** updatePetWithForm
@@ -236,9 +236,9 @@ updatePetWithForm petId =
     
 
 data UpdatePetWithForm
--- instance Consumes UpdatePetWithForm application/x-www-form-urlencoded
--- instance Produces UpdatePetWithForm application/xml
--- instance Produces UpdatePetWithForm application/json
+-- instance Consumes UpdatePetWithForm application/x-www-form-urlencoded MimeFormUrlEncoded
+-- instance Produces UpdatePetWithForm application/xml MimeXML
+-- instance Produces UpdatePetWithForm application/json MimeJSON
 
 -- | /Optional Param/ "name" - Updated name of the pet
 instance HasOptionalParam UpdatePetWithForm Name where
@@ -272,8 +272,8 @@ uploadFile petId =
     
 
 data UploadFile
--- instance Consumes UploadFile multipart/form-data
--- instance Produces UploadFile application/json
+-- instance Consumes UploadFile multipart/form-data MimeMultipartFormData
+-- instance Produces UploadFile application/json MimeJSON
 
 -- | /Optional Param/ "additionalMetadata" - Additional data to pass to server
 instance HasOptionalParam UploadFile AdditionalMetadata where
@@ -303,8 +303,8 @@ deleteOrder orderId =
     
 
 data DeleteOrder
--- instance Produces DeleteOrder application/xml
--- instance Produces DeleteOrder application/json
+-- instance Produces DeleteOrder application/xml MimeXML
+-- instance Produces DeleteOrder application/json MimeJSON
 
 
 -- ** getInventory
@@ -324,7 +324,7 @@ getInventory =
   _mkRequest "GET" ["/store/inventory"]
 
 data GetInventory
--- instance Produces GetInventory application/json
+-- instance Produces GetInventory application/json MimeJSON
 
 
 -- ** getOrderById
@@ -344,8 +344,8 @@ getOrderById orderId =
     
 
 data GetOrderById
--- instance Produces GetOrderById application/xml
--- instance Produces GetOrderById application/json
+-- instance Produces GetOrderById application/xml MimeXML
+-- instance Produces GetOrderById application/json MimeJSON
 
 
 -- ** placeOrder
@@ -365,8 +365,8 @@ placeOrder body =
     `_setBodyLBS` A.encode body
 
 data PlaceOrder
--- instance Produces PlaceOrder application/xml
--- instance Produces PlaceOrder application/json
+-- instance Produces PlaceOrder application/xml MimeXML
+-- instance Produces PlaceOrder application/json MimeJSON
 
 
 -- ** createUser
@@ -386,8 +386,8 @@ createUser body =
     `_setBodyLBS` A.encode body
 
 data CreateUser
--- instance Produces CreateUser application/xml
--- instance Produces CreateUser application/json
+-- instance Produces CreateUser application/xml MimeXML
+-- instance Produces CreateUser application/json MimeJSON
 
 
 -- ** createUsersWithArrayInput
@@ -407,8 +407,8 @@ createUsersWithArrayInput body =
     `_setBodyLBS` A.encode body
 
 data CreateUsersWithArrayInput
--- instance Produces CreateUsersWithArrayInput application/xml
--- instance Produces CreateUsersWithArrayInput application/json
+-- instance Produces CreateUsersWithArrayInput application/xml MimeXML
+-- instance Produces CreateUsersWithArrayInput application/json MimeJSON
 
 
 -- ** createUsersWithListInput
@@ -428,8 +428,8 @@ createUsersWithListInput body =
     `_setBodyLBS` A.encode body
 
 data CreateUsersWithListInput
--- instance Produces CreateUsersWithListInput application/xml
--- instance Produces CreateUsersWithListInput application/json
+-- instance Produces CreateUsersWithListInput application/xml MimeXML
+-- instance Produces CreateUsersWithListInput application/json MimeJSON
 
 
 -- ** deleteUser
@@ -449,8 +449,8 @@ deleteUser username =
     
 
 data DeleteUser
--- instance Produces DeleteUser application/xml
--- instance Produces DeleteUser application/json
+-- instance Produces DeleteUser application/xml MimeXML
+-- instance Produces DeleteUser application/json MimeJSON
 
 
 -- ** getUserByName
@@ -470,8 +470,8 @@ getUserByName username =
     
 
 data GetUserByName
--- instance Produces GetUserByName application/xml
--- instance Produces GetUserByName application/json
+-- instance Produces GetUserByName application/xml MimeXML
+-- instance Produces GetUserByName application/json MimeJSON
 
 
 -- ** loginUser
@@ -493,8 +493,8 @@ loginUser username password =
     `_addQuery` toQuery ("password", Just password)
 
 data LoginUser
--- instance Produces LoginUser application/xml
--- instance Produces LoginUser application/json
+-- instance Produces LoginUser application/xml MimeXML
+-- instance Produces LoginUser application/json MimeJSON
 
 
 -- ** logoutUser
@@ -512,8 +512,8 @@ logoutUser =
   _mkRequest "GET" ["/user/logout"]
 
 data LogoutUser
--- instance Produces LogoutUser application/xml
--- instance Produces LogoutUser application/json
+-- instance Produces LogoutUser application/xml MimeXML
+-- instance Produces LogoutUser application/json MimeJSON
 
 
 -- ** updateUser
@@ -535,8 +535,8 @@ updateUser username body =
     `_setBodyLBS` A.encode body
 
 data UpdateUser
--- instance Produces UpdateUser application/xml
--- instance Produces UpdateUser application/json
+-- instance Produces UpdateUser application/xml MimeXML
+-- instance Produces UpdateUser application/json MimeJSON
 
  
 -- * HasOptionalParam
@@ -560,7 +560,7 @@ infixl 2 -&-
 -- * Optional Request Parameter Types
 
 
-newtype Api'Underscorekey = Api'Underscorekey { unApi'Underscorekey :: Text } deriving (P.Eq, P.Show)
+newtype ApiUnderscorekey = ApiUnderscorekey { unApiUnderscorekey :: Text } deriving (P.Eq, P.Show)
 
 newtype Name = Name { unName :: Text } deriving (P.Eq, P.Show)
 
@@ -709,15 +709,20 @@ _toCollA' c encode one xs = case c of
     {-# INLINE combine #-}
   
 
--- * Mime Types
+-- * Standard Mime DataTypes
 
-data JSON deriving (P.Typeable)
-data XML deriving (P.Typeable)
-data PlainText deriving (P.Typeable)
-data FormUrlEncoded deriving (P.Typeable)
-data MultipartFormData deriving (P.Typeable)
-data NoContent deriving (P.Typeable)
-data IdentityPassThough deriving (P.Typeable)
+data MimeJSON deriving (P.Typeable)
+data MimeXML deriving (P.Typeable)
+data MimePlainText deriving (P.Typeable)
+data MimeFormUrlEncoded deriving (P.Typeable)
+data MimeMultipartFormData deriving (P.Typeable)
+data MimeNoContent deriving (P.Typeable)
+data MimeIdentityPassThough deriving (P.Typeable)
+
+-- * Application-Specific Mime DataTypes
+
+
+-- * MimeType Class
 
 class MimeType mtype  where
   mimeType :: P.Proxy mtype -> Maybe ME.MediaType
@@ -734,32 +739,32 @@ class MimeType mtype  where
   {-# MINIMAL mimeType | mimeTypes #-}
 
 -- | @application/json@
-instance MimeType JSON where
+instance MimeType MimeJSON where
   mimeTypes _ =
     [ "application" ME.// "json" ME./: ("charset", "utf-8")
     , "application" ME.// "json"
     ]
 
 -- | @application/xml@
-instance MimeType XML where
+instance MimeType MimeXML where
   mimeType _ = Just $ "application" ME.// "xml"
 
 -- | @application/x-www-form-urlencoded@
-instance MimeType FormUrlEncoded where
+instance MimeType MimeFormUrlEncoded where
   mimeType _ = Just $ "application" ME.// "x-www-form-urlencoded"
 
 -- | @multipart/form-data@
-instance MimeType MultipartFormData where
+instance MimeType MimeMultipartFormData where
   mimeType _ = Just $ "multipart" ME.// "form-data"
 
 -- | @text/plain;charset=utf-8@
-instance MimeType PlainText where
+instance MimeType MimePlainText where
   mimeType _ = Just $ "text" ME.// "plain" ME./: ("charset", "utf-8")
 
-instance MimeType NoContent where
+instance MimeType MimeNoContent where
   mimeType _ = Nothing
 
-instance MimeType IdentityPassThough where
+instance MimeType MimeIdentityPassThough where
   mimeType _ = Nothing
 
 -- ** MimeRender
@@ -768,21 +773,21 @@ class MimeType mtype => MimeRender mtype i o where
     mimeRender  :: P.Proxy mtype -> i -> o
 
 -- | `A.encode`
-instance A.ToJSON a => MimeRender JSON a BL.ByteString where mimeRender _ = A.encode
+instance A.ToJSON a => MimeRender MimeJSON a BL.ByteString where mimeRender _ = A.encode
 -- | @WH.urlEncodeAsForm@
-instance WH.ToForm a => MimeRender FormUrlEncoded a BL.ByteString where mimeRender _ = WH.urlEncodeAsForm
+instance WH.ToForm a => MimeRender MimeFormUrlEncoded a BL.ByteString where mimeRender _ = WH.urlEncodeAsForm
 -- | `TL.encodeUtf8`
-instance MimeRender PlainText TL.Text BL.ByteString where mimeRender _ = TL.encodeUtf8
+instance MimeRender MimePlainText TL.Text BL.ByteString where mimeRender _ = TL.encodeUtf8
 -- | @BL.fromStrict . T.encodeUtf8@
-instance MimeRender PlainText T.Text BL.ByteString where mimeRender _ = BL.fromStrict . T.encodeUtf8
+instance MimeRender MimePlainText T.Text BL.ByteString where mimeRender _ = BL.fromStrict . T.encodeUtf8
 -- | @BCL.pack@
-instance MimeRender PlainText String BL.ByteString where mimeRender _ = BCL.pack
+instance MimeRender MimePlainText String BL.ByteString where mimeRender _ = BCL.pack
 -- | @()@
-instance MimeRender NoContent a () where mimeRender _ _ = ()
+instance MimeRender MimeNoContent a () where mimeRender _ _ = ()
 -- | @P.id@
-instance MimeRender IdentityPassThough a a where mimeRender _ = P.id
+instance MimeRender MimeIdentityPassThough a a where mimeRender _ = P.id
 
--- ** MimeUnrender
+-- ** MimeUnrender Class
 
 class MimeType mtype => MimeUnrender mtype i o where
     mimeUnrender :: P.Proxy mtype -> i -> P.Either String o

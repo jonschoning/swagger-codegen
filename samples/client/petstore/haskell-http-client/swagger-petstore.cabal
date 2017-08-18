@@ -59,8 +59,8 @@ library
       SwaggerPetstore.API
       SwaggerPetstore.Client
       SwaggerPetstore.Model
-  other-modules:
       SwaggerPetstore.Lens
+  other-modules:
       Paths_swagger_petstore
   default-language: Haskell2010
 

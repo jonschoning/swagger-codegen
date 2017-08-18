@@ -87,8 +87,8 @@ import qualified Prelude as P
 {-# DEPRECATED {{operationId}} "" #-}{{/isDeprecated}}
 
 data {{{vendorExtensions.x-operationType}}}{{#hasConsumes}}{{#consumes}}
--- instance Consumes {{{vendorExtensions.x-operationType}}} {{{mediaType}}}{{/consumes}}{{/hasConsumes}}{{#hasProduces}}{{#produces}}
--- instance Produces {{{vendorExtensions.x-operationType}}} {{{mediaType}}}{{/produces}}{{/hasProduces}}{{#vendorExtensions.x-hasOptionalParams}}{{#allParams}}{{^required}}{{#description}}
+-- instance Consumes {{{vendorExtensions.x-operationType}}} {{{mediaType}}} {{{x-mediaDataType}}}{{/consumes}}{{/hasConsumes}}{{#hasProduces}}{{#produces}}
+-- instance Produces {{{vendorExtensions.x-operationType}}} {{{mediaType}}} {{{x-mediaDataType}}}{{/produces}}{{/hasProduces}}{{#vendorExtensions.x-hasOptionalParams}}{{#allParams}}{{^required}}{{#description}}
 
 -- | /Optional Param/ "{{{baseName}}}" - {{{description}}}{{/description}}
 instance HasOptionalParam {{{vendorExtensions.x-operationType}}} {{{vendorExtensions.x-paramNameType}}} where
@@ -258,15 +258,22 @@ _toCollA' c encode one xs = case c of
     {-# INLINE combine #-}
   
 
--- * Mime Types
+-- * Standard Mime DataTypes
 
-data JSON deriving (P.Typeable)
-data XML deriving (P.Typeable)
-data PlainText deriving (P.Typeable)
-data FormUrlEncoded deriving (P.Typeable)
-data MultipartFormData deriving (P.Typeable)
-data NoContent deriving (P.Typeable)
-data IdentityPassThough deriving (P.Typeable)
+data MimeJSON deriving (P.Typeable)
+data MimeXML deriving (P.Typeable)
+data MimePlainText deriving (P.Typeable)
+data MimeFormUrlEncoded deriving (P.Typeable)
+data MimeMultipartFormData deriving (P.Typeable)
+data MimeNoContent deriving (P.Typeable)
+data MimeIdentityPassThough deriving (P.Typeable)
+
+-- * Application-Specific Mime DataTypes
+
+{{#x-unknownMimeTypes}}data {{{x-mediaDataType}}} deriving (P.Typeable)
+{{/x-unknownMimeTypes}}
+
+-- * MimeType Class
 
 class MimeType mtype  where
   mimeType :: P.Proxy mtype -> Maybe ME.MediaType
@@ -283,32 +290,32 @@ class MimeType mtype  where
   {-# MINIMAL mimeType | mimeTypes #-}
 
 -- | @application/json@
-instance MimeType JSON where
+instance MimeType MimeJSON where
   mimeTypes _ =
     [ "application" ME.// "json" ME./: ("charset", "utf-8")
     , "application" ME.// "json"
     ]
 
 -- | @application/xml@
-instance MimeType XML where
+instance MimeType MimeXML where
   mimeType _ = Just $ "application" ME.// "xml"
 
 -- | @application/x-www-form-urlencoded@
-instance MimeType FormUrlEncoded where
+instance MimeType MimeFormUrlEncoded where
   mimeType _ = Just $ "application" ME.// "x-www-form-urlencoded"
 
 -- | @multipart/form-data@
-instance MimeType MultipartFormData where
+instance MimeType MimeMultipartFormData where
   mimeType _ = Just $ "multipart" ME.// "form-data"
 
 -- | @text/plain;charset=utf-8@
-instance MimeType PlainText where
+instance MimeType MimePlainText where
   mimeType _ = Just $ "text" ME.// "plain" ME./: ("charset", "utf-8")
 
-instance MimeType NoContent where
+instance MimeType MimeNoContent where
   mimeType _ = Nothing
 
-instance MimeType IdentityPassThough where
+instance MimeType MimeIdentityPassThough where
   mimeType _ = Nothing
 
 -- ** MimeRender
@@ -317,21 +324,21 @@ class MimeType mtype => MimeRender mtype i o where
     mimeRender  :: P.Proxy mtype -> i -> o
 
 -- | `A.encode`
-instance A.ToJSON a => MimeRender JSON a BL.ByteString where mimeRender _ = A.encode
+instance A.ToJSON a => MimeRender MimeJSON a BL.ByteString where mimeRender _ = A.encode
 -- | @WH.urlEncodeAsForm@
-instance WH.ToForm a => MimeRender FormUrlEncoded a BL.ByteString where mimeRender _ = WH.urlEncodeAsForm
+instance WH.ToForm a => MimeRender MimeFormUrlEncoded a BL.ByteString where mimeRender _ = WH.urlEncodeAsForm
 -- | `TL.encodeUtf8`
-instance MimeRender PlainText TL.Text BL.ByteString where mimeRender _ = TL.encodeUtf8
+instance MimeRender MimePlainText TL.Text BL.ByteString where mimeRender _ = TL.encodeUtf8
 -- | @BL.fromStrict . T.encodeUtf8@
-instance MimeRender PlainText T.Text BL.ByteString where mimeRender _ = BL.fromStrict . T.encodeUtf8
+instance MimeRender MimePlainText T.Text BL.ByteString where mimeRender _ = BL.fromStrict . T.encodeUtf8
 -- | @BCL.pack@
-instance MimeRender PlainText String BL.ByteString where mimeRender _ = BCL.pack
+instance MimeRender MimePlainText String BL.ByteString where mimeRender _ = BCL.pack
 -- | @()@
-instance MimeRender NoContent a () where mimeRender _ _ = ()
+instance MimeRender MimeNoContent a () where mimeRender _ _ = ()
 -- | @P.id@
-instance MimeRender IdentityPassThough a a where mimeRender _ = P.id
+instance MimeRender MimeIdentityPassThough a a where mimeRender _ = P.id
 
--- ** MimeUnrender
+-- ** MimeUnrender Class
 
 class MimeType mtype => MimeUnrender mtype i o where
     mimeUnrender :: P.Proxy mtype -> i -> P.Either String o

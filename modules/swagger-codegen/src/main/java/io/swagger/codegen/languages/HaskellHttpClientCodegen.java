@@ -22,11 +22,14 @@ import io.swagger.codegen.CodegenOperation;
 import io.swagger.codegen.CodegenProperty;
 import io.swagger.codegen.SupportingFile;
 import io.swagger.util.Json;
+
 import java.io.IOException;
 import java.io.File;
+
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.text.WordUtils;
+
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -35,39 +38,33 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
     // source folder where to write the files
     protected String sourceFolder = "src";
     protected String apiVersion = "0.0.1";
+
+    // CLI
     protected String GENERATE_LENSES = "generateLenses";
     protected String DERIVING = "deriving";
     protected String NO_JSON_NULLS = "noJsonNulls";
-//    protected String MODEL_IMPORTS = "modelImports";
-//    protected String MODEL_EXTENSIONS = "modelExtensions";
+
+    // protected String MODEL_IMPORTS = "modelImports";
+    // protected String MODEL_EXTENSIONS = "modelExtensions";
+
     private static final Pattern LEADING_UNDERSCORE = Pattern.compile("^_+");
 
-    /**
-     * Configures the type of generator.
-     *
-     * @return the CodegenType for this generator
-     * @see CodegenType
-     */
+    static final String MEDIA_TYPE = "mediaType";
+    static final String MEDIA_DATA_TYPE = "x-mediaDataType";
+
+
+    protected Map<String, CodegenParameter> uniqueOptionalParamsByName = new HashMap<String, CodegenParameter>();
+    protected Map<String, CodegenModel> modelNames = new HashMap<String, CodegenModel>();
+    protected Map<String, Map<String,String>> allMimeTypes = new HashMap<String, Map<String,String>>();
+    protected Map<String, String> knownMimeDataTypes = new HashMap<String, String>();
+    protected ArrayList<Map<String,String>> unknownMimeTypes = new ArrayList<Map<String,String>>();
+
     public CodegenType getTag() {
         return CodegenType.CLIENT;
     }
-
-    /**
-     * Configures a friendly name for the generator.  This will be used by the generator
-     * to select the library with the -l flag.
-     *
-     * @return the friendly name for the generator
-     */
     public String getName() {
         return "haskell-http-client";
     }
-
-    /**
-     * Returns human-friendly help for the generator.  Provide the consumer with help
-     * tips, parameters here
-     *
-     * @return A string value for the help message
-     */
     public String getHelp() {
         return "Generates a Haskell http-client library.";
     }
@@ -89,20 +86,8 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
         // set the output folder here
         outputFolder = "generated-code/haskell-http-client";
 
-    /*
-     * Template Location.  This is the location which templates will be read from.  The generator
-     * will use the resource stream to attempt to read the templates.
-     */
         embeddedTemplateDir = templateDir = "haskell-http-client";
-
-    /*
-     * Api Package.  Optional, if needed, this can be used in templates
-     */
         apiPackage = "API";
-
-    /*
-     * Model Package.  Optional, if needed, this can be used in templates
-     */
         modelPackage = "Types";
 
         // Haskell keywords and reserved function names, taken mostly from https://wiki.haskell.org/Keywords
@@ -122,33 +107,18 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
                 )
         );
 
-    /*
-     * Additional Properties.  These values can be passed to the templates and
-     * are available in models, apis, and supporting files
-     */
         additionalProperties.put("apiVersion", apiVersion);
 
-    /*
-     * Supporting Files.  You can write single files for the generator with the
-     * entire object tree available.  If the input file has a suffix of `.mustache
-     * it will be processed by the template engine.  Otherwise, it will be copied
-     */
         supportingFiles.add(new SupportingFile("README.mustache", "", "README.md"));
         supportingFiles.add(new SupportingFile("stack.mustache", "", "stack.yaml"));
         supportingFiles.add(new SupportingFile("Setup.mustache", "", "Setup.hs"));
         supportingFiles.add(new SupportingFile(".gitignore", "", ".gitignore"));
 
-    /*
-     * Supporting Test Files.
-    */
         supportingFiles.add(new SupportingFile("tests/ApproxEq.mustache", "tests", "ApproxEq.hs"));
         supportingFiles.add(new SupportingFile("tests/Instances.mustache", "tests", "Instances.hs"));
         supportingFiles.add(new SupportingFile("tests/PropJSON.mustache", "tests", "PropJSON.hs"));
         supportingFiles.add(new SupportingFile("tests/Test.mustache", "tests", "Test.hs"));
-    /*
-     * Language Specific Primitives.  These types will not trigger imports by
-     * the client generator
-     */
+
         languageSpecificPrimitives = new HashSet<String>(
                 Arrays.asList(
                         "Bool",
@@ -181,6 +151,12 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
         typeMapping.put("any", "Value");
         typeMapping.put("UUID", "Text");
 
+        knownMimeDataTypes.put("application/json", "MimeJSON");
+        knownMimeDataTypes.put("application/xml", "MimeXML");
+        knownMimeDataTypes.put("application/x-www-form-urlencoded", "MimeFormUrlEncoded");
+        knownMimeDataTypes.put("multipart/form-data", "MimeMultipartFormData");
+        knownMimeDataTypes.put("text/plain", "MimePlainText");
+
         importMapping.clear();
         importMapping.put("Map", "qualified Data.Map as Map");
 
@@ -190,52 +166,30 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
         cliOptions.add(new CliOption(NO_JSON_NULLS, "fail when encountering JSON Null during model decoding"));
         cliOptions.add(new CliOption(GENERATE_LENSES, "Generate Lens optics for Models"));
         cliOptions.add(new CliOption(DERIVING, "Additional classes to include in the deriving() clause of Models"));
-//        cliOptions.add(new CliOption(MODEL_IMPORTS, "Additional imports in the Models file"));
-//        cliOptions.add(new CliOption(MODEL_EXTENSIONS, "Additional extensions in the Models file"));
-    }
 
-    /**
-     * Escapes a reserved word as defined in the `reservedWords` array. Handle escaping
-     * those terms here.  This logic is only called if a variable matches the reseved words
-     *
-     * @return the escaped term
-     */
-    @Override
-    public String escapeReservedWord(String name) {
-        if(this.reservedWordsMappings().containsKey(name)) {
-            return this.reservedWordsMappings().get(name);
-        }
-        return "_" + name;
-    }
-
-    public String firstLetterToUpper(String word) {
-        if (word.length() == 0) {
-            return word;
-        } else if (word.length() == 1) {
-            return word.substring(0, 1).toUpperCase();
-        } else {
-            return word.substring(0, 1).toUpperCase() + word.substring(1);
-        }
-    }
-
-    public String firstLetterToLower(String word) {
-        if (word.length() == 0) {
-            return word;
-        } else if (word.length() == 1) {
-            return word.substring(0, 1).toLowerCase();
-        } else {
-            return word.substring(0, 1).toLowerCase() + word.substring(1);
-        }
+        // cliOptions.add(new CliOption(MODEL_IMPORTS, "Additional imports in the Models file"));
+        // cliOptions.add(new CliOption(MODEL_EXTENSIONS, "Additional extensions in the Models file"));
     }
 
     @Override
     public void processOpts() {
         super.processOpts();
         if (additionalProperties.containsKey(DERIVING)) {
-            String deriving = (String)additionalProperties.get(DERIVING);
-            additionalProperties.put(DERIVING, StringUtils.join(deriving.split(" "),","));
+            String deriving = (String) additionalProperties.get(DERIVING);
+            additionalProperties.put(DERIVING, StringUtils.join(deriving.split(" "), ","));
         }
     }
+
+//    @Override
+//    public String apiFileFolder() {
+//        String apiName = (String)additionalProperties.get("title");
+//        return outputFolder + File.separator + "lib/" + apiName;
+//    }
+//    @Override
+//    public String modelFileFolder() {
+//        String apiName = (String)additionalProperties.get("title");
+//        return outputFolder + File.separator + "lib/" + apiName;
+//    }
 
     @Override
     public void preprocessSwagger(Swagger swagger) {
@@ -243,7 +197,7 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
         String title = swagger.getInfo().getTitle();
 
         // Drop any API suffix
-        if(title == null) {
+        if (title == null) {
             title = "Swagger";
         } else {
             title = title.trim();
@@ -259,15 +213,15 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
         for (String word : words) {
             wordsLower.add(word.toLowerCase());
         }
-        String cabalName = StringUtils.join(wordsLower,"-");
-        String pathsName = StringUtils.join(wordsLower,"_");
+        String cabalName = StringUtils.join(wordsLower, "-");
+        String pathsName = StringUtils.join(wordsLower, "_");
 
         // The API name is made by appending the capitalized words of the title
         List<String> wordsCaps = new ArrayList<String>();
         for (String word : words) {
             wordsCaps.add(firstLetterToUpper(word));
         }
-        String apiName = StringUtils.join(wordsCaps,"");
+        String apiName = StringUtils.join(wordsCaps, "");
 
         // Set the filenames to write for the API
 
@@ -282,8 +236,8 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
         supportingFiles.add(new SupportingFile("API.mustache", "lib/" + apiName, "API.hs"));
         supportingFiles.add(new SupportingFile("Model.mustache", "lib/" + apiName, "Model.hs"));
 
-//        modelTemplateFiles.put("API.mustache", ".hs");
-//        apiTemplateFiles.put("Model.mustache", ".hs");
+        // modelTemplateFiles.put("API.mustache", ".hs");
+        // apiTemplateFiles.put("Model.mustache", ".hs");
 
         // lens
         if (additionalProperties.containsKey(GENERATE_LENSES)) {
@@ -298,17 +252,18 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
         additionalProperties.put("configType", apiName + "Config");
         additionalProperties.put("swaggerVersion", swagger.getSwagger());
 
-        List<Map<String, Object>> replacements = new ArrayList<>();
-        Object[] replacementChars = specialCharReplacements.keySet().toArray();
-        for(int i = 0; i < replacementChars.length; i++) {
-            String c = (String) replacementChars[i];
-            Map<String, Object> o = new HashMap<>();
-            o.put("char", c);
-            o.put("replacement", "'" + specialCharReplacements.get(c));
-            o.put("hasMore", i != replacementChars.length - 1);
-            replacements.add(o);
-        }
-        additionalProperties.put("specialCharReplacements", replacements);
+        // prepend '
+//        List<Map<String, Object>> replacements = new ArrayList<>();
+//        Object[] replacementChars = specialCharReplacements.keySet().toArray();
+//        for (int i = 0; i < replacementChars.length; i++) {
+//            String c = (String) replacementChars[i];
+//            Map<String, Object> o = new HashMap<>();
+//            o.put("char", c);
+//            o.put("replacement", "'" + specialCharReplacements.get(c));
+//            o.put("hasMore", i != replacementChars.length - 1);
+//            replacements.add(o);
+//        }
+//        additionalProperties.put("specialCharReplacements", replacements);
 
         //copy input swagger to output folder
         try {
@@ -321,23 +276,7 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
         super.preprocessSwagger(swagger);
     }
 
-//    @Override
-//    public String apiFileFolder() {
-//        String apiName = (String)additionalProperties.get("title");
-//        return outputFolder + File.separator + "lib/" + apiName;
-//    }
-//    @Override
-//    public String modelFileFolder() {
-//        String apiName = (String)additionalProperties.get("title");
-//        return outputFolder + File.separator + "lib/" + apiName;
-//    }
 
-    /**
-     * Optional - type declaration.  This is a String which is used by the templates to instantiate your
-     * types.  There is typically special handling for different property types
-     *
-     * @return a string value used as the `dataType` field for model templates, `returnType` for api templates
-     */
     @Override
     public String getTypeDeclaration(Property p) {
         if (p instanceof ArrayProperty) {
@@ -352,13 +291,6 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
         return fixModelChars(super.getTypeDeclaration(p));
     }
 
-    /**
-     * Optional - swagger type conversion.  This is used to map swagger types in a `Property` into
-     * either language specific types via `typeMapping` or into complex models if there is not a mapping.
-     *
-     * @return a string value of the type or complex model for this property
-     * @see Property
-     */
     @Override
     public String getSwaggerType(Property p) {
         String swaggerType = super.getSwaggerType(p);
@@ -367,9 +299,9 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
             type = typeMapping.get(swaggerType);
             if (languageSpecificPrimitives.contains(type))
                 return toModelName(type);
-        } else if(swaggerType == "object") {
+        } else if (swaggerType == "object") {
             type = "Value";
-        } else if(typeMapping.containsValue(swaggerType)) {
+        } else if (typeMapping.containsValue(swaggerType)) {
             type = swaggerType + "_";
         } else {
             type = swaggerType;
@@ -400,94 +332,105 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
         }
     }
 
-    private String encodedParamType(CodegenParameter param) {
-        if(param.isHeaderParam) { return "Header"; }
-        else if(param.isQueryParam) { return "Query"; }
-        else if(param.isBodyParam) { return "Body"; }
-        else if(param.isFormParam) { return "Form"; }
-        else { return param.dataType; }
-    }
-
-    private boolean isModelledType(CodegenParameter param) {
-        return isModelledType(param.baseType == null ? param.dataType : param.baseType);
-    }
-
-    private boolean isModelledType(String typeName) {
-        return !languageSpecificPrimitives.contains(typeName) && !typeMapping.values().contains(typeName);
-    }
-
-    protected Map<String, CodegenParameter> uniqueOptionalParamsByName = new HashMap<String, CodegenParameter>();
-    protected Map<String, CodegenModel> modelNames = new HashMap<String, CodegenModel>();
-
     @Override
     public CodegenOperation fromOperation(String resourcePath, String httpMethod, Operation operation, Map<String, Model> definitions, Swagger swagger) {
         CodegenOperation op = super.fromOperation(resourcePath, httpMethod, operation, definitions, swagger);
 
         op.vendorExtensions.put("x-baseOperationId", op.operationId);
-        op.vendorExtensions.put("x-haddockPath", String.format("%s %s", op.httpMethod, op.path.replace("/","\\/")));
+        op.vendorExtensions.put("x-haddockPath", String.format("%s %s", op.httpMethod, op.path.replace("/", "\\/")));
         op.operationId = toHsVarName(op.operationId);
-        op.vendorExtensions.put("x-operationType", capitalize(op.operationId));
+        op.vendorExtensions.put("x-operationType", toHsTypeName(op.operationId));
 
         for (CodegenParameter param : op.allParams) {
-           if(param.isCollectionFormatMulti) {
-               param.vendorExtensions.put("x-collectionFormat", mapCollectionFormat(param.collectionFormat));
-           }
-           if(!param.required)  {
-               op.vendorExtensions.put("x-hasOptionalParams", true);
-               param.vendorExtensions.put("x-operationType", capitalize(op.operationId));
+            if (param.isCollectionFormatMulti) {
+                param.vendorExtensions.put("x-collectionFormat", mapCollectionFormat(param.collectionFormat));
+            }
+            if (!param.required) {
+                op.vendorExtensions.put("x-hasOptionalParams", true);
+                param.vendorExtensions.put("x-operationType", capitalize(op.operationId));
 
-               String paramNameType = capitalize(param.paramName);
+                String paramNameType = capitalize(param.paramName);
 
-               if(uniqueOptionalParamsByName.containsKey(paramNameType)){
-                   CodegenParameter lastParam = this.uniqueOptionalParamsByName.get(paramNameType);
-                   if(lastParam.dataType.equals(param.dataType)) {
-                       param.vendorExtensions.put("x-duplicate", true);
-                   } else {
-                       paramNameType = paramNameType + param.dataType;
-                       while(modelNames.containsKey(paramNameType)) {
-                           paramNameType = generateNextName(paramNameType);
-                       }
-                   }
-               } else {
-                   while(modelNames.containsKey(paramNameType)) {
-                       paramNameType = generateNextName(paramNameType);
-                   }
-                   uniqueOptionalParamsByName.put(paramNameType, param);
-               }
+                if (uniqueOptionalParamsByName.containsKey(paramNameType)) {
+                    CodegenParameter lastParam = this.uniqueOptionalParamsByName.get(paramNameType);
+                    if (lastParam.dataType.equals(param.dataType)) {
+                        param.vendorExtensions.put("x-duplicate", true);
+                    } else {
+                        paramNameType = paramNameType + param.dataType;
+                        while (modelNames.containsKey(paramNameType)) {
+                            paramNameType = generateNextName(paramNameType);
+                        }
+                    }
+                } else {
+                    while (modelNames.containsKey(paramNameType)) {
+                        paramNameType = generateNextName(paramNameType);
+                    }
+                    uniqueOptionalParamsByName.put(paramNameType, param);
+                }
 
-               param.vendorExtensions.put("x-paramNameType", paramNameType);
-           }
+                param.vendorExtensions.put("x-paramNameType", paramNameType);
+            }
         }
-        for (CodegenParameter param : op.bodyParams) { }
-        if(op.getHasPathParams()) {
+        for (CodegenParameter param : op.bodyParams) {
+        }
+        if (op.getHasPathParams()) {
             String remainingPath = op.path;
             for (CodegenParameter param : op.pathParams) {
                 param.paramName = toHsVarName(param.paramName);
-                String[] pieces = remainingPath.split("\\{"+param.baseName+"\\}");
-                if(pieces.length == 0) throw new RuntimeException("paramName {"+param.baseName+"} not in path " + op.path);
-                if(pieces.length > 2) throw new RuntimeException("paramName {"+param.baseName+"} found multiple times in path " + op.path);
-                if(pieces.length == 2) {
+                String[] pieces = remainingPath.split("\\{" + param.baseName + "\\}");
+                if (pieces.length == 0)
+                    throw new RuntimeException("paramName {" + param.baseName + "} not in path " + op.path);
+                if (pieces.length > 2)
+                    throw new RuntimeException("paramName {" + param.baseName + "} found multiple times in path " + op.path);
+                if (pieces.length == 2) {
                     param.vendorExtensions.put("x-pathPrefix", pieces[0]);
                     remainingPath = pieces[1];
                 } else {
-                    if(remainingPath.startsWith("{"+param.baseName+"}")) {
+                    if (remainingPath.startsWith("{" + param.baseName + "}")) {
                         remainingPath = pieces[0];
-                    }
-                    else {
+                    } else {
                         param.vendorExtensions.put("x-pathPrefix", pieces[0]);
                         remainingPath = "";
                     }
                 }
             }
             op.vendorExtensions.put("x-hasPathParams", true);
-            if(remainingPath.length() > 0) { op.vendorExtensions.put("x-pathSuffix", remainingPath); }
+            if (remainingPath.length() > 0) {
+                op.vendorExtensions.put("x-pathSuffix", remainingPath);
+            }
         } else {
             op.vendorExtensions.put("x-hasPathParams", false);
             op.vendorExtensions.put("x-pathSuffix", op.path);
         }
-        for (CodegenParameter param : op.queryParams) { }
-        for (CodegenParameter param : op.headerParams) { }
-        for (CodegenParameter param : op.formParams) { }
+        for (CodegenParameter param : op.queryParams) {
+        }
+        for (CodegenParameter param : op.headerParams) {
+        }
+        for (CodegenParameter param : op.formParams) {
+        }
+
+        if (op.hasConsumes) {
+            for (Map<String, String> m : op.consumes) {
+                String mediaType = m.get((MEDIA_TYPE));
+                m.put(MEDIA_DATA_TYPE, getMimeDataType(mediaType));
+
+                allMimeTypes.put(mediaType, m);
+                if(!knownMimeDataTypes.containsKey(mediaType) && !unknownMimeTypes.contains(m)) {
+                    unknownMimeTypes.add(m);
+                }
+            }
+        }
+        if (op.hasProduces) {
+            for (Map<String, String> m : op.produces) {
+                String mediaType = m.get((MEDIA_TYPE));
+                m.put(MEDIA_DATA_TYPE, getMimeDataType(mediaType));
+
+                allMimeTypes.put(mediaType, m);
+                if(!knownMimeDataTypes.containsKey(mediaType) && !unknownMimeTypes.contains(m)) {
+                    unknownMimeTypes.add(m);
+                }
+            }
+        }
 
         String returnType = op.returnType;
         if (returnType == null || returnType.equals("null")) {
@@ -500,36 +443,144 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
 
         return op;
     }
+    @Override
+    public Map<String, Object> postProcessOperations(Map<String, Object> objs) {
+        Map<String, Object> ret = super.postProcessOperations(objs);
+
+        additionalProperties.put("x-hasUnknownMimeTypes", !unknownMimeTypes.isEmpty());
+        additionalProperties.put("x-unknownMimeTypes", unknownMimeTypes);
+
+        return ret;
+    }
+
+    @Override
+    public CodegenModel fromModel(String name, Model mod, Map<String, Model> allDefinitions) {
+        CodegenModel model = super.fromModel(name, mod, allDefinitions);
+
+        // Clean up the class name to remove invalid characters
+        model.classname = fixModelChars(model.classname);
+        if (typeMapping.containsValue(model.classname)) {
+            model.classname += "_";
+        }
+        while (uniqueOptionalParamsByName.containsKey(model.classname)) {
+            model.classname = generateNextName(model.classname);
+        }
+
+        // From the model name, compute the prefix for the fields.
+        String prefix = camelize(model.classname, true);
+        for (CodegenProperty prop : model.vars) {
+            prop.name = toVarName(prefix + camelize(fixOperatorChars(prop.name)));
+        }
+
+        //String dataOrNewtype = "data";
+        // check if it's a ModelImpl before casting
+        if (!(mod instanceof ModelImpl)) {
+            return model;
+        }
+
+        // Create newtypes for things with non-object types
+//        String modelType = ((ModelImpl)  mod).getType();
+//        if(modelType != "object" && typeMapping.containsKey(modelType)) {
+//            String newtype = typeMapping.get(modelType);
+//            model.vendorExtensions.put("x-customNewtype", newtype);
+//        }
+
+        modelNames.put(model.classname, model);
+        return model;
+    }
+
+    @Override
+    public CodegenParameter fromParameter(Parameter param, Set<String> imports) {
+        CodegenParameter p = super.fromParameter(param, imports);
+        p.paramName = toHsVarName(p.baseName);
+        p.dataType = fixModelChars(p.dataType);
+        return p;
+    }
+
+    @Override
+    public String escapeReservedWord(String name) {
+        if (this.reservedWordsMappings().containsKey(name)) {
+            return this.reservedWordsMappings().get(name);
+        }
+        return "_" + name;
+    }
+
+    @Override
+    public String toModelFilename(String name) {
+        // should be the same as the model name
+        return toModelName(name);
+    }
+
+
+    @Override
+    public String escapeQuotationMark(String input) {
+        // remove " to avoid code injection
+        return input.replace("\"", "");
+    }
+
+    @Override
+    public String escapeUnsafeCharacters(String input) {
+        return input.replace("{-", "{_-").replace("-}", "-_}");
+    }
+
+    public String firstLetterToUpper(String word) {
+        if (word.length() == 0) {
+            return word;
+        } else if (word.length() == 1) {
+            return word.substring(0, 1).toUpperCase();
+        } else {
+            return word.substring(0, 1).toUpperCase() + word.substring(1);
+        }
+    }
+
+    public String firstLetterToLower(String word) {
+        if (word.length() == 0) {
+            return word;
+        } else if (word.length() == 1) {
+            return word.substring(0, 1).toLowerCase();
+        } else {
+            return word.substring(0, 1).toLowerCase() + word.substring(1);
+        }
+    }
 
     private String mapCollectionFormat(String collectionFormat) {
-        switch(collectionFormat) {
-            case "csv": return "CommaSeparated";
-            case "tsv": return "TabSeparated";
-            case "ssv": return "SpaceSeparated";
-            case "pipes": return "PipeSeparated";
-            case "multi": return "MultiParamArray";
+        switch (collectionFormat) {
+            case "csv":
+                return "CommaSeparated";
+            case "tsv":
+                return "TabSeparated";
+            case "ssv":
+                return "SpaceSeparated";
+            case "pipes":
+                return "PipeSeparated";
+            case "multi":
+                return "MultiParamArray";
             default:
                 throw new UnsupportedOperationException();
         }
     }
-    private String getMimeTypeType(String mimeType) {
-        if(StringUtils.isBlank(mimeType)) { return "NoContent" }
-        if(mimeType.startsWith("application/json")) {return "JSON";}
-        if(mimeType.startsWith("application/xml")) {return "XML";}
-        if(mimeType.startsWith("application/x-www-form-urlencoded")) {return "FormUrlEncoded";}
-        if(mimeType.startsWith("multipart/form-data")) {return "MultipartFormData";}
-        if(mimeType.startsWith("text/plain")) {return "PlainText";}
-        return capitalize(toHsVarName(mimeType));
+
+    private String getMimeDataType(String mimeType) {
+        if (StringUtils.isBlank(mimeType)) {
+            return "MimeNoContent";
+        }
+        if (knownMimeDataTypes.containsKey(mimeType)) {
+            return knownMimeDataTypes.get(mimeType);
+        }
+        String shortenedName = mimeType.replaceFirst("application/","");
+        return "Mime" + toHsTypeName(shortenedName);
     }
-//    data JSON deriving (P.Typeable)
-//    data XML deriving (P.Typeable)
-//    data PlainText deriving (P.Typeable)
-//    data FormUrlEncoded deriving (P.Typeable)
-//    data MultipartFormData deriving (P.Typeable)
-//    data NoContent deriving (P.Typeable)
 
     private String toHsVarName(String paramName) {
         return toVarName(camelize(fixOperatorChars(fixModelChars(paramName)), true));
+    }
+
+    private String toHsTypeName(String paramName) {
+        return toHsTypeName(paramName, "");
+    }
+
+    private String toHsTypeName(String paramName, String modelCharReplacement) {
+        return camelize(fixOperatorChars(fixModelChars(paramName, modelCharReplacement)), false);
     }
 
     private String fixOperatorChars(String string) {
@@ -543,10 +594,11 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
                 name = LEADING_UNDERSCORE.matcher(string).replaceFirst("");
             }
         }
+        // prepend '
         for (char c : name.toCharArray()) {
             String cString = String.valueOf(c);
             if (specialCharReplacements.containsKey(cString)) {
-                sb.append("'");
+//                sb.append("'");
                 sb.append(specialCharReplacements.get(cString));
             } else {
                 sb.append(c);
@@ -556,8 +608,12 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
     }
 
     // Remove characters from a string that do not belong in a model classname
+    private String fixModelChars(String string, String replacement) {
+        return string.replace(".", replacement).replace("-", replacement);
+    }
+
     private String fixModelChars(String string) {
-        return string.replace(".", "").replace("-", "");
+        return fixModelChars(string, "");
     }
 
     private String capitalize(String word) {
@@ -567,68 +623,6 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
 
         return word;
     }
-    // Override fromModel to create the appropriate model namings
-    @Override
-    public CodegenModel fromModel(String name, Model mod, Map<String, Model> allDefinitions) {
-        CodegenModel model = super.fromModel(name, mod, allDefinitions);
-
-        // Clean up the class name to remove invalid characters
-        model.classname = fixModelChars(model.classname);
-        if(typeMapping.containsValue(model.classname)) {
-            model.classname += "_";
-        }
-        while(uniqueOptionalParamsByName.containsKey(model.classname)) {
-            model.classname = generateNextName(model.classname);
-        }
-
-        // From the model name, compute the prefix for the fields.
-        String prefix = camelize(model.classname, true);
-        for(CodegenProperty prop : model.vars) {
-            prop.name = toVarName(prefix + camelize(fixOperatorChars(prop.name)));
-        }
-
-        //String dataOrNewtype = "data";
-        // check if it's a ModelImpl before casting 
-        if (!(mod instanceof ModelImpl)) {
-            return model;
-        }
-
-          // Create newtypes for things with non-object types
-//        String modelType = ((ModelImpl)  mod).getType();
-//        if(modelType != "object" && typeMapping.containsKey(modelType)) {
-//            String newtype = typeMapping.get(modelType);
-//            model.vendorExtensions.put("x-customNewtype", newtype);
-//        }
-
-        modelNames.put(model.classname, model);
-        return model;
-    }
-
-    @Override
-    public String toModelFilename(String name) {
-        // should be the same as the model name
-        return toModelName(name);
-    }
-
-    @Override
-    public CodegenParameter fromParameter(Parameter param, Set<String> imports) {
-        CodegenParameter p = super.fromParameter(param, imports);
-        p.paramName = toHsVarName(p.baseName);
-        p.dataType = fixModelChars(p.dataType);
-        return p;
-    }
-
-    @Override
-    public String escapeQuotationMark(String input) {
-        // remove " to avoid code injection
-        return input.replace("\"", "");
-    }
-
-    @Override
-    public String escapeUnsafeCharacters(String input) {
-        return input.replace("{-", "{_-").replace("-}", "-_}");
-    }
-
     private static String generateNextName(String name) {
         Pattern pattern = Pattern.compile("\\d+\\z");
         Matcher matcher = pattern.matcher(name);
@@ -640,5 +634,14 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
             return name + "2";
         }
     }
+
+    private boolean isModelledType(CodegenParameter param) {
+        return isModelledType(param.baseType == null ? param.dataType : param.baseType);
+    }
+
+    private boolean isModelledType(String typeName) {
+        return !languageSpecificPrimitives.contains(typeName) && !typeMapping.values().contains(typeName);
+    }
+
 
 }
