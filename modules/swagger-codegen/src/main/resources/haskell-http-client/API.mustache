@@ -73,10 +73,7 @@ import qualified Prelude as P
 -- {{{.}}}
 -- {{/notes}}{{#hasAuthMethods}}
 -- AuthMethod: {{#authMethods}}{{{name}}}{{#hasMore}}, {{/hasMore}}{{/authMethods}}
--- {{/hasAuthMethods}}{{#hasConsumes}}
--- Consumes: {{#consumes}}{{{mediaType}}}{{#hasMore}}, {{/hasMore}}{{/consumes}}
--- {{/hasConsumes}}{{#hasProduces}}
--- Produces: {{#produces}}{{{mediaType}}}{{#hasMore}}, {{/hasMore}}{{/produces}}{{/hasProduces}}
+-- {{/hasAuthMethods}}
 {{operationId}} 
   :: {{#allParams}}{{#required}}{{dataType}} -- ^ "{{{paramName}}}"{{#description}} - {{/description}} {{{description}}}
   -> {{/required}}{{/allParams}}{{requestType}} {{{vendorExtensions.x-operationType}}} {{vendorExtensions.x-returnType}}
@@ -86,15 +83,19 @@ import qualified Prelude as P
 
 {-# DEPRECATED {{operationId}} "" #-}{{/isDeprecated}}
 
-data {{{vendorExtensions.x-operationType}}}{{#hasConsumes}}{{#consumes}}
--- instance Consumes {{{vendorExtensions.x-operationType}}} {{{mediaType}}} {{{x-mediaDataType}}}{{/consumes}}{{/hasConsumes}}{{#hasProduces}}{{#produces}}
--- instance Produces {{{vendorExtensions.x-operationType}}} {{{mediaType}}} {{{x-mediaDataType}}}{{/produces}}{{/hasProduces}}{{#vendorExtensions.x-hasOptionalParams}}{{#allParams}}{{^required}}{{#description}}
+data {{{vendorExtensions.x-operationType}}}{{#vendorExtensions.x-hasOptionalParams}}{{#allParams}}{{^required}}{{#description}}
 
 -- | /Optional Param/ "{{{baseName}}}" - {{{description}}}{{/description}}
 instance HasOptionalParam {{{vendorExtensions.x-operationType}}} {{{vendorExtensions.x-paramNameType}}} where
   applyOptionalParam req ({{{vendorExtensions.x-paramNameType}}} xs) =
-    {{#isHeaderParam}}req `_addHeader` {{>_headerColl}} ("{{{baseName}}}", xs){{/isHeaderParam}}{{#isQueryParam}}req `_addQuery` {{>_queryColl}} ("{{{baseName}}}", Just xs){{/isQueryParam}}{{#isFormParam}}req `_addForm` {{>_formColl}} ("{{{baseName}}}", xs){{/isFormParam}}{{#isBodyParam}}req `_setBodyLBS` A.encode xs{{/isBodyParam}}{{/required}}{{/allParams}}{{/vendorExtensions.x-hasOptionalParams}}
-{{/operation}}{{/operations}}{{/apis}}{{/apiInfo}}
+    {{#isHeaderParam}}req `_addHeader` {{>_headerColl}} ("{{{baseName}}}", xs){{/isHeaderParam}}{{#isQueryParam}}req `_addQuery` {{>_queryColl}} ("{{{baseName}}}", Just xs){{/isQueryParam}}{{#isFormParam}}req `_addForm` {{>_formColl}} ("{{{baseName}}}", xs){{/isFormParam}}{{#isBodyParam}}req `_setBodyLBS` A.encode xs{{/isBodyParam}}{{/required}}{{/allParams}}{{/vendorExtensions.x-hasOptionalParams}}{{#hasConsumes}}
+
+{{#consumes}}-- | @{{{mediaType}}}@
+instance Consumes {{{vendorExtensions.x-operationType}}} {{{x-mediaDataType}}}
+{{/consumes}}{{/hasConsumes}}{{#hasProduces}}
+{{#produces}}-- | @{{{mediaType}}}@
+instance Produces {{{vendorExtensions.x-operationType}}} {{{x-mediaDataType}}}
+{{/produces}}{{/hasProduces}}{{/operation}}{{/operations}}{{/apis}}{{/apiInfo}}
  
 -- * HasOptionalParam
 
@@ -258,7 +259,9 @@ _toCollA' c encode one xs = case c of
     {-# INLINE combine #-}
   
 
--- * Standard Mime DataTypes
+-- * Content Negotiation
+
+-- ** Mime Types
 
 data MimeJSON deriving (P.Typeable)
 data MimeXML deriving (P.Typeable)
@@ -268,12 +271,10 @@ data MimeMultipartFormData deriving (P.Typeable)
 data MimeNoContent deriving (P.Typeable)
 data MimeIdentityPassThough deriving (P.Typeable)
 
--- * Application-Specific Mime DataTypes
-
 {{#x-unknownMimeTypes}}data {{{x-mediaDataType}}} deriving (P.Typeable)
 {{/x-unknownMimeTypes}}
 
--- * MimeType Class
+-- ** MimeType Class
 
 class MimeType mtype  where
   mimeType :: P.Proxy mtype -> Maybe ME.MediaType
@@ -288,6 +289,8 @@ class MimeType mtype  where
       Nothing -> []
     
   {-# MINIMAL mimeType | mimeTypes #-}
+
+-- ** MimeType Instances
 
 -- | @application/json@
 instance MimeType MimeJSON where
@@ -318,10 +321,19 @@ instance MimeType MimeNoContent where
 instance MimeType MimeIdentityPassThough where
   mimeType _ = Nothing
 
--- ** MimeRender
+{{#x-unknownMimeTypes}}
+-- | @{{{mediaType}}}@
+instance MimeType {{{x-mediaDataType}}} where
+  mimeType _ = Just $ "{{{x-mediaMainType}}}" ME.// "{{{x-mediaSubType}}}"
+
+{{/x-unknownMimeTypes}}
+
+-- ** MimeRender Class
 
 class MimeType mtype => MimeRender mtype i o where
     mimeRender  :: P.Proxy mtype -> i -> o
+
+-- ** MimeRender Instances
 
 -- | `A.encode`
 instance A.ToJSON a => MimeRender MimeJSON a BL.ByteString where mimeRender _ = A.encode
@@ -347,10 +359,19 @@ class MimeType mtype => MimeUnrender mtype i o where
     mimeUnrenderWithType p _ = mimeUnrender p
     {-# MINIMAL mimeUnrender | mimeUnrenderWithType #-}
 
--- * Request Consumes
+-- ** MimeUnrender Instances
+
+{{#x-unknownMimeTypes}}
+-- | @{{{mediaType}}}@
+-- instance MimeUnrender {{{x-mediaDataType}}} BL.ByteString where
+--   mimeUnrender _ _ = undefined
+
+{{/x-unknownMimeTypes}}
+
+-- ** Request Consumes
 
 class Consumes req mtype where
 
--- * Request Produces
+-- ** Request Produces
 
 class Produces req mtype where

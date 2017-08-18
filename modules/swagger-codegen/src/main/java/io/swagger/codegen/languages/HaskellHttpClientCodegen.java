@@ -411,24 +411,12 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
 
         if (op.hasConsumes) {
             for (Map<String, String> m : op.consumes) {
-                String mediaType = m.get((MEDIA_TYPE));
-                m.put(MEDIA_DATA_TYPE, getMimeDataType(mediaType));
-
-                allMimeTypes.put(mediaType, m);
-                if(!knownMimeDataTypes.containsKey(mediaType) && !unknownMimeTypes.contains(m)) {
-                    unknownMimeTypes.add(m);
-                }
+                processMediaType(m);
             }
         }
         if (op.hasProduces) {
             for (Map<String, String> m : op.produces) {
-                String mediaType = m.get((MEDIA_TYPE));
-                m.put(MEDIA_DATA_TYPE, getMimeDataType(mediaType));
-
-                allMimeTypes.put(mediaType, m);
-                if(!knownMimeDataTypes.containsKey(mediaType) && !unknownMimeTypes.contains(m)) {
-                    unknownMimeTypes.add(m);
-                }
+                processMediaType(m);
             }
         }
 
@@ -443,6 +431,8 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
 
         return op;
     }
+
+
     @Override
     public Map<String, Object> postProcessOperations(Map<String, Object> objs) {
         Map<String, Object> ret = super.postProcessOperations(objs);
@@ -521,6 +511,24 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
     @Override
     public String escapeUnsafeCharacters(String input) {
         return input.replace("{-", "{_-").replace("-}", "-_}");
+    }
+
+    private void processMediaType(Map<String, String> m) {
+        String mediaType = m.get((MEDIA_TYPE));
+        String[] mediaTypeParts = mediaType.split("/",2);
+        if(mediaTypeParts.length > 1) {
+            m.put("x-mediaMainType", mediaTypeParts[0]);
+            m.put("x-mediaSubType", mediaTypeParts[1]);
+        } else {
+            m.put("x-mediaMainType", mediaTypeParts[0]);
+            m.put("x-mediaSubType", "");
+        }
+        m.put(MEDIA_DATA_TYPE, getMimeDataType(mediaType));
+
+        allMimeTypes.put(mediaType, m);
+        if(!knownMimeDataTypes.containsKey(mediaType) && !unknownMimeTypes.contains(m)) {
+            unknownMimeTypes.add(m);
+        }
     }
 
     public String firstLetterToUpper(String word) {

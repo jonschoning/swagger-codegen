@@ -74,9 +74,6 @@ import qualified Prelude as P
 -- 
 -- AuthMethod: petstore_auth
 -- 
--- Consumes: application/json, application/xml
--- 
--- Produces: application/xml, application/json
 addPet 
   :: Pet -- ^ "body" -  Pet object that needs to be added to the store
   -> SwaggerPetstoreRequest AddPet ()
@@ -85,10 +82,17 @@ addPet body =
     `_setBodyLBS` A.encode body
 
 data AddPet
--- instance Consumes AddPet application/json MimeJSON
--- instance Consumes AddPet application/xml MimeXML
--- instance Produces AddPet application/xml MimeXML
--- instance Produces AddPet application/json MimeJSON
+
+-- | @application/json@
+instance Consumes AddPet MimeJSON
+-- | @application/xml@
+instance Consumes AddPet MimeXML
+
+  
+-- | @application/xml@
+instance Produces AddPet MimeXML
+-- | @application/json@
+instance Produces AddPet MimeJSON
 
 
 -- ** deletePet
@@ -101,7 +105,6 @@ data AddPet
 -- 
 -- AuthMethod: petstore_auth
 -- 
--- Produces: application/xml, application/json
 deletePet 
   :: Integer -- ^ "petId" -  Pet id to delete
   -> SwaggerPetstoreRequest DeletePet ()
@@ -110,11 +113,14 @@ deletePet petId =
     
 
 data DeletePet
--- instance Produces DeletePet application/xml MimeXML
--- instance Produces DeletePet application/json MimeJSON
 instance HasOptionalParam DeletePet ApiUnderscorekey where
   applyOptionalParam req (ApiUnderscorekey xs) =
     req `_addHeader` toHeader ("api_key", xs)
+  
+-- | @application/xml@
+instance Produces DeletePet MimeXML
+-- | @application/json@
+instance Produces DeletePet MimeJSON
 
 
 -- ** findPetsByStatus
@@ -127,7 +133,6 @@ instance HasOptionalParam DeletePet ApiUnderscorekey where
 -- 
 -- AuthMethod: petstore_auth
 -- 
--- Produces: application/xml, application/json
 findPetsByStatus 
   :: [Text] -- ^ "status" -  Status values that need to be considered for filter
   -> SwaggerPetstoreRequest FindPetsByStatus [Pet]
@@ -136,8 +141,11 @@ findPetsByStatus status =
     `_addQuery` toQueryColl MultiParamArray ("status", Just status)
 
 data FindPetsByStatus
--- instance Produces FindPetsByStatus application/xml MimeXML
--- instance Produces FindPetsByStatus application/json MimeJSON
+  
+-- | @application/xml@
+instance Produces FindPetsByStatus MimeXML
+-- | @application/json@
+instance Produces FindPetsByStatus MimeJSON
 
 
 -- ** findPetsByTags
@@ -150,7 +158,6 @@ data FindPetsByStatus
 -- 
 -- AuthMethod: petstore_auth
 -- 
--- Produces: application/xml, application/json
 findPetsByTags 
   :: [Text] -- ^ "tags" -  Tags to filter by
   -> SwaggerPetstoreRequest FindPetsByTags [Pet]
@@ -161,8 +168,11 @@ findPetsByTags tags =
 {-# DEPRECATED findPetsByTags "" #-}
 
 data FindPetsByTags
--- instance Produces FindPetsByTags application/xml MimeXML
--- instance Produces FindPetsByTags application/json MimeJSON
+  
+-- | @application/xml@
+instance Produces FindPetsByTags MimeXML
+-- | @application/json@
+instance Produces FindPetsByTags MimeJSON
 
 
 -- ** getPetById
@@ -175,7 +185,6 @@ data FindPetsByTags
 -- 
 -- AuthMethod: api_key
 -- 
--- Produces: application/xml, application/json
 getPetById 
   :: Integer -- ^ "petId" -  ID of pet to return
   -> SwaggerPetstoreRequest GetPetById Pet
@@ -184,8 +193,11 @@ getPetById petId =
     
 
 data GetPetById
--- instance Produces GetPetById application/xml MimeXML
--- instance Produces GetPetById application/json MimeJSON
+  
+-- | @application/xml@
+instance Produces GetPetById MimeXML
+-- | @application/json@
+instance Produces GetPetById MimeJSON
 
 
 -- ** updatePet
@@ -198,9 +210,6 @@ data GetPetById
 -- 
 -- AuthMethod: petstore_auth
 -- 
--- Consumes: application/json, application/xml
--- 
--- Produces: application/xml, application/json
 updatePet 
   :: Pet -- ^ "body" -  Pet object that needs to be added to the store
   -> SwaggerPetstoreRequest UpdatePet ()
@@ -209,10 +218,17 @@ updatePet body =
     `_setBodyLBS` A.encode body
 
 data UpdatePet
--- instance Consumes UpdatePet application/json MimeJSON
--- instance Consumes UpdatePet application/xml MimeXML
--- instance Produces UpdatePet application/xml MimeXML
--- instance Produces UpdatePet application/json MimeJSON
+
+-- | @application/json@
+instance Consumes UpdatePet MimeJSON
+-- | @application/xml@
+instance Consumes UpdatePet MimeXML
+
+  
+-- | @application/xml@
+instance Produces UpdatePet MimeXML
+-- | @application/json@
+instance Produces UpdatePet MimeJSON
 
 
 -- ** updatePetWithForm
@@ -225,9 +241,6 @@ data UpdatePet
 -- 
 -- AuthMethod: petstore_auth
 -- 
--- Consumes: application/x-www-form-urlencoded
--- 
--- Produces: application/xml, application/json
 updatePetWithForm 
   :: Integer -- ^ "petId" -  ID of pet that needs to be updated
   -> SwaggerPetstoreRequest UpdatePetWithForm ()
@@ -236,9 +249,6 @@ updatePetWithForm petId =
     
 
 data UpdatePetWithForm
--- instance Consumes UpdatePetWithForm application/x-www-form-urlencoded MimeFormUrlEncoded
--- instance Produces UpdatePetWithForm application/xml MimeXML
--- instance Produces UpdatePetWithForm application/json MimeJSON
 
 -- | /Optional Param/ "name" - Updated name of the pet
 instance HasOptionalParam UpdatePetWithForm Name where
@@ -249,6 +259,15 @@ instance HasOptionalParam UpdatePetWithForm Name where
 instance HasOptionalParam UpdatePetWithForm Status where
   applyOptionalParam req (Status xs) =
     req `_addForm` toForm ("status", xs)
+
+-- | @application/x-www-form-urlencoded@
+instance Consumes UpdatePetWithForm MimeFormUrlEncoded
+
+  
+-- | @application/xml@
+instance Produces UpdatePetWithForm MimeXML
+-- | @application/json@
+instance Produces UpdatePetWithForm MimeJSON
 
 
 -- ** uploadFile
@@ -261,9 +280,6 @@ instance HasOptionalParam UpdatePetWithForm Status where
 -- 
 -- AuthMethod: petstore_auth
 -- 
--- Consumes: multipart/form-data
--- 
--- Produces: application/json
 uploadFile 
   :: Integer -- ^ "petId" -  ID of pet to update
   -> SwaggerPetstoreRequest UploadFile ApiResponse
@@ -272,8 +288,6 @@ uploadFile petId =
     
 
 data UploadFile
--- instance Consumes UploadFile multipart/form-data MimeMultipartFormData
--- instance Produces UploadFile application/json MimeJSON
 
 -- | /Optional Param/ "additionalMetadata" - Additional data to pass to server
 instance HasOptionalParam UploadFile AdditionalMetadata where
@@ -285,6 +299,13 @@ instance HasOptionalParam UploadFile File where
   applyOptionalParam req (File xs) =
     req `_addForm` toForm ("file", xs)
 
+-- | @multipart/form-data@
+instance Consumes UploadFile MimeMultipartFormData
+
+  
+-- | @application/json@
+instance Produces UploadFile MimeJSON
+
 
 -- ** deleteOrder
 
@@ -294,7 +315,6 @@ instance HasOptionalParam UploadFile File where
 -- 
 -- For valid response try integer IDs with positive integer value. Negative or non-integer values will generate API errors
 -- 
--- Produces: application/xml, application/json
 deleteOrder 
   :: Integer -- ^ "orderId" -  ID of the order that needs to be deleted
   -> SwaggerPetstoreRequest DeleteOrder ()
@@ -303,8 +323,11 @@ deleteOrder orderId =
     
 
 data DeleteOrder
--- instance Produces DeleteOrder application/xml MimeXML
--- instance Produces DeleteOrder application/json MimeJSON
+  
+-- | @application/xml@
+instance Produces DeleteOrder MimeXML
+-- | @application/json@
+instance Produces DeleteOrder MimeJSON
 
 
 -- ** getInventory
@@ -317,14 +340,15 @@ data DeleteOrder
 -- 
 -- AuthMethod: api_key
 -- 
--- Produces: application/json
 getInventory 
   :: SwaggerPetstoreRequest GetInventory (Map.Map String Int)
 getInventory =
   _mkRequest "GET" ["/store/inventory"]
 
 data GetInventory
--- instance Produces GetInventory application/json MimeJSON
+  
+-- | @application/json@
+instance Produces GetInventory MimeJSON
 
 
 -- ** getOrderById
@@ -335,7 +359,6 @@ data GetInventory
 -- 
 -- For valid response try integer IDs with value >= 1 and <= 10. Other values will generated exceptions
 -- 
--- Produces: application/xml, application/json
 getOrderById 
   :: Integer -- ^ "orderId" -  ID of pet that needs to be fetched
   -> SwaggerPetstoreRequest GetOrderById Order
@@ -344,8 +367,11 @@ getOrderById orderId =
     
 
 data GetOrderById
--- instance Produces GetOrderById application/xml MimeXML
--- instance Produces GetOrderById application/json MimeJSON
+  
+-- | @application/xml@
+instance Produces GetOrderById MimeXML
+-- | @application/json@
+instance Produces GetOrderById MimeJSON
 
 
 -- ** placeOrder
@@ -356,7 +382,6 @@ data GetOrderById
 -- 
 -- 
 -- 
--- Produces: application/xml, application/json
 placeOrder 
   :: Order -- ^ "body" -  order placed for purchasing the pet
   -> SwaggerPetstoreRequest PlaceOrder Order
@@ -365,8 +390,11 @@ placeOrder body =
     `_setBodyLBS` A.encode body
 
 data PlaceOrder
--- instance Produces PlaceOrder application/xml MimeXML
--- instance Produces PlaceOrder application/json MimeJSON
+  
+-- | @application/xml@
+instance Produces PlaceOrder MimeXML
+-- | @application/json@
+instance Produces PlaceOrder MimeJSON
 
 
 -- ** createUser
@@ -377,7 +405,6 @@ data PlaceOrder
 -- 
 -- This can only be done by the logged in user.
 -- 
--- Produces: application/xml, application/json
 createUser 
   :: User -- ^ "body" -  Created user object
   -> SwaggerPetstoreRequest CreateUser ()
@@ -386,8 +413,11 @@ createUser body =
     `_setBodyLBS` A.encode body
 
 data CreateUser
--- instance Produces CreateUser application/xml MimeXML
--- instance Produces CreateUser application/json MimeJSON
+  
+-- | @application/xml@
+instance Produces CreateUser MimeXML
+-- | @application/json@
+instance Produces CreateUser MimeJSON
 
 
 -- ** createUsersWithArrayInput
@@ -398,7 +428,6 @@ data CreateUser
 -- 
 -- 
 -- 
--- Produces: application/xml, application/json
 createUsersWithArrayInput 
   :: [User] -- ^ "body" -  List of user object
   -> SwaggerPetstoreRequest CreateUsersWithArrayInput ()
@@ -407,8 +436,11 @@ createUsersWithArrayInput body =
     `_setBodyLBS` A.encode body
 
 data CreateUsersWithArrayInput
--- instance Produces CreateUsersWithArrayInput application/xml MimeXML
--- instance Produces CreateUsersWithArrayInput application/json MimeJSON
+  
+-- | @application/xml@
+instance Produces CreateUsersWithArrayInput MimeXML
+-- | @application/json@
+instance Produces CreateUsersWithArrayInput MimeJSON
 
 
 -- ** createUsersWithListInput
@@ -419,7 +451,6 @@ data CreateUsersWithArrayInput
 -- 
 -- 
 -- 
--- Produces: application/xml, application/json
 createUsersWithListInput 
   :: [User] -- ^ "body" -  List of user object
   -> SwaggerPetstoreRequest CreateUsersWithListInput ()
@@ -428,8 +459,11 @@ createUsersWithListInput body =
     `_setBodyLBS` A.encode body
 
 data CreateUsersWithListInput
--- instance Produces CreateUsersWithListInput application/xml MimeXML
--- instance Produces CreateUsersWithListInput application/json MimeJSON
+  
+-- | @application/xml@
+instance Produces CreateUsersWithListInput MimeXML
+-- | @application/json@
+instance Produces CreateUsersWithListInput MimeJSON
 
 
 -- ** deleteUser
@@ -440,7 +474,6 @@ data CreateUsersWithListInput
 -- 
 -- This can only be done by the logged in user.
 -- 
--- Produces: application/xml, application/json
 deleteUser 
   :: Text -- ^ "username" -  The name that needs to be deleted
   -> SwaggerPetstoreRequest DeleteUser ()
@@ -449,8 +482,11 @@ deleteUser username =
     
 
 data DeleteUser
--- instance Produces DeleteUser application/xml MimeXML
--- instance Produces DeleteUser application/json MimeJSON
+  
+-- | @application/xml@
+instance Produces DeleteUser MimeXML
+-- | @application/json@
+instance Produces DeleteUser MimeJSON
 
 
 -- ** getUserByName
@@ -461,7 +497,6 @@ data DeleteUser
 -- 
 -- 
 -- 
--- Produces: application/xml, application/json
 getUserByName 
   :: Text -- ^ "username" -  The name that needs to be fetched. Use user1 for testing. 
   -> SwaggerPetstoreRequest GetUserByName User
@@ -470,8 +505,11 @@ getUserByName username =
     
 
 data GetUserByName
--- instance Produces GetUserByName application/xml MimeXML
--- instance Produces GetUserByName application/json MimeJSON
+  
+-- | @application/xml@
+instance Produces GetUserByName MimeXML
+-- | @application/json@
+instance Produces GetUserByName MimeJSON
 
 
 -- ** loginUser
@@ -482,7 +520,6 @@ data GetUserByName
 -- 
 -- 
 -- 
--- Produces: application/xml, application/json
 loginUser 
   :: Text -- ^ "username" -  The user name for login
   -> Text -- ^ "password" -  The password for login in clear text
@@ -493,8 +530,11 @@ loginUser username password =
     `_addQuery` toQuery ("password", Just password)
 
 data LoginUser
--- instance Produces LoginUser application/xml MimeXML
--- instance Produces LoginUser application/json MimeJSON
+  
+-- | @application/xml@
+instance Produces LoginUser MimeXML
+-- | @application/json@
+instance Produces LoginUser MimeJSON
 
 
 -- ** logoutUser
@@ -505,15 +545,17 @@ data LoginUser
 -- 
 -- 
 -- 
--- Produces: application/xml, application/json
 logoutUser 
   :: SwaggerPetstoreRequest LogoutUser ()
 logoutUser =
   _mkRequest "GET" ["/user/logout"]
 
 data LogoutUser
--- instance Produces LogoutUser application/xml MimeXML
--- instance Produces LogoutUser application/json MimeJSON
+  
+-- | @application/xml@
+instance Produces LogoutUser MimeXML
+-- | @application/json@
+instance Produces LogoutUser MimeJSON
 
 
 -- ** updateUser
@@ -524,7 +566,6 @@ data LogoutUser
 -- 
 -- This can only be done by the logged in user.
 -- 
--- Produces: application/xml, application/json
 updateUser 
   :: Text -- ^ "username" -  name that need to be updated
   -> User -- ^ "body" -  Updated user object
@@ -535,8 +576,11 @@ updateUser username body =
     `_setBodyLBS` A.encode body
 
 data UpdateUser
--- instance Produces UpdateUser application/xml MimeXML
--- instance Produces UpdateUser application/json MimeJSON
+  
+-- | @application/xml@
+instance Produces UpdateUser MimeXML
+-- | @application/json@
+instance Produces UpdateUser MimeJSON
 
  
 -- * HasOptionalParam
@@ -709,7 +753,9 @@ _toCollA' c encode one xs = case c of
     {-# INLINE combine #-}
   
 
--- * Standard Mime DataTypes
+-- * Content Negotiation
+
+-- ** Mime Types
 
 data MimeJSON deriving (P.Typeable)
 data MimeXML deriving (P.Typeable)
@@ -719,10 +765,8 @@ data MimeMultipartFormData deriving (P.Typeable)
 data MimeNoContent deriving (P.Typeable)
 data MimeIdentityPassThough deriving (P.Typeable)
 
--- * Application-Specific Mime DataTypes
 
-
--- * MimeType Class
+-- ** MimeType Class
 
 class MimeType mtype  where
   mimeType :: P.Proxy mtype -> Maybe ME.MediaType
@@ -737,6 +781,8 @@ class MimeType mtype  where
       Nothing -> []
     
   {-# MINIMAL mimeType | mimeTypes #-}
+
+-- ** MimeType Instances
 
 -- | @application/json@
 instance MimeType MimeJSON where
@@ -767,10 +813,13 @@ instance MimeType MimeNoContent where
 instance MimeType MimeIdentityPassThough where
   mimeType _ = Nothing
 
--- ** MimeRender
+
+-- ** MimeRender Class
 
 class MimeType mtype => MimeRender mtype i o where
     mimeRender  :: P.Proxy mtype -> i -> o
+
+-- ** MimeRender Instances
 
 -- | `A.encode`
 instance A.ToJSON a => MimeRender MimeJSON a BL.ByteString where mimeRender _ = A.encode
@@ -796,10 +845,13 @@ class MimeType mtype => MimeUnrender mtype i o where
     mimeUnrenderWithType p _ = mimeUnrender p
     {-# MINIMAL mimeUnrender | mimeUnrenderWithType #-}
 
--- * Request Consumes
+-- ** MimeUnrender Instances
+
+
+-- ** Request Consumes
 
 class Consumes req mtype where
 
--- * Request Produces
+-- ** Request Produces
 
 class Produces req mtype where
