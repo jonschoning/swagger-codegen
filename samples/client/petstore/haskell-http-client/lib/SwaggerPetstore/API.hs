@@ -51,6 +51,7 @@ import qualified Data.Text.Lazy.Encoding as TL
 import qualified Data.Vector as V
 import qualified Data.Void as Void
 import qualified GHC.Base as P (Alternative)
+import qualified Control.Arrow as P (left)
 
 import Data.Function ((&))
 import Data.Monoid ((<>))
@@ -88,7 +89,6 @@ instance Consumes AddPet MimeJSON
 -- | @application/xml@
 instance Consumes AddPet MimeXML
 
-  
 -- | @application/xml@
 instance Produces AddPet MimeXML
 -- | @application/json@
@@ -116,7 +116,6 @@ data DeletePet
 instance HasOptionalParam DeletePet ApiUnderscorekey where
   applyOptionalParam req (ApiUnderscorekey xs) =
     req `_addHeader` toHeader ("api_key", xs)
-  
 -- | @application/xml@
 instance Produces DeletePet MimeXML
 -- | @application/json@
@@ -141,7 +140,6 @@ findPetsByStatus status =
     `_addQuery` toQueryColl MultiParamArray ("status", Just status)
 
 data FindPetsByStatus
-  
 -- | @application/xml@
 instance Produces FindPetsByStatus MimeXML
 -- | @application/json@
@@ -168,7 +166,6 @@ findPetsByTags tags =
 {-# DEPRECATED findPetsByTags "" #-}
 
 data FindPetsByTags
-  
 -- | @application/xml@
 instance Produces FindPetsByTags MimeXML
 -- | @application/json@
@@ -193,7 +190,6 @@ getPetById petId =
     
 
 data GetPetById
-  
 -- | @application/xml@
 instance Produces GetPetById MimeXML
 -- | @application/json@
@@ -224,7 +220,6 @@ instance Consumes UpdatePet MimeJSON
 -- | @application/xml@
 instance Consumes UpdatePet MimeXML
 
-  
 -- | @application/xml@
 instance Produces UpdatePet MimeXML
 -- | @application/json@
@@ -263,7 +258,6 @@ instance HasOptionalParam UpdatePetWithForm Status where
 -- | @application/x-www-form-urlencoded@
 instance Consumes UpdatePetWithForm MimeFormUrlEncoded
 
-  
 -- | @application/xml@
 instance Produces UpdatePetWithForm MimeXML
 -- | @application/json@
@@ -302,7 +296,6 @@ instance HasOptionalParam UploadFile File where
 -- | @multipart/form-data@
 instance Consumes UploadFile MimeMultipartFormData
 
-  
 -- | @application/json@
 instance Produces UploadFile MimeJSON
 
@@ -323,7 +316,6 @@ deleteOrder orderId =
     
 
 data DeleteOrder
-  
 -- | @application/xml@
 instance Produces DeleteOrder MimeXML
 -- | @application/json@
@@ -346,7 +338,6 @@ getInventory =
   _mkRequest "GET" ["/store/inventory"]
 
 data GetInventory
-  
 -- | @application/json@
 instance Produces GetInventory MimeJSON
 
@@ -367,7 +358,6 @@ getOrderById orderId =
     
 
 data GetOrderById
-  
 -- | @application/xml@
 instance Produces GetOrderById MimeXML
 -- | @application/json@
@@ -390,7 +380,6 @@ placeOrder body =
     `_setBodyLBS` A.encode body
 
 data PlaceOrder
-  
 -- | @application/xml@
 instance Produces PlaceOrder MimeXML
 -- | @application/json@
@@ -413,7 +402,6 @@ createUser body =
     `_setBodyLBS` A.encode body
 
 data CreateUser
-  
 -- | @application/xml@
 instance Produces CreateUser MimeXML
 -- | @application/json@
@@ -436,7 +424,6 @@ createUsersWithArrayInput body =
     `_setBodyLBS` A.encode body
 
 data CreateUsersWithArrayInput
-  
 -- | @application/xml@
 instance Produces CreateUsersWithArrayInput MimeXML
 -- | @application/json@
@@ -459,7 +446,6 @@ createUsersWithListInput body =
     `_setBodyLBS` A.encode body
 
 data CreateUsersWithListInput
-  
 -- | @application/xml@
 instance Produces CreateUsersWithListInput MimeXML
 -- | @application/json@
@@ -482,7 +468,6 @@ deleteUser username =
     
 
 data DeleteUser
-  
 -- | @application/xml@
 instance Produces DeleteUser MimeXML
 -- | @application/json@
@@ -505,7 +490,6 @@ getUserByName username =
     
 
 data GetUserByName
-  
 -- | @application/xml@
 instance Produces GetUserByName MimeXML
 -- | @application/json@
@@ -530,7 +514,6 @@ loginUser username password =
     `_addQuery` toQuery ("password", Just password)
 
 data LoginUser
-  
 -- | @application/xml@
 instance Produces LoginUser MimeXML
 -- | @application/json@
@@ -551,7 +534,6 @@ logoutUser =
   _mkRequest "GET" ["/user/logout"]
 
 data LogoutUser
-  
 -- | @application/xml@
 instance Produces LogoutUser MimeXML
 -- | @application/json@
@@ -576,7 +558,6 @@ updateUser username body =
     `_setBodyLBS` A.encode body
 
 data UpdateUser
-  
 -- | @application/xml@
 instance Produces UpdateUser MimeXML
 -- | @application/json@
@@ -763,7 +744,6 @@ data MimePlainText deriving (P.Typeable)
 data MimeFormUrlEncoded deriving (P.Typeable)
 data MimeMultipartFormData deriving (P.Typeable)
 data MimeNoContent deriving (P.Typeable)
-data MimeIdentityPassThough deriving (P.Typeable)
 
 
 -- ** MimeType Class
@@ -810,42 +790,47 @@ instance MimeType MimePlainText where
 instance MimeType MimeNoContent where
   mimeType _ = Nothing
 
-instance MimeType MimeIdentityPassThough where
-  mimeType _ = Nothing
-
 
 -- ** MimeRender Class
 
-class MimeType mtype => MimeRender mtype i o where
-    mimeRender  :: P.Proxy mtype -> i -> o
+class MimeType mtype => MimeRender mtype i where
+    mimeRender  :: P.Proxy mtype -> i -> BL.ByteString
 
 -- ** MimeRender Instances
 
 -- | `A.encode`
-instance A.ToJSON a => MimeRender MimeJSON a BL.ByteString where mimeRender _ = A.encode
+instance A.ToJSON a => MimeRender MimeJSON a where mimeRender _ = A.encode
 -- | @WH.urlEncodeAsForm@
-instance WH.ToForm a => MimeRender MimeFormUrlEncoded a BL.ByteString where mimeRender _ = WH.urlEncodeAsForm
+instance WH.ToForm a => MimeRender MimeFormUrlEncoded a where mimeRender _ = WH.urlEncodeAsForm
 -- | `TL.encodeUtf8`
-instance MimeRender MimePlainText TL.Text BL.ByteString where mimeRender _ = TL.encodeUtf8
+instance MimeRender MimePlainText TL.Text where mimeRender _ = TL.encodeUtf8
 -- | @BL.fromStrict . T.encodeUtf8@
-instance MimeRender MimePlainText T.Text BL.ByteString where mimeRender _ = BL.fromStrict . T.encodeUtf8
+instance MimeRender MimePlainText T.Text where mimeRender _ = BL.fromStrict . T.encodeUtf8
 -- | @BCL.pack@
-instance MimeRender MimePlainText String BL.ByteString where mimeRender _ = BCL.pack
--- | @()@
-instance MimeRender MimeNoContent a () where mimeRender _ _ = ()
--- | @P.id@
-instance MimeRender MimeIdentityPassThough a a where mimeRender _ = P.id
+instance MimeRender MimePlainText String where mimeRender _ = BCL.pack
 
 -- ** MimeUnrender Class
 
-class MimeType mtype => MimeUnrender mtype i o where
-    mimeUnrender :: P.Proxy mtype -> i -> P.Either String o
+class MimeType mtype => MimeUnrender mtype o where
+    mimeUnrender :: P.Proxy mtype -> BL.ByteString -> P.Either String o
     mimeUnrender p = mimeUnrenderWithType p (mimeType p)
-    mimeUnrenderWithType :: P.Proxy mtype -> Maybe ME.MediaType -> i -> P.Either String o
+    mimeUnrenderWithType :: P.Proxy mtype -> Maybe ME.MediaType -> BL.ByteString -> P.Either String o
     mimeUnrenderWithType p _ = mimeUnrender p
     {-# MINIMAL mimeUnrender | mimeUnrenderWithType #-}
 
 -- ** MimeUnrender Instances
+
+-- | @A.eitherDecode@
+instance A.FromJSON a => MimeUnrender MimeJSON a where mimeUnrender _ = A.eitherDecode
+-- | @P.left T.unpack . WH.urlDecodeAsForm@
+instance WH.FromForm a => MimeUnrender MimeFormUrlEncoded a where mimeUnrender _ = P.left T.unpack . WH.urlDecodeAsForm
+-- | @P.left P.show . TL.decodeUtf8'@
+instance MimeUnrender MimePlainText TL.Text where mimeUnrender _ = P.left P.show . TL.decodeUtf8'
+-- | @P.left P.show . T.decodeUtf8' . BL.toStrict@
+instance MimeUnrender MimePlainText T.Text where mimeUnrender _ = P.left P.show . T.decodeUtf8' . BL.toStrict
+-- | @P.Right . BCL.unpack@
+instance MimeUnrender MimePlainText String where mimeUnrender _ = P.Right . BCL.unpack
+
 
 
 -- ** Request Consumes

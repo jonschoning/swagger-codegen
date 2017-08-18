@@ -51,6 +51,7 @@ import qualified Data.Text.Lazy.Encoding as TL
 import qualified Data.Vector as V
 import qualified Data.Void as Void
 import qualified GHC.Base as P (Alternative)
+import qualified Control.Arrow as P (left)
 
 import Data.Function ((&))
 import Data.Monoid ((<>))
@@ -269,7 +270,6 @@ data MimePlainText deriving (P.Typeable)
 data MimeFormUrlEncoded deriving (P.Typeable)
 data MimeMultipartFormData deriving (P.Typeable)
 data MimeNoContent deriving (P.Typeable)
-data MimeIdentityPassThough deriving (P.Typeable)
 
 {{#x-unknownMimeTypes}}data {{{x-mediaDataType}}} deriving (P.Typeable)
 {{/x-unknownMimeTypes}}
@@ -318,9 +318,6 @@ instance MimeType MimePlainText where
 instance MimeType MimeNoContent where
   mimeType _ = Nothing
 
-instance MimeType MimeIdentityPassThough where
-  mimeType _ = Nothing
-
 {{#x-unknownMimeTypes}}
 -- | @{{{mediaType}}}@
 instance MimeType {{{x-mediaDataType}}} where
@@ -330,40 +327,48 @@ instance MimeType {{{x-mediaDataType}}} where
 
 -- ** MimeRender Class
 
-class MimeType mtype => MimeRender mtype i o where
-    mimeRender  :: P.Proxy mtype -> i -> o
+class MimeType mtype => MimeRender mtype i where
+    mimeRender  :: P.Proxy mtype -> i -> BL.ByteString
 
 -- ** MimeRender Instances
 
 -- | `A.encode`
-instance A.ToJSON a => MimeRender MimeJSON a BL.ByteString where mimeRender _ = A.encode
+instance A.ToJSON a => MimeRender MimeJSON a where mimeRender _ = A.encode
 -- | @WH.urlEncodeAsForm@
-instance WH.ToForm a => MimeRender MimeFormUrlEncoded a BL.ByteString where mimeRender _ = WH.urlEncodeAsForm
+instance WH.ToForm a => MimeRender MimeFormUrlEncoded a where mimeRender _ = WH.urlEncodeAsForm
 -- | `TL.encodeUtf8`
-instance MimeRender MimePlainText TL.Text BL.ByteString where mimeRender _ = TL.encodeUtf8
+instance MimeRender MimePlainText TL.Text where mimeRender _ = TL.encodeUtf8
 -- | @BL.fromStrict . T.encodeUtf8@
-instance MimeRender MimePlainText T.Text BL.ByteString where mimeRender _ = BL.fromStrict . T.encodeUtf8
+instance MimeRender MimePlainText T.Text where mimeRender _ = BL.fromStrict . T.encodeUtf8
 -- | @BCL.pack@
-instance MimeRender MimePlainText String BL.ByteString where mimeRender _ = BCL.pack
--- | @()@
-instance MimeRender MimeNoContent a () where mimeRender _ _ = ()
--- | @P.id@
-instance MimeRender MimeIdentityPassThough a a where mimeRender _ = P.id
+instance MimeRender MimePlainText String where mimeRender _ = BCL.pack
 
 -- ** MimeUnrender Class
 
-class MimeType mtype => MimeUnrender mtype i o where
-    mimeUnrender :: P.Proxy mtype -> i -> P.Either String o
+class MimeType mtype => MimeUnrender mtype o where
+    mimeUnrender :: P.Proxy mtype -> BL.ByteString -> P.Either String o
     mimeUnrender p = mimeUnrenderWithType p (mimeType p)
-    mimeUnrenderWithType :: P.Proxy mtype -> Maybe ME.MediaType -> i -> P.Either String o
+    mimeUnrenderWithType :: P.Proxy mtype -> Maybe ME.MediaType -> BL.ByteString -> P.Either String o
     mimeUnrenderWithType p _ = mimeUnrender p
     {-# MINIMAL mimeUnrender | mimeUnrenderWithType #-}
 
 -- ** MimeUnrender Instances
 
+-- | @A.eitherDecode@
+instance A.FromJSON a => MimeUnrender MimeJSON a where mimeUnrender _ = A.eitherDecode
+-- | @P.left T.unpack . WH.urlDecodeAsForm@
+instance WH.FromForm a => MimeUnrender MimeFormUrlEncoded a where mimeUnrender _ = P.left T.unpack . WH.urlDecodeAsForm
+-- | @P.left P.show . TL.decodeUtf8'@
+instance MimeUnrender MimePlainText TL.Text where mimeUnrender _ = P.left P.show . TL.decodeUtf8'
+-- | @P.left P.show . T.decodeUtf8' . BL.toStrict@
+instance MimeUnrender MimePlainText T.Text where mimeUnrender _ = P.left P.show . T.decodeUtf8' . BL.toStrict
+-- | @P.Right . BCL.unpack@
+instance MimeUnrender MimePlainText String where mimeUnrender _ = P.Right . BCL.unpack
+
+
 {{#x-unknownMimeTypes}}
 -- | @{{{mediaType}}}@
--- instance MimeUnrender {{{x-mediaDataType}}} BL.ByteString where
+-- instance MimeUnrender {{{x-mediaDataType}}} where
 --   mimeUnrender _ _ = undefined
 
 {{/x-unknownMimeTypes}}
