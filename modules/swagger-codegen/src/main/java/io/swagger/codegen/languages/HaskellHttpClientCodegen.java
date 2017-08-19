@@ -340,14 +340,24 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
         op.vendorExtensions.put("x-haddockPath", String.format("%s %s", op.httpMethod, op.path.replace("/", "\\/")));
         op.operationId = toHsVarName(op.operationId);
         op.vendorExtensions.put("x-operationType", toHsTypeName(op.operationId));
+        op.vendorExtensions.put("x-hasBodyOrFormParam", op.getHasBodyParam() || op.getHasFormParams());
+
+        String returnType = op.returnType;
+        if (returnType == null || returnType.equals("null")) {
+            returnType = "()";
+        }
+        if (returnType.indexOf(" ") >= 0) {
+            returnType = "(" + returnType + ")";
+        }
+        op.vendorExtensions.put("x-returnType", returnType);
 
         for (CodegenParameter param : op.allParams) {
+            param.vendorExtensions.put("x-operationType", capitalize(op.operationId));
             if (param.isCollectionFormatMulti) {
                 param.vendorExtensions.put("x-collectionFormat", mapCollectionFormat(param.collectionFormat));
             }
             if (!param.required) {
                 op.vendorExtensions.put("x-hasOptionalParams", true);
-                param.vendorExtensions.put("x-operationType", capitalize(op.operationId));
 
                 String paramNameType = capitalize(param.paramName);
 
@@ -369,6 +379,7 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
                 }
 
                 param.vendorExtensions.put("x-paramNameType", paramNameType);
+                op.vendorExtensions.put("x-hasBodyOrFormParam", op.getHasBodyParam() || op.getHasFormParams());
             }
         }
         for (CodegenParameter param : op.bodyParams) {
@@ -419,15 +430,6 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
                 processMediaType(m);
             }
         }
-
-        String returnType = op.returnType;
-        if (returnType == null || returnType.equals("null")) {
-            returnType = "()";
-        }
-        if (returnType.indexOf(" ") >= 0) {
-            returnType = "(" + returnType + ")";
-        }
-        op.vendorExtensions.put("x-returnType", returnType);
 
         return op;
     }

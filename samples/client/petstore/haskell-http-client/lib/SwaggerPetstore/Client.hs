@@ -67,7 +67,7 @@ withNoLogging p = p { execLoggingT = runNullLoggingT}
 -- * Dispatch
 
 dispatch :: SwaggerPetstoreConfig -- ^ config
-          -> SwaggerPetstoreRequest req res -- ^ request
+          -> SwaggerPetstoreRequest req i res -- ^ request
           -> IO (NH.Response BCL.ByteString) -- ^ response
 dispatch config request = do
   req <- toInitRequest config request
@@ -75,7 +75,7 @@ dispatch config request = do
   
 
 dispatch' :: SwaggerPetstoreConfig -- ^ config
-          -> InitRequest req res -- ^ request
+          -> InitRequest req i res -- ^ request
           -> IO (NH.Response BCL.ByteString) -- ^ response
 dispatch' _ (InitRequest req) = do
   manager <- NH.newManager NH.tlsManagerSettings
@@ -84,7 +84,7 @@ dispatch' _ (InitRequest req) = do
 dispatchJson
   :: (A.FromJSON res)
   => SwaggerPetstoreConfig -- ^ config
-  -> SwaggerPetstoreRequest req res -- ^ request
+  -> SwaggerPetstoreRequest req i res -- ^ request
   -> IO (Either SwaggerPetstoreError res) -- ^ response
 dispatchJson config request = do
   response <- dispatch config request
@@ -96,15 +96,15 @@ dispatchJson config request = do
 -- * InitRequest
 
 -- | wraps an http-client 'Request' with request/response type parameters
-newtype InitRequest req res = InitRequest
+newtype InitRequest req i res = InitRequest
   { unInitRequest :: NH.Request
   } deriving (Show)
 
 -- |  Build an http-client 'Request' record from the supplied config and request
 toInitRequest
     :: SwaggerPetstoreConfig -- ^ config
-    -> SwaggerPetstoreRequest req res -- ^ request
-    -> IO (InitRequest req res) -- ^ initialized request
+    -> SwaggerPetstoreRequest req i res -- ^ request
+    -> IO (InitRequest req i res) -- ^ initialized request
 toInitRequest SwaggerPetstoreConfig {..} SwaggerPetstoreRequest {..} = do
   parsedReq <- NH.parseRequest $ BCL.unpack $ BCL.append host (BCL.concat urlPath)
   let reqHeaders = paramsHeaders params
@@ -123,11 +123,11 @@ toInitRequest SwaggerPetstoreConfig {..} SwaggerPetstoreRequest {..} = do
   pure (InitRequest req)
 
 -- | convenience method for modifying the underlying Request
-modifyInitRequest :: InitRequest req res -> (NH.Request -> NH.Request) -> InitRequest req res
+modifyInitRequest :: InitRequest req i res -> (NH.Request -> NH.Request) -> InitRequest req i res
 modifyInitRequest (InitRequest req) f = InitRequest (f req)
 
 -- | convenience method for modifying the underlying Request (monadic)
-modifyInitRequestM :: Monad m => InitRequest req res -> (NH.Request -> m NH.Request) -> m (InitRequest req res)
+modifyInitRequestM :: Monad m => InitRequest req i res -> (NH.Request -> m NH.Request) -> m (InitRequest req i res)
 modifyInitRequestM (InitRequest req) f = fmap InitRequest (f req)
 
 -- * Error

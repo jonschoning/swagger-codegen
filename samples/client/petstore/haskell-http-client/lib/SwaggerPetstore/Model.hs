@@ -30,41 +30,6 @@ import Prelude
 -- * Models
 
 
--- ** ApiResponse
-
-data ApiResponse = ApiResponse
-  { apiResponseCode :: Maybe Int -- ^ "code"
-  , apiResponseType :: Maybe Text -- ^ "type"
-  , apiResponseMessage :: Maybe Text -- ^ "message"
-  } deriving (Show,Eq,Typeable)
-
-instance FromJSON ApiResponse where
-  parseJSON = withObject "ApiResponse" $ \o ->
-    ApiResponse
-      <$> o .:? "code" 
-      <*> o .:? "type" 
-      <*> o .:? "message" 
-
-instance ToJSON ApiResponse where
-  toJSON ApiResponse {..} =
-    omitNulls
-      [ "code" .= apiResponseCode
-      , "type" .= apiResponseType
-      , "message" .= apiResponseMessage
-      ]
-
--- | Construct a value of type 'ApiResponse' (by applying it's required fields, if any)
-mkApiResponse
-  :: ApiResponse
-mkApiResponse =
-  ApiResponse
-  { apiResponseCode = Nothing
-  , apiResponseType = Nothing
-  , apiResponseMessage = Nothing
-  }
-
-
-
 -- ** Category
 
 data Category = Category
@@ -92,53 +57,6 @@ mkCategory =
   Category
   { categoryId = Nothing
   , categoryName = Nothing
-  }
-
-
-
--- ** Order
-
-data Order = Order
-  { orderId :: Maybe Integer -- ^ "id"
-  , orderPetId :: Maybe Integer -- ^ "petId"
-  , orderQuantity :: Maybe Int -- ^ "quantity"
-  , orderShipDate :: Maybe Integer -- ^ "shipDate"
-  , orderStatus :: Maybe Text -- ^ "status" - Order Status
-  , orderComplete :: Maybe Bool -- ^ "complete"
-  } deriving (Show,Eq,Typeable)
-
-instance FromJSON Order where
-  parseJSON = withObject "Order" $ \o ->
-    Order
-      <$> o .:? "id" 
-      <*> o .:? "petId" 
-      <*> o .:? "quantity" 
-      <*> o .:? "shipDate" 
-      <*> o .:? "status" 
-      <*> o .:? "complete" 
-
-instance ToJSON Order where
-  toJSON Order {..} =
-    omitNulls
-      [ "id" .= orderId
-      , "petId" .= orderPetId
-      , "quantity" .= orderQuantity
-      , "shipDate" .= orderShipDate
-      , "status" .= orderStatus
-      , "complete" .= orderComplete
-      ]
-
--- | Construct a value of type 'Order' (by applying it's required fields, if any)
-mkOrder
-  :: Order
-mkOrder =
-  Order
-  { orderId = Nothing
-  , orderPetId = Nothing
-  , orderQuantity = Nothing
-  , orderShipDate = Nothing
-  , orderStatus = Nothing
-  , orderComplete = Nothing
   }
 
 
@@ -219,61 +137,6 @@ mkTag =
   Tag
   { tagId = Nothing
   , tagName = Nothing
-  }
-
-
-
--- ** User
-
-data User = User
-  { userId :: Maybe Integer -- ^ "id"
-  , userUsername :: Maybe Text -- ^ "username"
-  , userFirstName :: Maybe Text -- ^ "firstName"
-  , userLastName :: Maybe Text -- ^ "lastName"
-  , userEmail :: Maybe Text -- ^ "email"
-  , userPassword :: Maybe Text -- ^ "password"
-  , userPhone :: Maybe Text -- ^ "phone"
-  , userUserStatus :: Maybe Int -- ^ "userStatus" - User Status
-  } deriving (Show,Eq,Typeable)
-
-instance FromJSON User where
-  parseJSON = withObject "User" $ \o ->
-    User
-      <$> o .:? "id" 
-      <*> o .:? "username" 
-      <*> o .:? "firstName" 
-      <*> o .:? "lastName" 
-      <*> o .:? "email" 
-      <*> o .:? "password" 
-      <*> o .:? "phone" 
-      <*> o .:? "userStatus" 
-
-instance ToJSON User where
-  toJSON User {..} =
-    omitNulls
-      [ "id" .= userId
-      , "username" .= userUsername
-      , "firstName" .= userFirstName
-      , "lastName" .= userLastName
-      , "email" .= userEmail
-      , "password" .= userPassword
-      , "phone" .= userPhone
-      , "userStatus" .= userUserStatus
-      ]
-
--- | Construct a value of type 'User' (by applying it's required fields, if any)
-mkUser
-  :: User
-mkUser =
-  User
-  { userId = Nothing
-  , userUsername = Nothing
-  , userFirstName = Nothing
-  , userLastName = Nothing
-  , userEmail = Nothing
-  , userPassword = Nothing
-  , userPhone = Nothing
-  , userUserStatus = Nothing
   }
 
 
