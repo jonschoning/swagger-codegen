@@ -67,18 +67,21 @@ import qualified Prelude as P
 -- AuthMethod: petstore_auth
 -- 
 addPet 
-  :: UseContentType AddPet Pet contenttype
-  => contenttype -- ^ request content-type (mimetype)
+  :: UseContentType AddPet Pet contentType
+  => contentType -- ^ request content-type (mimetype)
   -> Pet -- ^ "body" -  Pet object that needs to be added to the store
-  -> SwaggerPetstoreRequest AddPet contenttype ()
-addPet m body =
-  _mkRequest "POST" ["/pet"] m
+  -> SwaggerPetstoreRequest AddPet contentType ()
+addPet _ body =
+  _mkRequest "POST" ["/pet"]
     `setBodyParam` body
 
-data AddPet
-instance HasOptionalBodyParam AddPet Pet where
-  setBodyParam req xs =
-    req `_setBodyLBS` mimeRender (ctype req) xs
+data AddPet 
+
+-- | /Body Param/ "body" - Pet object that needs to be added to the store
+instance HasBodyParam AddPet Pet where
+  setBodyParam :: forall contentType res. UseContentType AddPet Pet contentType => SwaggerPetstoreRequest AddPet contentType res -> Pet -> SwaggerPetstoreRequest AddPet contentType res
+  setBodyParam req xs = 
+    req `_setBodyLBS` mimeRender (P.Proxy :: P.Proxy contentType) xs 
 
 -- | @application/json@
 instance Consumes AddPet MimeJSON
@@ -103,23 +106,22 @@ instance Produces AddPet MimeJSON
 -- 
 updatePetWithForm 
   :: Integer -- ^ "petId" -  ID of pet that needs to be updated
-  -> SwaggerPetstoreRequest UpdatePetWithForm MimeFormUrlEncoded ()
+  -> SwaggerPetstoreRequest UpdatePetWithForm contentType ()
 updatePetWithForm petId =
-  _mkRequest "POST" ["/pet/",toPath petId] MimeFormUrlEncoded
+  _mkRequest "POST" ["/pet/",toPath petId]
     
 
-data UpdatePetWithForm
+data UpdatePetWithForm  
 
 -- | /Optional Param/ "name" - Updated name of the pet
 instance HasOptionalParam UpdatePetWithForm Name where
   applyOptionalParam req (Name xs) =
     req `_addForm` toForm ("name", xs)
 
--- -- | /Optional Param/ "status" - Updated status of the pet
--- instance HasOptionalParam UpdatePetWithForm Status where
---   --applyOptionalParam :: SwaggerPetstoreRequest UpdatePetWithForm MimeFormUrlEncoded () -> Status -> SwaggerPetstoreRequest UpdatePetWithForm MimeFormUrlEncoded ()
---   applyOptionalParam req (Status xs) =
---     req `_addForm` toForm ("status", xs)
+-- | /Optional Param/ "status" - Updated status of the pet
+instance HasOptionalParam UpdatePetWithForm Status where
+  applyOptionalParam req (Status xs) =
+    req `_addForm` toForm ("status", xs)
 
 -- | @application/x-www-form-urlencoded@
 instance Consumes UpdatePetWithForm MimeFormUrlEncoded
@@ -130,6 +132,13 @@ instance Produces UpdatePetWithForm MimeXML
 instance Produces UpdatePetWithForm MimeJSON
 
 
+
+-- * HasBodyParam
+
+-- | Designates the body parameter of a request
+class HasBodyParam req param where
+  setBodyParam :: UseContentType req param contentType => SwaggerPetstoreRequest req contentType res -> param -> SwaggerPetstoreRequest req contentType res
+
 -- * HasOptionalParam
 
 -- | Designates the optional parameters of a request
@@ -137,19 +146,16 @@ class HasOptionalParam req param where
   {-# MINIMAL applyOptionalParam | (-&-) #-}
 
   -- | Apply an optional parameter to a request
-  applyOptionalParam :: SwaggerPetstoreRequest req i res -> param -> SwaggerPetstoreRequest req i res
+  applyOptionalParam :: SwaggerPetstoreRequest req contentType res -> param -> SwaggerPetstoreRequest req contentType res
   applyOptionalParam = (-&-)
   {-# INLINE applyOptionalParam #-}
 
   -- | infix operator \/ alias for 'addOptionalParam'
-  (-&-) :: SwaggerPetstoreRequest req i res -> param -> SwaggerPetstoreRequest req i res
+  (-&-) :: SwaggerPetstoreRequest req contentType res -> param -> SwaggerPetstoreRequest req contentType res
   (-&-) = applyOptionalParam
   {-# INLINE (-&-) #-}
 
 infixl 2 -&-
-
-class HasOptionalBodyParam req param where
-  setBodyParam :: UseContentType req param i => SwaggerPetstoreRequest req i res -> param -> SwaggerPetstoreRequest req i res
  
 -- * Optional Request Parameter Types
 
@@ -162,11 +168,10 @@ newtype Status = Status { unStatus :: Text } deriving (P.Eq, P.Show)
 -- * SwaggerPetstoreRequest
 
 -- | Represents a request. The "req" type variable is the request type. The "res" type variable is the response type.
-data SwaggerPetstoreRequest req i res = SwaggerPetstoreRequest
+data SwaggerPetstoreRequest req contentType res = SwaggerPetstoreRequest
   { rMethod  :: NH.Method   -- ^ Method of SwaggerPetstoreRequest
   , urlPath :: [BCL.ByteString] -- ^ Endpoint of SwaggerPetstoreRequest
   , params   :: Params -- ^ params of SwaggerPetstoreRequest
-  , ctype :: i -- ^ content-type of SwaggerPetstoreRequest
   }
   deriving (P.Show)
 
@@ -191,24 +196,23 @@ data ParamBody
 
 _mkRequest :: NH.Method -- ^ Method 
           -> [BCL.ByteString] -- ^ Endpoint
-          -> ctype -- ^ Content-Type
-          -> SwaggerPetstoreRequest req ctype res -- ^ req: Request Type, res: Response Type
-_mkRequest m u ctype = SwaggerPetstoreRequest m u _mkParams ctype
+          -> SwaggerPetstoreRequest req contentType res -- ^ req: Request Type, res: Response Type
+_mkRequest m u = SwaggerPetstoreRequest m u _mkParams
 
 _mkParams :: Params
 _mkParams = Params [] [] ParamBodyNone
 
-_addHeader :: SwaggerPetstoreRequest req i res -> [NH.Header] -> SwaggerPetstoreRequest req i res
+_addHeader :: SwaggerPetstoreRequest req contentType res -> [NH.Header] -> SwaggerPetstoreRequest req contentType res
 _addHeader req header = 
     let _params = params req
     in req { params = _params { paramsHeaders = header P.++ paramsHeaders _params } }
 
-_addQuery :: SwaggerPetstoreRequest req i res -> [NH.QueryItem] -> SwaggerPetstoreRequest req i res
+_addQuery :: SwaggerPetstoreRequest req contentType res -> [NH.QueryItem] -> SwaggerPetstoreRequest req contentType res
 _addQuery req query = 
     let _params = params req 
     in req { params = _params { paramsQuery = query P.++ paramsQuery _params } }
 
-_addForm :: SwaggerPetstoreRequest req i res -> WH.Form -> SwaggerPetstoreRequest req i res
+_addForm :: SwaggerPetstoreRequest req contentType res -> WH.Form -> SwaggerPetstoreRequest req contentType res
 _addForm req newform = 
     let _params = params req
         form = case paramsBody _params of
@@ -216,7 +220,7 @@ _addForm req newform =
             _ -> mempty
     in req { params = _params { paramsBody = ParamBodyFormUrlEncoded (newform <> form) } }
 
-_addMultiFormPart :: SwaggerPetstoreRequest req MimeMultipartFormData res -> NH.Part -> SwaggerPetstoreRequest req MimeMultipartFormData res
+_addMultiFormPart :: SwaggerPetstoreRequest req contentType res -> NH.Part -> SwaggerPetstoreRequest req contentType res
 _addMultiFormPart req newpart = 
     let _params = params req
         parts = case paramsBody _params of
@@ -224,12 +228,12 @@ _addMultiFormPart req newpart =
             _ -> []
     in req { params = _params { paramsBody = ParamBodyMultipartFormData (newpart : parts) } }
 
-_setBodyBS :: SwaggerPetstoreRequest req i res -> B.ByteString -> SwaggerPetstoreRequest req i res
+_setBodyBS :: SwaggerPetstoreRequest req contentType res -> B.ByteString -> SwaggerPetstoreRequest req contentType res
 _setBodyBS req body = 
     let _params = params req
     in req { params = _params { paramsBody = ParamBodyB body } }
 
-_setBodyLBS :: SwaggerPetstoreRequest req i res -> BL.ByteString -> SwaggerPetstoreRequest req i res
+_setBodyLBS :: SwaggerPetstoreRequest req contentType res -> BL.ByteString -> SwaggerPetstoreRequest req contentType res
 _setBodyLBS req body = 
     let _params = params req
     in req { params = _params { paramsBody = ParamBodyBL body } }
@@ -308,12 +312,12 @@ type UseContentType operation model mediatype = (Consumes operation mediatype, M
 
 -- ** Mime Types
 
-data MimeJSON = MimeJSON deriving (P.Typeable, P.Show)
-data MimeXML = MimeXML deriving (P.Typeable, P.Show)
-data MimePlainText = MimePlainText deriving (P.Typeable, P.Show)
-data MimeFormUrlEncoded = MimeFormUrlEncoded deriving (P.Typeable, P.Show)
-data MimeMultipartFormData = MimeMultipartFormData deriving (P.Typeable, P.Show)
-data MimeNoContent = MimeNoContent deriving (P.Typeable, P.Show)
+data MimeJSON = MimeJSON deriving (P.Typeable)
+data MimeXML = MimeXML deriving (P.Typeable)
+data MimePlainText = MimePlainText deriving (P.Typeable)
+data MimeFormUrlEncoded = MimeFormUrlEncoded deriving (P.Typeable)
+data MimeMultipartFormData = MimeMultipartFormData deriving (P.Typeable)
+data MimeNoContent = MimeNoContent deriving (P.Typeable)
 
 
 -- ** MimeType Class
@@ -363,8 +367,10 @@ instance MimeType MimeNoContent where
 
 -- ** MimeRender Class
 
-class MimeType mtype => MimeRender mtype i where
-    mimeRender  :: mtype -> i -> BL.ByteString
+class MimeType mtype => MimeRender mtype x where
+    mimeRender  :: P.Proxy mtype -> x -> BL.ByteString
+    mimeRender' :: mtype -> x -> BL.ByteString
+    mimeRender' _ x = mimeRender (P.Proxy :: P.Proxy mtype) x
 
 -- ** MimeRender Instances
 
@@ -382,7 +388,9 @@ instance MimeRender MimePlainText String where mimeRender _ = BCL.pack
 -- ** MimeUnrender Class
 
 class MimeType mtype => MimeUnrender mtype o where
-    mimeUnrender :: mtype -> BL.ByteString -> P.Either String o
+    mimeUnrender :: P.Proxy mtype -> BL.ByteString -> P.Either String o
+    mimeUnrender' :: mtype -> BL.ByteString -> P.Either String o
+    mimeUnrender' _ x = mimeUnrender (P.Proxy :: P.Proxy mtype) x
 
 -- ** MimeUnrender Instances
 

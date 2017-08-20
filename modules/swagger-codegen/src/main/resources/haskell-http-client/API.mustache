@@ -67,23 +67,28 @@ import qualified Prelude as P
 -- AuthMethod: {{#authMethods}}{{{name}}}{{#hasMore}}, {{/hasMore}}{{/authMethods}}
 -- {{/hasAuthMethods}}
 {{operationId}} 
-  :: {{#allParams}}{{#required}}{{#isBodyParam}}UseContentType {{{vendorExtensions.x-operationType}}} {{dataType}} contenttype
-  => contenttype -- ^ request content-type (mimetype)
+  :: {{#allParams}}{{#required}}{{#isBodyParam}}UseContentType {{{vendorExtensions.x-operationType}}} {{dataType}} contentType
+  => contentType -- ^ request content-type (mimetype)
   -> {{/isBodyParam}}{{/required}}{{/allParams}}{{#allParams}}{{#required}}{{dataType}} -- ^ "{{{paramName}}}"{{#description}} - {{/description}} {{{description}}}
-  -> {{/required}}{{/allParams}}{{requestType}} {{{vendorExtensions.x-operationType}}} {{#vendorExtensions.x-hasBodyOrFormParam}}contenttype{{/vendorExtensions.x-hasBodyOrFormParam}}{{^vendorExtensions.x-hasBodyOrFormParam}}MimeNoContent{{/vendorExtensions.x-hasBodyOrFormParam}} {{vendorExtensions.x-returnType}}
-{{operationId}} {{#allParams}}{{#required}}{{#isBodyParam}}m {{/isBodyParam}}{{/required}}{{/allParams}}{{#allParams}}{{#required}}{{{paramName}}} {{/required}}{{/allParams}}=
+  -> {{/required}}{{/allParams}}{{requestType}} {{{vendorExtensions.x-operationType}}} {{#vendorExtensions.x-hasBodyOrFormParam}}contentType{{/vendorExtensions.x-hasBodyOrFormParam}}{{^vendorExtensions.x-hasBodyOrFormParam}}MimeNoContent{{/vendorExtensions.x-hasBodyOrFormParam}} {{vendorExtensions.x-returnType}}
+{{operationId}} {{#allParams}}{{#required}}{{#isBodyParam}}_ {{/isBodyParam}}{{/required}}{{/allParams}}{{#allParams}}{{#required}}{{{paramName}}} {{/required}}{{/allParams}}=
   _mkRequest "{{httpMethod}}" [{{#pathParams}}{{#vendorExtensions.x-pathPrefix}}"{{.}}",{{/vendorExtensions.x-pathPrefix}}toPath {{{paramName}}}{{#hasMore}},{{/hasMore}}{{/pathParams}}{{#vendorExtensions.x-pathSuffix}}{{#vendorExtensions.x-hasPathParams}},{{/vendorExtensions.x-hasPathParams}}"{{.}}"{{/vendorExtensions.x-pathSuffix}}]{{#allParams}}{{#required}}
-    {{#isHeaderParam}}`_addHeader` {{>_headerColl}} ("{{{baseName}}}", {{{paramName}}}){{/isHeaderParam}}{{#isQueryParam}}`_addQuery` {{>_queryColl}} ("{{{baseName}}}", Just {{{paramName}}}){{/isQueryParam}}{{#isFormParam}}`_addForm` {{>_formColl}} ("{{{baseName}}}", {{{paramName}}}){{/isFormParam}}{{#isBodyParam}}`_setBodyLBS` mimeRender' m {{{paramName}}}{{/isBodyParam}}{{/required}}{{/allParams}}{{#isDeprecated}}
+    {{#isHeaderParam}}`_addHeader` {{>_headerColl}} ("{{{baseName}}}", {{{paramName}}}){{/isHeaderParam}}{{#isQueryParam}}`_addQuery` {{>_queryColl}} ("{{{baseName}}}", Just {{{paramName}}}){{/isQueryParam}}{{#isFormParam}}`_addForm` {{>_formColl}} ("{{{baseName}}}", {{{paramName}}}){{/isFormParam}}{{#isBodyParam}}`setBodyParam` {{{paramName}}}{{/isBodyParam}}{{/required}}{{/allParams}}{{#isDeprecated}}
 
 {-# DEPRECATED {{operationId}} "" #-}{{/isDeprecated}}
 
-data {{{vendorExtensions.x-operationType}}}{{#vendorExtensions.x-hasOptionalParams}}{{#allParams}}{{^required}}{{#description}}
+data {{{vendorExtensions.x-operationType}}} {{#allParams}}{{#isBodyParam}}{{#description}}
+
+-- | /Body Param/ "{{{baseName}}}" - {{{description}}}{{/description}}
+instance HasBodyParam {{{vendorExtensions.x-operationType}}} {{{dataType}}} where
+  setBodyParam :: forall contentType res. UseContentType {{{vendorExtensions.x-operationType}}} {{{dataType}}} contentType => {{requestType}} {{{vendorExtensions.x-operationType}}} contentType res -> {{{dataType}}} -> {{requestType}} {{{vendorExtensions.x-operationType}}} contentType res
+  setBodyParam req xs = 
+    req `_setBodyLBS` mimeRender (P.Proxy :: P.Proxy contentType) xs{{/isBodyParam}}{{/allParams}} {{#vendorExtensions.x-hasOptionalParams}}{{#allParams}}{{^required}}{{#description}}
 
 -- | /Optional Param/ "{{{baseName}}}" - {{{description}}}{{/description}}
-instance HasOptionalParam {{{vendorExtensions.x-operationType}}} {{{vendorExtensions.x-paramNameType}}} where{{#isBodyParam}}
-  applyOptionalParam :: UseContentType {{{vendorExtensions.x-operationType}}} i param => {{requestType}} {{{vendorExtensions.x-operationType}}} i {{vendorExtensions.x-returnType}} -> {{{vendorExtensions.x-paramNameType}}} -> {{requestType}} {{{vendorExtensions.x-operationType}}} i {{vendorExtensions.x-returnType}}{{/isBodyParam}}
+instance HasOptionalParam {{{vendorExtensions.x-operationType}}} {{{vendorExtensions.x-paramNameType}}} where
   applyOptionalParam req ({{{vendorExtensions.x-paramNameType}}} xs) =
-    {{#isHeaderParam}}req `_addHeader` {{>_headerColl}} ("{{{baseName}}}", xs){{/isHeaderParam}}{{#isQueryParam}}req `_addQuery` {{>_queryColl}} ("{{{baseName}}}", Just xs){{/isQueryParam}}{{#isFormParam}}req `_addForm` {{>_formColl}} ("{{{baseName}}}", xs){{/isFormParam}}{{#isBodyParam}}req `_setBodyLBS` mimeRender (P.Proxy :: P.Proxy i) xs{{/isBodyParam}}{{/required}}{{/allParams}}{{/vendorExtensions.x-hasOptionalParams}}{{#hasConsumes}}
+    {{#isBodyParam}}{{/isBodyParam}}{{#isHeaderParam}}req `_addHeader` {{>_headerColl}} ("{{{baseName}}}", xs){{/isHeaderParam}}{{#isQueryParam}}req `_addQuery` {{>_queryColl}} ("{{{baseName}}}", Just xs){{/isQueryParam}}{{#isFormParam}}req `_addForm` {{>_formColl}} ("{{{baseName}}}", xs){{/isFormParam}}{{/required}}{{/allParams}}{{/vendorExtensions.x-hasOptionalParams}}{{#hasConsumes}}
 
 {{#consumes}}-- | @{{{mediaType}}}@
 instance Consumes {{{vendorExtensions.x-operationType}}} {{{x-mediaDataType}}}
@@ -92,6 +97,13 @@ instance Consumes {{{vendorExtensions.x-operationType}}} {{{x-mediaDataType}}}
 instance Produces {{{vendorExtensions.x-operationType}}} {{{x-mediaDataType}}}
 {{/produces}}{{/hasProduces}}{{/operation}}{{/operations}}{{/apis}}{{/apiInfo}}
 
+
+-- * HasBodyParam
+
+-- | Designates the body parameter of a request
+class HasBodyParam req param where
+  setBodyParam :: UseContentType req param contentType => {{requestType}} req contentType res -> param -> {{requestType}} req contentType res
+
 -- * HasOptionalParam
 
 -- | Designates the optional parameters of a request
@@ -99,12 +111,12 @@ class HasOptionalParam req param where
   {-# MINIMAL applyOptionalParam | (-&-) #-}
 
   -- | Apply an optional parameter to a request
-  applyOptionalParam :: UseContentType req i param => {{requestType}} req i res -> param -> {{requestType}} req i res
+  applyOptionalParam :: {{requestType}} req contentType res -> param -> {{requestType}} req contentType res
   applyOptionalParam = (-&-)
   {-# INLINE applyOptionalParam #-}
 
   -- | infix operator \/ alias for 'addOptionalParam'
-  (-&-) :: UseContentType req i param => {{requestType}} req i res -> param -> {{requestType}} req i res
+  (-&-) :: {{requestType}} req contentType res -> param -> {{requestType}} req contentType res
   (-&-) = applyOptionalParam
   {-# INLINE (-&-) #-}
 
@@ -119,7 +131,7 @@ newtype {{{vendorExtensions.x-paramNameType}}} = {{{vendorExtensions.x-paramName
 -- * {{requestType}}
 
 -- | Represents a request. The "req" type variable is the request type. The "res" type variable is the response type.
-data {{requestType}} req i res = {{requestType}}
+data {{requestType}} req contentType res = {{requestType}}
   { rMethod  :: NH.Method   -- ^ Method of {{requestType}}
   , urlPath :: [BCL.ByteString] -- ^ Endpoint of {{requestType}}
   , params   :: Params -- ^ params of {{requestType}}
@@ -147,23 +159,23 @@ data ParamBody
 
 _mkRequest :: NH.Method -- ^ Method 
           -> [BCL.ByteString] -- ^ Endpoint
-          -> {{requestType}} req i res -- ^ req: Request Type, res: Response Type
+          -> {{requestType}} req contentType res -- ^ req: Request Type, res: Response Type
 _mkRequest m u = {{requestType}} m u _mkParams
 
 _mkParams :: Params
 _mkParams = Params [] [] ParamBodyNone
 
-_addHeader :: {{requestType}} req i res -> [NH.Header] -> {{requestType}} req i res
+_addHeader :: {{requestType}} req contentType res -> [NH.Header] -> {{requestType}} req contentType res
 _addHeader req header = 
     let _params = params req
     in req { params = _params { paramsHeaders = header P.++ paramsHeaders _params } }
 
-_addQuery :: {{requestType}} req i res -> [NH.QueryItem] -> {{requestType}} req i res
+_addQuery :: {{requestType}} req contentType res -> [NH.QueryItem] -> {{requestType}} req contentType res
 _addQuery req query = 
     let _params = params req 
     in req { params = _params { paramsQuery = query P.++ paramsQuery _params } }
 
-_addForm :: {{requestType}} req i res -> WH.Form -> {{requestType}} req i res
+_addForm :: {{requestType}} req contentType res -> WH.Form -> {{requestType}} req contentType res
 _addForm req newform = 
     let _params = params req
         form = case paramsBody _params of
@@ -171,7 +183,7 @@ _addForm req newform =
             _ -> mempty
     in req { params = _params { paramsBody = ParamBodyFormUrlEncoded (newform <> form) } }
 
-_addMultiFormPart :: {{requestType}} req i res -> NH.Part -> {{requestType}} req i res
+_addMultiFormPart :: {{requestType}} req contentType res -> NH.Part -> {{requestType}} req contentType res
 _addMultiFormPart req newpart = 
     let _params = params req
         parts = case paramsBody _params of
@@ -179,12 +191,12 @@ _addMultiFormPart req newpart =
             _ -> []
     in req { params = _params { paramsBody = ParamBodyMultipartFormData (newpart : parts) } }
 
-_setBodyBS :: {{requestType}} req i res -> B.ByteString -> {{requestType}} req i res
+_setBodyBS :: {{requestType}} req contentType res -> B.ByteString -> {{requestType}} req contentType res
 _setBodyBS req body = 
     let _params = params req
     in req { params = _params { paramsBody = ParamBodyB body } }
 
-_setBodyLBS :: {{requestType}} req i res -> BL.ByteString -> {{requestType}} req i res
+_setBodyLBS :: {{requestType}} req contentType res -> BL.ByteString -> {{requestType}} req contentType res
 _setBodyLBS req body = 
     let _params = params req
     in req { params = _params { paramsBody = ParamBodyBL body } }
@@ -326,10 +338,10 @@ instance MimeType {{{x-mediaDataType}}} where
 
 -- ** MimeRender Class
 
-class MimeType mtype => MimeRender mtype i where
-    mimeRender  :: P.Proxy mtype -> i -> BL.ByteString
-    mimeRender'  :: mtype -> i -> BL.ByteString
-    mimeRender' _ = mimeRender (P.Proxy :: P.Proxy mtype)
+class MimeType mtype => MimeRender mtype x where
+    mimeRender  :: P.Proxy mtype -> x -> BL.ByteString
+    mimeRender' :: mtype -> x -> BL.ByteString
+    mimeRender' _ x = mimeRender (P.Proxy :: P.Proxy mtype) x
 
 -- ** MimeRender Instances
 
@@ -349,7 +361,7 @@ instance MimeRender MimePlainText String where mimeRender _ = BCL.pack
 class MimeType mtype => MimeUnrender mtype o where
     mimeUnrender :: P.Proxy mtype -> BL.ByteString -> P.Either String o
     mimeUnrender' :: mtype -> BL.ByteString -> P.Either String o
-    mimeUnrender' _ = mimeUnrender (P.Proxy :: P.Proxy mtype)
+    mimeUnrender' _ x = mimeUnrender (P.Proxy :: P.Proxy mtype) x
 
 -- ** MimeUnrender Instances
 
