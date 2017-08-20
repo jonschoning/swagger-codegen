@@ -85,12 +85,12 @@ data {{{vendorExtensions.x-operationType}}} {{#allParams}}{{#isBodyParam}}{{#des
 instance HasBodyParam {{{vendorExtensions.x-operationType}}} {{{dataType}}} where
   setBodyParam :: forall contentType res. UseContentType {{{vendorExtensions.x-operationType}}} {{{dataType}}} contentType => {{requestType}} {{{vendorExtensions.x-operationType}}} contentType res -> {{{dataType}}} -> {{requestType}} {{{vendorExtensions.x-operationType}}} contentType res
   setBodyParam req xs = 
-    req `_setBodyLBS` mimeRender (P.Proxy :: P.Proxy contentType) xs{{/isBodyParam}}{{/allParams}} {{#vendorExtensions.x-hasOptionalParams}}{{#allParams}}{{^required}}{{#description}}
+    req `_setBodyLBS` mimeRender (P.Proxy :: P.Proxy contentType) xs{{/isBodyParam}}{{/allParams}} {{#vendorExtensions.x-hasOptionalParams}}{{#allParams}}{{^isBodyParam}}{{^required}}{{#description}}
 
 -- | /Optional Param/ "{{{baseName}}}" - {{{description}}}{{/description}}
 instance HasOptionalParam {{{vendorExtensions.x-operationType}}} {{{vendorExtensions.x-paramNameType}}} where
   applyOptionalParam req ({{{vendorExtensions.x-paramNameType}}} xs) =
-    {{#isBodyParam}}{{/isBodyParam}}{{#isHeaderParam}}req `_addHeader` {{>_headerColl}} ("{{{baseName}}}", xs){{/isHeaderParam}}{{#isQueryParam}}req `_addQuery` {{>_queryColl}} ("{{{baseName}}}", Just xs){{/isQueryParam}}{{#isFormParam}}req `_addForm` {{>_formColl}} ("{{{baseName}}}", xs){{/isFormParam}}{{/required}}{{/allParams}}{{/vendorExtensions.x-hasOptionalParams}}{{#hasConsumes}}
+    {{#isHeaderParam}}req `_addHeader` {{>_headerColl}} ("{{{baseName}}}", xs){{/isHeaderParam}}{{#isQueryParam}}req `_addQuery` {{>_queryColl}} ("{{{baseName}}}", Just xs){{/isQueryParam}}{{#isFormParam}}req `_addForm` {{>_formColl}} ("{{{baseName}}}", xs){{/isFormParam}}{{/required}}{{/isBodyParam}}{{/allParams}}{{/vendorExtensions.x-hasOptionalParams}}{{#hasConsumes}}
 
 {{#consumes}}-- | @{{{mediaType}}}@
 instance Consumes {{{vendorExtensions.x-operationType}}} {{{x-mediaDataType}}}
