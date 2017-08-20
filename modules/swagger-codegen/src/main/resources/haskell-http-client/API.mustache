@@ -15,7 +15,9 @@ Module : {{title}}.API
 
 module {{title}}.API where
 
+
 import {{title}}.Model as M
+import {{title}}.MimeTypes
 
 import qualified Data.Aeson as A
 
@@ -265,129 +267,3 @@ _toCollA' c encode one xs = case c of
     {-# INLINE expandList #-}
     {-# INLINE combine #-}
   
-
--- * Content Negotiation
-
--- ** UseContentType constraint
-
--- | Combines Consumes & MimeRender for an operation
-type UseContentType operation model mediatype = (Consumes operation mediatype, MimeRender mediatype model)
-
--- ** Mime Types
-
-data MimeJSON = MimeJSON deriving (P.Typeable)
-data MimeXML = MimeXML deriving (P.Typeable)
-data MimePlainText = MimePlainText deriving (P.Typeable)
-data MimeFormUrlEncoded = MimeFormUrlEncoded deriving (P.Typeable)
-data MimeMultipartFormData = MimeMultipartFormData deriving (P.Typeable)
-data MimeNoContent = MimeNoContent deriving (P.Typeable)
-
-{{#x-unknownMimeTypes}}data {{{x-mediaDataType}}} = {{{x-mediaDataType}}} deriving (P.Typeable)
-{{/x-unknownMimeTypes}}
-
--- ** MimeType Class
-
-class MimeType mtype  where
-  mimeType :: mtype -> Maybe ME.MediaType
-  mimeType p =
-    case mimeTypes p of
-      [] -> Nothing
-      (x:_) -> Just x
-  mimeTypes :: mtype -> [ME.MediaType]
-  mimeTypes p =
-    case mimeType p of
-      Just x -> [x]
-      Nothing -> []
-    
-  {-# MINIMAL mimeType | mimeTypes #-}
-
--- ** MimeType Instances
-
--- | @application/json@
-instance MimeType MimeJSON where
-  mimeTypes _ =
-    [ "application" ME.// "json" ME./: ("charset", "utf-8")
-    , "application" ME.// "json"
-    ]
-
--- | @application/xml@
-instance MimeType MimeXML where
-  mimeType _ = Just $ "application" ME.// "xml"
-
--- | @application/x-www-form-urlencoded@
-instance MimeType MimeFormUrlEncoded where
-  mimeType _ = Just $ "application" ME.// "x-www-form-urlencoded"
-
--- | @multipart/form-data@
-instance MimeType MimeMultipartFormData where
-  mimeType _ = Just $ "multipart" ME.// "form-data"
-
--- | @text/plain;charset=utf-8@
-instance MimeType MimePlainText where
-  mimeType _ = Just $ "text" ME.// "plain" ME./: ("charset", "utf-8")
-
-instance MimeType MimeNoContent where
-  mimeType _ = Nothing
-
-{{#x-unknownMimeTypes}}
--- | @{{{mediaType}}}@
-instance MimeType {{{x-mediaDataType}}} where
-  mimeType _ = Just $ "{{{x-mediaMainType}}}" ME.// "{{{x-mediaSubType}}}"
-
-{{/x-unknownMimeTypes}}
-
--- ** MimeRender Class
-
-class MimeType mtype => MimeRender mtype x where
-    mimeRender  :: P.Proxy mtype -> x -> BL.ByteString
-    mimeRender' :: mtype -> x -> BL.ByteString
-    mimeRender' _ x = mimeRender (P.Proxy :: P.Proxy mtype) x
-
--- ** MimeRender Instances
-
--- | `A.encode`
-instance A.ToJSON a => MimeRender MimeJSON a where mimeRender _ = A.encode
--- | @WH.urlEncodeAsForm@
-instance WH.ToForm a => MimeRender MimeFormUrlEncoded a where mimeRender _ = WH.urlEncodeAsForm
--- | `TL.encodeUtf8`
-instance MimeRender MimePlainText TL.Text where mimeRender _ = TL.encodeUtf8
--- | @BL.fromStrict . T.encodeUtf8@
-instance MimeRender MimePlainText T.Text where mimeRender _ = BL.fromStrict . T.encodeUtf8
--- | @BCL.pack@
-instance MimeRender MimePlainText String where mimeRender _ = BCL.pack
-
--- ** MimeUnrender Class
-
-class MimeType mtype => MimeUnrender mtype o where
-    mimeUnrender :: P.Proxy mtype -> BL.ByteString -> P.Either String o
-    mimeUnrender' :: mtype -> BL.ByteString -> P.Either String o
-    mimeUnrender' _ x = mimeUnrender (P.Proxy :: P.Proxy mtype) x
-
--- ** MimeUnrender Instances
-
--- | @A.eitherDecode@
-instance A.FromJSON a => MimeUnrender MimeJSON a where mimeUnrender _ = A.eitherDecode
--- | @P.left T.unpack . WH.urlDecodeAsForm@
-instance WH.FromForm a => MimeUnrender MimeFormUrlEncoded a where mimeUnrender _ = P.left T.unpack . WH.urlDecodeAsForm
--- | @P.left P.show . TL.decodeUtf8'@
-instance MimeUnrender MimePlainText TL.Text where mimeUnrender _ = P.left P.show . TL.decodeUtf8'
--- | @P.left P.show . T.decodeUtf8' . BL.toStrict@
-instance MimeUnrender MimePlainText T.Text where mimeUnrender _ = P.left P.show . T.decodeUtf8' . BL.toStrict
--- | @P.Right . BCL.unpack@
-instance MimeUnrender MimePlainText String where mimeUnrender _ = P.Right . BCL.unpack
-
-
-{{#x-unknownMimeTypes}}
--- | @{{{mediaType}}}@
--- instance MimeUnrender {{{x-mediaDataType}}} where
---   mimeUnrender _ _ = undefined
-
-{{/x-unknownMimeTypes}}
-
--- ** Request Consumes
-
-class Consumes req mtype where
-
--- ** Request Produces
-
-class Produces req mtype where

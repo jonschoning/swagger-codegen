@@ -40,11 +40,30 @@ instance ApproxEq Day where
 
 -- * Models
  
+instance Arbitrary ApiResponse where
+  arbitrary =
+    ApiResponse
+    <$> arbitrary -- apiResponseCode :: Maybe Int
+    <*> arbitrary -- apiResponseType :: Maybe Text
+    <*> arbitrary -- apiResponseMessage :: Maybe Text
+    
+
 instance Arbitrary Category where
   arbitrary =
     Category
     <$> arbitrary -- categoryId :: Maybe Integer
     <*> arbitrary -- categoryName :: Maybe Text
+    
+
+instance Arbitrary Order where
+  arbitrary =
+    Order
+    <$> arbitrary -- orderId :: Maybe Integer
+    <*> arbitrary -- orderPetId :: Maybe Integer
+    <*> arbitrary -- orderQuantity :: Maybe Int
+    <*> arbitrary -- orderShipDate :: Maybe Integer
+    <*> arbitrary -- orderStatus :: Maybe Text
+    <*> arbitrary -- orderComplete :: Maybe Bool
     
 
 instance Arbitrary Pet where
@@ -63,6 +82,19 @@ instance Arbitrary Tag where
     Tag
     <$> arbitrary -- tagId :: Maybe Integer
     <*> arbitrary -- tagName :: Maybe Text
+    
+
+instance Arbitrary User where
+  arbitrary =
+    User
+    <$> arbitrary -- userId :: Maybe Integer
+    <*> arbitrary -- userUsername :: Maybe Text
+    <*> arbitrary -- userFirstName :: Maybe Text
+    <*> arbitrary -- userLastName :: Maybe Text
+    <*> arbitrary -- userEmail :: Maybe Text
+    <*> arbitrary -- userPassword :: Maybe Text
+    <*> arbitrary -- userPhone :: Maybe Text
+    <*> arbitrary -- userUserStatus :: Maybe Int
     
 
 

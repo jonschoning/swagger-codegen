@@ -235,6 +235,7 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
 
         supportingFiles.add(new SupportingFile("API.mustache", "lib/" + apiName, "API.hs"));
         supportingFiles.add(new SupportingFile("Model.mustache", "lib/" + apiName, "Model.hs"));
+        supportingFiles.add(new SupportingFile("MimeTypes.mustache", "lib/" + apiName, "MimeTypes.hs"));
 
         // modelTemplateFiles.put("API.mustache", ".hs");
         // apiTemplateFiles.put("Model.mustache", ".hs");

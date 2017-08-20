@@ -18,7 +18,10 @@ main :: IO ()
 main =
   hspec $ modifyMaxSize (const 10) $
   do describe "JSON instances" $
-       do propJSONEq (Proxy :: Proxy Category)
+       do propJSONEq (Proxy :: Proxy ApiResponse)
+          propJSONEq (Proxy :: Proxy Category)
+          propJSONEq (Proxy :: Proxy Order)
           propJSONEq (Proxy :: Proxy Pet)
           propJSONEq (Proxy :: Proxy Tag)
+          propJSONEq (Proxy :: Proxy User)
           

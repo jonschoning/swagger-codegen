@@ -15,7 +15,9 @@ Module : SwaggerPetstore.API
 
 module SwaggerPetstore.API where
 
+
 import SwaggerPetstore.Model as M
+import SwaggerPetstore.MimeTypes
 
 import qualified Data.Aeson as A
 
@@ -94,6 +96,145 @@ instance Produces AddPet MimeXML
 instance Produces AddPet MimeJSON
 
 
+-- ** deletePet
+
+-- | DELETE \/pet\/{petId}
+-- 
+-- Deletes a pet
+-- 
+-- 
+-- 
+-- AuthMethod: petstore_auth
+-- 
+deletePet 
+  :: Integer -- ^ "petId" -  Pet id to delete
+  -> SwaggerPetstoreRequest DeletePet MimeNoContent ()
+deletePet petId =
+  _mkRequest "DELETE" ["/pet/",toPath petId]
+    
+
+data DeletePet  
+instance HasOptionalParam DeletePet ApiUnderscorekey where
+  applyOptionalParam req (ApiUnderscorekey xs) =
+    req `_addHeader` toHeader ("api_key", xs)
+-- | @application/xml@
+instance Produces DeletePet MimeXML
+-- | @application/json@
+instance Produces DeletePet MimeJSON
+
+
+-- ** findPetsByStatus
+
+-- | GET \/pet\/findByStatus
+-- 
+-- Finds Pets by status
+-- 
+-- Multiple status values can be provided with comma separated strings
+-- 
+-- AuthMethod: petstore_auth
+-- 
+findPetsByStatus 
+  :: [Text] -- ^ "status" -  Status values that need to be considered for filter
+  -> SwaggerPetstoreRequest FindPetsByStatus MimeNoContent [Pet]
+findPetsByStatus status =
+  _mkRequest "GET" ["/pet/findByStatus"]
+    `_addQuery` toQueryColl MultiParamArray ("status", Just status)
+
+data FindPetsByStatus  
+-- | @application/xml@
+instance Produces FindPetsByStatus MimeXML
+-- | @application/json@
+instance Produces FindPetsByStatus MimeJSON
+
+
+-- ** findPetsByTags
+
+-- | GET \/pet\/findByTags
+-- 
+-- Finds Pets by tags
+-- 
+-- Muliple tags can be provided with comma separated strings. Use tag1, tag2, tag3 for testing.
+-- 
+-- AuthMethod: petstore_auth
+-- 
+findPetsByTags 
+  :: [Text] -- ^ "tags" -  Tags to filter by
+  -> SwaggerPetstoreRequest FindPetsByTags MimeNoContent [Pet]
+findPetsByTags tags =
+  _mkRequest "GET" ["/pet/findByTags"]
+    `_addQuery` toQueryColl MultiParamArray ("tags", Just tags)
+
+{-# DEPRECATED findPetsByTags "" #-}
+
+data FindPetsByTags  
+-- | @application/xml@
+instance Produces FindPetsByTags MimeXML
+-- | @application/json@
+instance Produces FindPetsByTags MimeJSON
+
+
+-- ** getPetById
+
+-- | GET \/pet\/{petId}
+-- 
+-- Find pet by ID
+-- 
+-- Returns a single pet
+-- 
+-- AuthMethod: api_key
+-- 
+getPetById 
+  :: Integer -- ^ "petId" -  ID of pet to return
+  -> SwaggerPetstoreRequest GetPetById MimeNoContent Pet
+getPetById petId =
+  _mkRequest "GET" ["/pet/",toPath petId]
+    
+
+data GetPetById  
+-- | @application/xml@
+instance Produces GetPetById MimeXML
+-- | @application/json@
+instance Produces GetPetById MimeJSON
+
+
+-- ** updatePet
+
+-- | PUT \/pet
+-- 
+-- Update an existing pet
+-- 
+-- 
+-- 
+-- AuthMethod: petstore_auth
+-- 
+updatePet 
+  :: UseContentType UpdatePet Pet contentType
+  => contentType -- ^ request content-type (mimetype)
+  -> Pet -- ^ "body" -  Pet object that needs to be added to the store
+  -> SwaggerPetstoreRequest UpdatePet contentType ()
+updatePet _ body =
+  _mkRequest "PUT" ["/pet"]
+    `setBodyParam` body
+
+data UpdatePet 
+
+-- | /Body Param/ "body" - Pet object that needs to be added to the store
+instance HasBodyParam UpdatePet Pet where
+  setBodyParam :: forall contentType res. UseContentType UpdatePet Pet contentType => SwaggerPetstoreRequest UpdatePet contentType res -> Pet -> SwaggerPetstoreRequest UpdatePet contentType res
+  setBodyParam req xs = 
+    req `_setBodyLBS` mimeRender (P.Proxy :: P.Proxy contentType) xs 
+
+-- | @application/json@
+instance Consumes UpdatePet MimeJSON
+-- | @application/xml@
+instance Consumes UpdatePet MimeXML
+
+-- | @application/xml@
+instance Produces UpdatePet MimeXML
+-- | @application/json@
+instance Produces UpdatePet MimeJSON
+
+
 -- ** updatePetWithForm
 
 -- | POST \/pet\/{petId}
@@ -132,6 +273,346 @@ instance Produces UpdatePetWithForm MimeXML
 instance Produces UpdatePetWithForm MimeJSON
 
 
+-- ** uploadFile
+
+-- | POST \/pet\/{petId}\/uploadImage
+-- 
+-- uploads an image
+-- 
+-- 
+-- 
+-- AuthMethod: petstore_auth
+-- 
+uploadFile 
+  :: Integer -- ^ "petId" -  ID of pet to update
+  -> SwaggerPetstoreRequest UploadFile contentType ApiResponse
+uploadFile petId =
+  _mkRequest "POST" ["/pet/",toPath petId,"/uploadImage"]
+    
+
+data UploadFile  
+
+-- | /Optional Param/ "additionalMetadata" - Additional data to pass to server
+instance HasOptionalParam UploadFile AdditionalMetadata where
+  applyOptionalParam req (AdditionalMetadata xs) =
+    req `_addForm` toForm ("additionalMetadata", xs)
+
+-- | /Optional Param/ "file" - file to upload
+instance HasOptionalParam UploadFile File where
+  applyOptionalParam req (File xs) =
+    req `_addForm` toForm ("file", xs)
+
+-- | @multipart/form-data@
+instance Consumes UploadFile MimeMultipartFormData
+
+-- | @application/json@
+instance Produces UploadFile MimeJSON
+
+
+-- ** deleteOrder
+
+-- | DELETE \/store\/order\/{orderId}
+-- 
+-- Delete purchase order by ID
+-- 
+-- For valid response try integer IDs with positive integer value. Negative or non-integer values will generate API errors
+-- 
+deleteOrder 
+  :: Integer -- ^ "orderId" -  ID of the order that needs to be deleted
+  -> SwaggerPetstoreRequest DeleteOrder MimeNoContent ()
+deleteOrder orderId =
+  _mkRequest "DELETE" ["/store/order/",toPath orderId]
+    
+
+data DeleteOrder  
+-- | @application/xml@
+instance Produces DeleteOrder MimeXML
+-- | @application/json@
+instance Produces DeleteOrder MimeJSON
+
+
+-- ** getInventory
+
+-- | GET \/store\/inventory
+-- 
+-- Returns pet inventories by status
+-- 
+-- Returns a map of status codes to quantities
+-- 
+-- AuthMethod: api_key
+-- 
+getInventory 
+  :: SwaggerPetstoreRequest GetInventory MimeNoContent (Map.Map String Int)
+getInventory =
+  _mkRequest "GET" ["/store/inventory"]
+
+data GetInventory  
+-- | @application/json@
+instance Produces GetInventory MimeJSON
+
+
+-- ** getOrderById
+
+-- | GET \/store\/order\/{orderId}
+-- 
+-- Find purchase order by ID
+-- 
+-- For valid response try integer IDs with value >= 1 and <= 10. Other values will generated exceptions
+-- 
+getOrderById 
+  :: Integer -- ^ "orderId" -  ID of pet that needs to be fetched
+  -> SwaggerPetstoreRequest GetOrderById MimeNoContent Order
+getOrderById orderId =
+  _mkRequest "GET" ["/store/order/",toPath orderId]
+    
+
+data GetOrderById  
+-- | @application/xml@
+instance Produces GetOrderById MimeXML
+-- | @application/json@
+instance Produces GetOrderById MimeJSON
+
+
+-- ** placeOrder
+
+-- | POST \/store\/order
+-- 
+-- Place an order for a pet
+-- 
+-- 
+-- 
+placeOrder 
+  :: UseContentType PlaceOrder Order contentType
+  => contentType -- ^ request content-type (mimetype)
+  -> Order -- ^ "body" -  order placed for purchasing the pet
+  -> SwaggerPetstoreRequest PlaceOrder contentType Order
+placeOrder _ body =
+  _mkRequest "POST" ["/store/order"]
+    `setBodyParam` body
+
+data PlaceOrder 
+
+-- | /Body Param/ "body" - order placed for purchasing the pet
+instance HasBodyParam PlaceOrder Order where
+  setBodyParam :: forall contentType res. UseContentType PlaceOrder Order contentType => SwaggerPetstoreRequest PlaceOrder contentType res -> Order -> SwaggerPetstoreRequest PlaceOrder contentType res
+  setBodyParam req xs = 
+    req `_setBodyLBS` mimeRender (P.Proxy :: P.Proxy contentType) xs 
+-- | @application/xml@
+instance Produces PlaceOrder MimeXML
+-- | @application/json@
+instance Produces PlaceOrder MimeJSON
+
+
+-- ** createUser
+
+-- | POST \/user
+-- 
+-- Create user
+-- 
+-- This can only be done by the logged in user.
+-- 
+createUser 
+  :: UseContentType CreateUser User contentType
+  => contentType -- ^ request content-type (mimetype)
+  -> User -- ^ "body" -  Created user object
+  -> SwaggerPetstoreRequest CreateUser contentType ()
+createUser _ body =
+  _mkRequest "POST" ["/user"]
+    `setBodyParam` body
+
+data CreateUser 
+
+-- | /Body Param/ "body" - Created user object
+instance HasBodyParam CreateUser User where
+  setBodyParam :: forall contentType res. UseContentType CreateUser User contentType => SwaggerPetstoreRequest CreateUser contentType res -> User -> SwaggerPetstoreRequest CreateUser contentType res
+  setBodyParam req xs = 
+    req `_setBodyLBS` mimeRender (P.Proxy :: P.Proxy contentType) xs 
+-- | @application/xml@
+instance Produces CreateUser MimeXML
+-- | @application/json@
+instance Produces CreateUser MimeJSON
+
+
+-- ** createUsersWithArrayInput
+
+-- | POST \/user\/createWithArray
+-- 
+-- Creates list of users with given input array
+-- 
+-- 
+-- 
+createUsersWithArrayInput 
+  :: UseContentType CreateUsersWithArrayInput [User] contentType
+  => contentType -- ^ request content-type (mimetype)
+  -> [User] -- ^ "body" -  List of user object
+  -> SwaggerPetstoreRequest CreateUsersWithArrayInput contentType ()
+createUsersWithArrayInput _ body =
+  _mkRequest "POST" ["/user/createWithArray"]
+    `setBodyParam` body
+
+data CreateUsersWithArrayInput 
+
+-- | /Body Param/ "body" - List of user object
+instance HasBodyParam CreateUsersWithArrayInput [User] where
+  setBodyParam :: forall contentType res. UseContentType CreateUsersWithArrayInput [User] contentType => SwaggerPetstoreRequest CreateUsersWithArrayInput contentType res -> [User] -> SwaggerPetstoreRequest CreateUsersWithArrayInput contentType res
+  setBodyParam req xs = 
+    req `_setBodyLBS` mimeRender (P.Proxy :: P.Proxy contentType) xs 
+-- | @application/xml@
+instance Produces CreateUsersWithArrayInput MimeXML
+-- | @application/json@
+instance Produces CreateUsersWithArrayInput MimeJSON
+
+
+-- ** createUsersWithListInput
+
+-- | POST \/user\/createWithList
+-- 
+-- Creates list of users with given input array
+-- 
+-- 
+-- 
+createUsersWithListInput 
+  :: UseContentType CreateUsersWithListInput [User] contentType
+  => contentType -- ^ request content-type (mimetype)
+  -> [User] -- ^ "body" -  List of user object
+  -> SwaggerPetstoreRequest CreateUsersWithListInput contentType ()
+createUsersWithListInput _ body =
+  _mkRequest "POST" ["/user/createWithList"]
+    `setBodyParam` body
+
+data CreateUsersWithListInput 
+
+-- | /Body Param/ "body" - List of user object
+instance HasBodyParam CreateUsersWithListInput [User] where
+  setBodyParam :: forall contentType res. UseContentType CreateUsersWithListInput [User] contentType => SwaggerPetstoreRequest CreateUsersWithListInput contentType res -> [User] -> SwaggerPetstoreRequest CreateUsersWithListInput contentType res
+  setBodyParam req xs = 
+    req `_setBodyLBS` mimeRender (P.Proxy :: P.Proxy contentType) xs 
+-- | @application/xml@
+instance Produces CreateUsersWithListInput MimeXML
+-- | @application/json@
+instance Produces CreateUsersWithListInput MimeJSON
+
+
+-- ** deleteUser
+
+-- | DELETE \/user\/{username}
+-- 
+-- Delete user
+-- 
+-- This can only be done by the logged in user.
+-- 
+deleteUser 
+  :: Text -- ^ "username" -  The name that needs to be deleted
+  -> SwaggerPetstoreRequest DeleteUser MimeNoContent ()
+deleteUser username =
+  _mkRequest "DELETE" ["/user/",toPath username]
+    
+
+data DeleteUser  
+-- | @application/xml@
+instance Produces DeleteUser MimeXML
+-- | @application/json@
+instance Produces DeleteUser MimeJSON
+
+
+-- ** getUserByName
+
+-- | GET \/user\/{username}
+-- 
+-- Get user by user name
+-- 
+-- 
+-- 
+getUserByName 
+  :: Text -- ^ "username" -  The name that needs to be fetched. Use user1 for testing. 
+  -> SwaggerPetstoreRequest GetUserByName MimeNoContent User
+getUserByName username =
+  _mkRequest "GET" ["/user/",toPath username]
+    
+
+data GetUserByName  
+-- | @application/xml@
+instance Produces GetUserByName MimeXML
+-- | @application/json@
+instance Produces GetUserByName MimeJSON
+
+
+-- ** loginUser
+
+-- | GET \/user\/login
+-- 
+-- Logs user into the system
+-- 
+-- 
+-- 
+loginUser 
+  :: Text -- ^ "username" -  The user name for login
+  -> Text -- ^ "password" -  The password for login in clear text
+  -> SwaggerPetstoreRequest LoginUser MimeNoContent Text
+loginUser username password =
+  _mkRequest "GET" ["/user/login"]
+    `_addQuery` toQuery ("username", Just username)
+    `_addQuery` toQuery ("password", Just password)
+
+data LoginUser  
+-- | @application/xml@
+instance Produces LoginUser MimeXML
+-- | @application/json@
+instance Produces LoginUser MimeJSON
+
+
+-- ** logoutUser
+
+-- | GET \/user\/logout
+-- 
+-- Logs out current logged in user session
+-- 
+-- 
+-- 
+logoutUser 
+  :: SwaggerPetstoreRequest LogoutUser MimeNoContent ()
+logoutUser =
+  _mkRequest "GET" ["/user/logout"]
+
+data LogoutUser  
+-- | @application/xml@
+instance Produces LogoutUser MimeXML
+-- | @application/json@
+instance Produces LogoutUser MimeJSON
+
+
+-- ** updateUser
+
+-- | PUT \/user\/{username}
+-- 
+-- Updated user
+-- 
+-- This can only be done by the logged in user.
+-- 
+updateUser 
+  :: UseContentType UpdateUser User contentType
+  => contentType -- ^ request content-type (mimetype)
+  -> Text -- ^ "username" -  name that need to be updated
+  -> User -- ^ "body" -  Updated user object
+  -> SwaggerPetstoreRequest UpdateUser contentType ()
+updateUser _ username body =
+  _mkRequest "PUT" ["/user/",toPath username]
+    
+    `setBodyParam` body
+
+data UpdateUser 
+
+-- | /Body Param/ "body" - Updated user object
+instance HasBodyParam UpdateUser User where
+  setBodyParam :: forall contentType res. UseContentType UpdateUser User contentType => SwaggerPetstoreRequest UpdateUser contentType res -> User -> SwaggerPetstoreRequest UpdateUser contentType res
+  setBodyParam req xs = 
+    req `_setBodyLBS` mimeRender (P.Proxy :: P.Proxy contentType) xs 
+-- | @application/xml@
+instance Produces UpdateUser MimeXML
+-- | @application/json@
+instance Produces UpdateUser MimeJSON
+
+
 
 -- * HasBodyParam
 
@@ -160,9 +641,15 @@ infixl 2 -&-
 -- * Optional Request Parameter Types
 
 
+newtype ApiUnderscorekey = ApiUnderscorekey { unApiUnderscorekey :: Text } deriving (P.Eq, P.Show)
+
 newtype Name = Name { unName :: Text } deriving (P.Eq, P.Show)
 
 newtype Status = Status { unStatus :: Text } deriving (P.Eq, P.Show)
+
+newtype AdditionalMetadata = AdditionalMetadata { unAdditionalMetadata :: Text } deriving (P.Eq, P.Show)
+
+newtype File = File { unFile :: FilePath } deriving (P.Eq, P.Show)
 
 
 -- * SwaggerPetstoreRequest
@@ -302,115 +789,3 @@ _toCollA' c encode one xs = case c of
     {-# INLINE expandList #-}
     {-# INLINE combine #-}
   
-
--- * Content Negotiation
-
--- ** UseContentType constraint
-
--- | Combines Consumes & MimeRender for an operation
-type UseContentType operation model mediatype = (Consumes operation mediatype, MimeRender mediatype model)
-
--- ** Mime Types
-
-data MimeJSON = MimeJSON deriving (P.Typeable)
-data MimeXML = MimeXML deriving (P.Typeable)
-data MimePlainText = MimePlainText deriving (P.Typeable)
-data MimeFormUrlEncoded = MimeFormUrlEncoded deriving (P.Typeable)
-data MimeMultipartFormData = MimeMultipartFormData deriving (P.Typeable)
-data MimeNoContent = MimeNoContent deriving (P.Typeable)
-
-
--- ** MimeType Class
-
-class MimeType mtype  where
-  mimeType :: mtype -> Maybe ME.MediaType
-  mimeType p =
-    case mimeTypes p of
-      [] -> Nothing
-      (x:_) -> Just x
-  mimeTypes :: mtype -> [ME.MediaType]
-  mimeTypes p =
-    case mimeType p of
-      Just x -> [x]
-      Nothing -> []
-    
-  {-# MINIMAL mimeType | mimeTypes #-}
-
--- ** MimeType Instances
-
--- | @application/json@
-instance MimeType MimeJSON where
-  mimeTypes _ =
-    [ "application" ME.// "json" ME./: ("charset", "utf-8")
-    , "application" ME.// "json"
-    ]
-
--- | @application/xml@
-instance MimeType MimeXML where
-  mimeType _ = Just $ "application" ME.// "xml"
-
--- | @application/x-www-form-urlencoded@
-instance MimeType MimeFormUrlEncoded where
-  mimeType _ = Just $ "application" ME.// "x-www-form-urlencoded"
-
--- | @multipart/form-data@
-instance MimeType MimeMultipartFormData where
-  mimeType _ = Just $ "multipart" ME.// "form-data"
-
--- | @text/plain;charset=utf-8@
-instance MimeType MimePlainText where
-  mimeType _ = Just $ "text" ME.// "plain" ME./: ("charset", "utf-8")
-
-instance MimeType MimeNoContent where
-  mimeType _ = Nothing
-
-
--- ** MimeRender Class
-
-class MimeType mtype => MimeRender mtype x where
-    mimeRender  :: P.Proxy mtype -> x -> BL.ByteString
-    mimeRender' :: mtype -> x -> BL.ByteString
-    mimeRender' _ x = mimeRender (P.Proxy :: P.Proxy mtype) x
-
--- ** MimeRender Instances
-
--- | `A.encode`
-instance A.ToJSON a => MimeRender MimeJSON a where mimeRender _ = A.encode
--- | @WH.urlEncodeAsForm@
-instance WH.ToForm a => MimeRender MimeFormUrlEncoded a where mimeRender _ = WH.urlEncodeAsForm
--- | `TL.encodeUtf8`
-instance MimeRender MimePlainText TL.Text where mimeRender _ = TL.encodeUtf8
--- | @BL.fromStrict . T.encodeUtf8@
-instance MimeRender MimePlainText T.Text where mimeRender _ = BL.fromStrict . T.encodeUtf8
--- | @BCL.pack@
-instance MimeRender MimePlainText String where mimeRender _ = BCL.pack
-
--- ** MimeUnrender Class
-
-class MimeType mtype => MimeUnrender mtype o where
-    mimeUnrender :: P.Proxy mtype -> BL.ByteString -> P.Either String o
-    mimeUnrender' :: mtype -> BL.ByteString -> P.Either String o
-    mimeUnrender' _ x = mimeUnrender (P.Proxy :: P.Proxy mtype) x
-
--- ** MimeUnrender Instances
-
--- | @A.eitherDecode@
-instance A.FromJSON a => MimeUnrender MimeJSON a where mimeUnrender _ = A.eitherDecode
--- | @P.left T.unpack . WH.urlDecodeAsForm@
-instance WH.FromForm a => MimeUnrender MimeFormUrlEncoded a where mimeUnrender _ = P.left T.unpack . WH.urlDecodeAsForm
--- | @P.left P.show . TL.decodeUtf8'@
-instance MimeUnrender MimePlainText TL.Text where mimeUnrender _ = P.left P.show . TL.decodeUtf8'
--- | @P.left P.show . T.decodeUtf8' . BL.toStrict@
-instance MimeUnrender MimePlainText T.Text where mimeUnrender _ = P.left P.show . T.decodeUtf8' . BL.toStrict
--- | @P.Right . BCL.unpack@
-instance MimeUnrender MimePlainText String where mimeUnrender _ = P.Right . BCL.unpack
-
-
-
--- ** Request Consumes
-
-class Consumes req mtype where
-
--- ** Request Produces
-
-class Produces req mtype where
