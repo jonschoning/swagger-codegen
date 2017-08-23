@@ -70,33 +70,45 @@ withNoLogging p = p { execLoggingT = runNullLoggingT}
 
 -- * Dispatch
 
-dispatch
+dispatchReq
   :: UseAccept req res accept
-  => SwaggerPetstoreConfig -- ^ config
+  => NH.Manager -- ^ http-client Connection manager
+  -> accept -- ^ "accept" 'MimeType'
+  -> SwaggerPetstoreConfig -- ^ config
   -> SwaggerPetstoreRequest req contentType res -- ^ request
-  -> accept
-  -> IO (Either SwaggerPetstoreError res) -- ^ response
-dispatch config request accept = do
-  response <- dispatch' config request accept
-  case mimeUnrender' accept (NH.responseBody response) of
-    Left s -> return (Left (SwaggerPetstoreError s response))
-    (Right r) -> return (Right r)
+  -> IO (NH.Response BCL.ByteString, Either SwaggerPetstoreError res) -- ^ response
+dispatchReq manager accept config request = do
+  httpResponse <- dispatchReqLbs manager accept config request
+  let parsedResult =
+        case mimeUnrender' accept (NH.responseBody httpResponse) of
+          Left s -> Left (SwaggerPetstoreError s httpResponse)
+          Right r -> Right r
+  return (httpResponse, parsedResult)
 
-dispatch'
+dispatchReqLbs
   :: Produces req accept
-  => SwaggerPetstoreConfig -- ^ config
+  => NH.Manager -- ^ http-client Connection manager
+  -> accept -- ^ "accept" 'MimeType'
+  -> SwaggerPetstoreConfig -- ^ config
   -> SwaggerPetstoreRequest req contentType res -- ^ request
-  -> accept
   -> IO (NH.Response BCL.ByteString) -- ^ response
-dispatch' config request accept = do
-  manager <- NH.newManager NH.tlsManagerSettings
-  InitRequest req <- toInitRequest config request accept
+dispatchReqLbs manager accept config request = do
+  initReq <- toInitRequest accept config request 
+  dispatchInitLbs manager config initReq
+
+-- | dispatch an InitRequest
+dispatchInitLbs
+  :: NH.Manager -- ^ http-client Connection manager
+  -> SwaggerPetstoreConfig -- ^ config
+  -> InitRequest req contentType res accept -- ^ init request
+  -> IO (NH.Response BCL.ByteString) -- ^ response
+dispatchInitLbs manager _ (InitRequest req) = do
   NH.httpLbs req manager
   
 -- * InitRequest
 
 -- | wraps an http-client 'Request' with request/response type parameters
-newtype InitRequest req contentType accept res = InitRequest
+newtype InitRequest req contentType res accept = InitRequest
   { unInitRequest :: NH.Request
   } deriving (Show)
 
@@ -104,20 +116,20 @@ newtype InitRequest req contentType accept res = InitRequest
 toInitRequest
   :: forall req accept contentType res.
      Produces req accept
-  => SwaggerPetstoreConfig -- ^ config
+  => accept -- ^ "accept" 'MimeType'
+  -> SwaggerPetstoreConfig -- ^ config
   -> SwaggerPetstoreRequest req contentType res -- ^ request
-  -> accept
-  -> IO (InitRequest req contentType accept res) -- ^ initialized request
-toInitRequest SwaggerPetstoreConfig {..} req0 accept = do
-  parsedReq <- NH.parseRequest $ BCL.unpack $ BCL.append host (BCL.concat (urlPath req0))
-  let req2 = _addAcceptHeader req0 accept
-      reqHeaders = paramsHeaders (params req2)
-      reqQuery = NH.renderQuery True (paramsQuery (params req2))
-      pReq = parsedReq { NH.method = (rMethod req2)
+  -> IO (InitRequest req contentType res accept) -- ^ initialized request
+toInitRequest accept config req0 = do
+  parsedReq <- NH.parseRequest $ BCL.unpack $ BCL.append (host config) (BCL.concat (urlPath req0))
+  let req1 = _addAcceptHeader req0 accept
+      reqHeaders = paramsHeaders (params req1)
+      reqQuery = NH.renderQuery True (paramsQuery (params req1))
+      pReq = parsedReq { NH.method = (rMethod req1)
                        , NH.requestHeaders = reqHeaders
                        , NH.queryString = reqQuery
                        }
-  outReq <- case paramsBody (params req2) of
+  outReq <- case paramsBody (params req1) of
     ParamBodyNone -> pure (pReq { NH.requestBody = mempty })
     ParamBodyB bs -> pure (pReq { NH.requestBody = NH.RequestBodyBS bs })
     ParamBodyBL bl -> pure (pReq { NH.requestBody = NH.RequestBodyLBS bl })
@@ -127,11 +139,11 @@ toInitRequest SwaggerPetstoreConfig {..} req0 accept = do
   pure (InitRequest outReq)
 
 -- | convenience method for modifying the underlying Request
-modifyInitRequest :: InitRequest req contentType accept res -> (NH.Request -> NH.Request) -> InitRequest req contentType accept res
+modifyInitRequest :: InitRequest req contentType res accept -> (NH.Request -> NH.Request) -> InitRequest req contentType res accept 
 modifyInitRequest (InitRequest req) f = InitRequest (f req)
 
 -- | convenience method for modifying the underlying Request (monadic)
-modifyInitRequestM :: Monad m => InitRequest req contentType accept res -> (NH.Request -> m NH.Request) -> m (InitRequest req contentType accept res)
+modifyInitRequestM :: Monad m => InitRequest req contentType res accept -> (NH.Request -> m NH.Request) -> m (InitRequest req contentType res accept)
 modifyInitRequestM (InitRequest req) f = fmap InitRequest (f req)
 
 -- * Error
