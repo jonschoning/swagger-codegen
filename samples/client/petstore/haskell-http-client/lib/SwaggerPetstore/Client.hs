@@ -46,63 +46,107 @@ import qualified Network.HTTP.Types.URI as NH
 -- * Config
 
 data SwaggerPetstoreConfig = SwaggerPetstoreConfig
-  { host  :: BCL.ByteString
-  , execLoggingT :: ExecLoggingT
-  , filterLoggingT :: LG.LogSource -> LG.LogLevel -> Bool
+  { configHost  :: BCL.ByteString
+  , configUserAgent :: BCL.ByteString
+  , configExecLoggingT :: ExecLoggingT
+  , configFilterLoggingT :: LG.LogSource -> LG.LogLevel -> Bool
   }
 
 mkConfig :: SwaggerPetstoreConfig
 mkConfig =
   SwaggerPetstoreConfig
-  { host = "http://petstore.swagger.io/v2"
-  , execLoggingT = runNullLoggingT
-  , filterLoggingT = infoLevelFilter
+  { configHost = "http://petstore.swagger.io/v2"
+  , configUserAgent = "swagger-haskell-http-client/1.0.0"
+  , configExecLoggingT = runNullLoggingT
+  , configFilterLoggingT = infoLevelFilter
   }
 
 withStdoutLogging :: SwaggerPetstoreConfig -> SwaggerPetstoreConfig
-withStdoutLogging p = p { execLoggingT = LG.runStdoutLoggingT}
+withStdoutLogging p = p { configExecLoggingT = LG.runStdoutLoggingT}
 
 withStderrLogging :: SwaggerPetstoreConfig -> SwaggerPetstoreConfig
-withStderrLogging p = p { execLoggingT = LG.runStderrLoggingT}
+withStderrLogging p = p { configExecLoggingT = LG.runStderrLoggingT}
 
 withNoLogging :: SwaggerPetstoreConfig -> SwaggerPetstoreConfig
-withNoLogging p = p { execLoggingT = runNullLoggingT}
+withNoLogging p = p { configExecLoggingT = runNullLoggingT}
 
 -- * Dispatch
 
+data MimeResponse res =
+  MimeResponse { mimeResponseHttp :: NH.Response BCL.ByteString
+               , mimeResponseResult :: Either SwaggerPetstoreError res
+               }
+  deriving (Show)
+
+-- | returns both the underlying http response and the parsed result ('MimeResponse')
 dispatchReq
-  :: UseAccept req res accept
+  :: (Produces req accept, MimeUnrender accept res)
   => NH.Manager -- ^ http-client Connection manager
   -> accept -- ^ "accept" 'MimeType'
   -> SwaggerPetstoreConfig -- ^ config
   -> SwaggerPetstoreRequest req contentType res -- ^ request
-  -> IO (NH.Response BCL.ByteString, Either SwaggerPetstoreError res) -- ^ response
+  -> IO (MimeResponse res) -- ^ response
 dispatchReq manager accept config request = do
   httpResponse <- dispatchReqLbs manager accept config request
   let parsedResult =
         case mimeUnrender' accept (NH.responseBody httpResponse) of
           Left s -> Left (SwaggerPetstoreError s httpResponse)
           Right r -> Right r
-  return (httpResponse, parsedResult)
+  return (MimeResponse httpResponse parsedResult)
 
+-- | like 'dispatchReq', but only returns the parsed result
+dispatchReqRes
+  :: (Produces req accept, MimeUnrender accept res)
+  => NH.Manager -- ^ http-client Connection manager
+  -> accept -- ^ "accept" 'MimeType'
+  -> SwaggerPetstoreConfig -- ^ config
+  -> SwaggerPetstoreRequest req contentType res -- ^ request
+  -> IO (Either SwaggerPetstoreError res) -- ^ response
+dispatchReqRes manager accept config request = do
+    MimeResponse _ parsedResult <- dispatchReq manager accept config request
+    return parsedResult
+
+-- | like 'dispatchReq', but only returns the underlying http response
 dispatchReqLbs
-  :: Produces req accept
+  :: (Produces req accept, MimeUnrender accept res)
   => NH.Manager -- ^ http-client Connection manager
   -> accept -- ^ "accept" 'MimeType'
   -> SwaggerPetstoreConfig -- ^ config
   -> SwaggerPetstoreRequest req contentType res -- ^ request
   -> IO (NH.Response BCL.ByteString) -- ^ response
 dispatchReqLbs manager accept config request = do
-  initReq <- toInitRequest accept config request 
-  dispatchInitLbs manager config initReq
+  initReq <- _toInitRequest accept config request 
+  dispatchInitLbsUnsafe manager config initReq
+
+-- | like 'dispatchReqLbs', but does not validate the operation is a 'Producer' of the "accept" 'MimeType'.  (Useful if the server's response is undocumented)
+dispatchReqLbsUnsafe
+  :: MimeType accept 
+  => NH.Manager -- ^ http-client Connection manager
+  -> accept -- ^ "accept" 'MimeType'
+  -> SwaggerPetstoreConfig -- ^ config
+  -> SwaggerPetstoreRequest req contentType res -- ^ request
+  -> IO (NH.Response BCL.ByteString) -- ^ response
+dispatchReqLbsUnsafe manager accept config request = do
+  initReq <- _toInitRequest accept config request 
+  dispatchInitLbsUnsafe manager config initReq
+
+-- | like 'dispatchReqLbsUnsafe', but does not add an "accept" header.
+dispatchReqLbsUnsafeRaw
+  :: NH.Manager -- ^ http-client Connection manager
+  -> SwaggerPetstoreConfig -- ^ config
+  -> SwaggerPetstoreRequest req contentType res -- ^ request
+  -> IO (NH.Response BCL.ByteString) -- ^ response
+dispatchReqLbsUnsafeRaw manager config request = do
+  initReq <- _toInitRequest MimeNoContent config request 
+  dispatchInitLbsUnsafe manager config initReq
 
 -- | dispatch an InitRequest
-dispatchInitLbs
+dispatchInitLbsUnsafe
   :: NH.Manager -- ^ http-client Connection manager
   -> SwaggerPetstoreConfig -- ^ config
   -> InitRequest req contentType res accept -- ^ init request
   -> IO (NH.Response BCL.ByteString) -- ^ response
-dispatchInitLbs manager _ (InitRequest req) = do
+dispatchInitLbsUnsafe manager _ (InitRequest req) = do
   NH.httpLbs req manager
   
 -- * InitRequest
@@ -113,17 +157,16 @@ newtype InitRequest req contentType res accept = InitRequest
   } deriving (Show)
 
 -- |  Build an http-client 'Request' record from the supplied config and request
-toInitRequest
-  :: forall req accept contentType res.
-     Produces req accept
+_toInitRequest
+  :: MimeType accept
   => accept -- ^ "accept" 'MimeType'
   -> SwaggerPetstoreConfig -- ^ config
   -> SwaggerPetstoreRequest req contentType res -- ^ request
   -> IO (InitRequest req contentType res accept) -- ^ initialized request
-toInitRequest accept config req0 = do
-  parsedReq <- NH.parseRequest $ BCL.unpack $ BCL.append (host config) (BCL.concat (urlPath req0))
-  let req1 = _addAcceptHeader req0 accept
-      reqHeaders = paramsHeaders (params req1)
+_toInitRequest accept config req0 = do
+  parsedReq <- NH.parseRequest $ BCL.unpack $ BCL.append (configHost config) (BCL.concat (urlPath req0))
+  let req1 = _addAcceptHeader req0 accept  
+      reqHeaders = ("User-Agent", WH.toHeader (show (configUserAgent config))) : paramsHeaders (params req1)
       reqQuery = NH.renderQuery True (paramsQuery (params req1))
       pReq = parsedReq { NH.method = (rMethod req1)
                        , NH.requestHeaders = reqHeaders
@@ -156,6 +199,7 @@ data SwaggerPetstoreError =
 
 -- * Logging
 
+-- | runs the logger
 type ExecLoggingT = forall m. P.MonadIO m =>
                               forall a. LG.LoggingT m a -> m a
 

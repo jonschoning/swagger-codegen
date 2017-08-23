@@ -39,6 +39,9 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
     protected String sourceFolder = "src";
     protected String apiVersion = "0.0.1";
 
+    protected String artifactId = "swagger-haskell-http-client";
+    protected String artifactVersion = "1.0.0";
+
     // CLI
     protected String GENERATE_LENSES = "generateLenses";
     protected String DERIVING = "deriving";
@@ -108,6 +111,8 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
         );
 
         additionalProperties.put("apiVersion", apiVersion);
+        additionalProperties.put("artifactId", artifactId);
+        additionalProperties.put("artifactVersion", artifactVersion);
 
         supportingFiles.add(new SupportingFile("README.mustache", "", "README.md"));
         supportingFiles.add(new SupportingFile("stack.mustache", "", "stack.yaml"));
@@ -163,8 +168,8 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
         //cliOptions.add(new CliOption(CodegenConstants.MODEL_PACKAGE, CodegenConstants.MODEL_PACKAGE_DESC));
         //cliOptions.add(new CliOption(CodegenConstants.API_PACKAGE, CodegenConstants.API_PACKAGE_DESC));
 
-        cliOptions.add(new CliOption(NO_JSON_NULLS, "fail when encountering JSON Null during model decoding"));
-        cliOptions.add(new CliOption(GENERATE_LENSES, "Generate Lens optics for Models"));
+        cliOptions.add(new CliOption(NO_JSON_NULLS, "fail when encountering JSON Null during model decoding (Default: false)"));
+        cliOptions.add(new CliOption(GENERATE_LENSES, "Generate Lens optics for Models (Default: false)"));
         cliOptions.add(new CliOption(DERIVING, "Additional classes to include in the deriving() clause of Models"));
 
         // cliOptions.add(new CliOption(MODEL_IMPORTS, "Additional imports in the Models file"));

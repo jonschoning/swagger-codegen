@@ -61,7 +61,7 @@ import qualified Prelude as P
 
 -- ** addPet
 
--- | POST \/pet
+-- | @POST \/pet@
 -- 
 -- Add a new pet to the store
 -- 
@@ -70,7 +70,7 @@ import qualified Prelude as P
 -- AuthMethod: petstore_auth
 -- 
 addPet 
-  :: UseContentType AddPet Pet contentType
+  :: (Consumes AddPet contentType, MimeRender contentType Pet)   
   => contentType -- ^ request content-type (mimetype)
   -> Pet -- ^ "body" -  Pet object that needs to be added to the store
   -> SwaggerPetstoreRequest AddPet contentType ()
@@ -96,7 +96,7 @@ instance Produces AddPet MimeJSON
 
 -- ** deletePet
 
--- | DELETE \/pet\/{petId}
+-- | @DELETE \/pet\/{petId}@
 -- 
 -- Deletes a pet
 -- 
@@ -123,7 +123,7 @@ instance Produces DeletePet MimeJSON
 
 -- ** findPetsByStatus
 
--- | GET \/pet\/findByStatus
+-- | @GET \/pet\/findByStatus@
 -- 
 -- Finds Pets by status
 -- 
@@ -147,7 +147,7 @@ instance Produces FindPetsByStatus MimeJSON
 
 -- ** findPetsByTags
 
--- | GET \/pet\/findByTags
+-- | @GET \/pet\/findByTags@
 -- 
 -- Finds Pets by tags
 -- 
@@ -173,7 +173,7 @@ instance Produces FindPetsByTags MimeJSON
 
 -- ** getPetById
 
--- | GET \/pet\/{petId}
+-- | @GET \/pet\/{petId}@
 -- 
 -- Find pet by ID
 -- 
@@ -197,7 +197,7 @@ instance Produces GetPetById MimeJSON
 
 -- ** updatePet
 
--- | PUT \/pet
+-- | @PUT \/pet@
 -- 
 -- Update an existing pet
 -- 
@@ -206,7 +206,7 @@ instance Produces GetPetById MimeJSON
 -- AuthMethod: petstore_auth
 -- 
 updatePet 
-  :: UseContentType UpdatePet Pet contentType
+  :: (Consumes UpdatePet contentType, MimeRender contentType Pet)   
   => contentType -- ^ request content-type (mimetype)
   -> Pet -- ^ "body" -  Pet object that needs to be added to the store
   -> SwaggerPetstoreRequest UpdatePet contentType ()
@@ -232,7 +232,7 @@ instance Produces UpdatePet MimeJSON
 
 -- ** updatePetWithForm
 
--- | POST \/pet\/{petId}
+-- | @POST \/pet\/{petId}@
 -- 
 -- Updates a pet in the store with form data
 -- 
@@ -270,7 +270,7 @@ instance Produces UpdatePetWithForm MimeJSON
 
 -- ** uploadFile
 
--- | POST \/pet\/{petId}\/uploadImage
+-- | @POST \/pet\/{petId}\/uploadImage@
 -- 
 -- uploads an image
 -- 
@@ -306,7 +306,7 @@ instance Produces UploadFile MimeJSON
 
 -- ** deleteOrder
 
--- | DELETE \/store\/order\/{orderId}
+-- | @DELETE \/store\/order\/{orderId}@
 -- 
 -- Delete purchase order by ID
 -- 
@@ -328,7 +328,7 @@ instance Produces DeleteOrder MimeJSON
 
 -- ** getInventory
 
--- | GET \/store\/inventory
+-- | @GET \/store\/inventory@
 -- 
 -- Returns pet inventories by status
 -- 
@@ -348,7 +348,7 @@ instance Produces GetInventory MimeJSON
 
 -- ** getOrderById
 
--- | GET \/store\/order\/{orderId}
+-- | @GET \/store\/order\/{orderId}@
 -- 
 -- Find purchase order by ID
 -- 
@@ -370,14 +370,14 @@ instance Produces GetOrderById MimeJSON
 
 -- ** placeOrder
 
--- | POST \/store\/order
+-- | @POST \/store\/order@
 -- 
 -- Place an order for a pet
 -- 
 -- 
 -- 
 placeOrder 
-  :: UseContentType PlaceOrder Order contentType
+  :: (Consumes PlaceOrder contentType, MimeRender contentType Order)   
   => contentType -- ^ request content-type (mimetype)
   -> Order -- ^ "body" -  order placed for purchasing the pet
   -> SwaggerPetstoreRequest PlaceOrder contentType Order
@@ -397,14 +397,14 @@ instance Produces PlaceOrder MimeJSON
 
 -- ** createUser
 
--- | POST \/user
+-- | @POST \/user@
 -- 
 -- Create user
 -- 
 -- This can only be done by the logged in user.
 -- 
 createUser 
-  :: UseContentType CreateUser User contentType
+  :: (Consumes CreateUser contentType, MimeRender contentType User)   
   => contentType -- ^ request content-type (mimetype)
   -> User -- ^ "body" -  Created user object
   -> SwaggerPetstoreRequest CreateUser contentType ()
@@ -424,14 +424,14 @@ instance Produces CreateUser MimeJSON
 
 -- ** createUsersWithArrayInput
 
--- | POST \/user\/createWithArray
+-- | @POST \/user\/createWithArray@
 -- 
 -- Creates list of users with given input array
 -- 
 -- 
 -- 
 createUsersWithArrayInput 
-  :: UseContentType CreateUsersWithArrayInput [User] contentType
+  :: (Consumes CreateUsersWithArrayInput contentType, MimeRender contentType [User])   
   => contentType -- ^ request content-type (mimetype)
   -> [User] -- ^ "body" -  List of user object
   -> SwaggerPetstoreRequest CreateUsersWithArrayInput contentType ()
@@ -451,14 +451,14 @@ instance Produces CreateUsersWithArrayInput MimeJSON
 
 -- ** createUsersWithListInput
 
--- | POST \/user\/createWithList
+-- | @POST \/user\/createWithList@
 -- 
 -- Creates list of users with given input array
 -- 
 -- 
 -- 
 createUsersWithListInput 
-  :: UseContentType CreateUsersWithListInput [User] contentType
+  :: (Consumes CreateUsersWithListInput contentType, MimeRender contentType [User])   
   => contentType -- ^ request content-type (mimetype)
   -> [User] -- ^ "body" -  List of user object
   -> SwaggerPetstoreRequest CreateUsersWithListInput contentType ()
@@ -478,7 +478,7 @@ instance Produces CreateUsersWithListInput MimeJSON
 
 -- ** deleteUser
 
--- | DELETE \/user\/{username}
+-- | @DELETE \/user\/{username}@
 -- 
 -- Delete user
 -- 
@@ -500,7 +500,7 @@ instance Produces DeleteUser MimeJSON
 
 -- ** getUserByName
 
--- | GET \/user\/{username}
+-- | @GET \/user\/{username}@
 -- 
 -- Get user by user name
 -- 
@@ -522,7 +522,7 @@ instance Produces GetUserByName MimeJSON
 
 -- ** loginUser
 
--- | GET \/user\/login
+-- | @GET \/user\/login@
 -- 
 -- Logs user into the system
 -- 
@@ -546,7 +546,7 @@ instance Produces LoginUser MimeJSON
 
 -- ** logoutUser
 
--- | GET \/user\/logout
+-- | @GET \/user\/logout@
 -- 
 -- Logs out current logged in user session
 -- 
@@ -566,14 +566,14 @@ instance Produces LogoutUser MimeJSON
 
 -- ** updateUser
 
--- | PUT \/user\/{username}
+-- | @PUT \/user\/{username}@
 -- 
 -- Updated user
 -- 
 -- This can only be done by the logged in user.
 -- 
 updateUser 
-  :: UseContentType UpdateUser User contentType
+  :: (Consumes UpdateUser contentType, MimeRender contentType User)   
   => contentType -- ^ request content-type (mimetype)
   -> Text -- ^ "username" -  name that need to be updated
   -> User -- ^ "body" -  Updated user object
@@ -598,7 +598,7 @@ instance Produces UpdateUser MimeJSON
 
 -- | Designates the body parameter of a request
 class HasBodyParam req param where
-  setBodyParam :: forall contentType res. UseContentType req param contentType => SwaggerPetstoreRequest req contentType res -> param -> SwaggerPetstoreRequest req contentType res
+  setBodyParam :: forall contentType res. (Consumes req contentType, MimeRender contentType param) => SwaggerPetstoreRequest req contentType res -> param -> SwaggerPetstoreRequest req contentType res
   setBodyParam req xs =
     req `_setBodyLBS` mimeRender (P.Proxy :: P.Proxy contentType) xs & _addContentTypeHeader
 

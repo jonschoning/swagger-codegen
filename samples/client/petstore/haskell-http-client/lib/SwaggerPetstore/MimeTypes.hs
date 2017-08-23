@@ -38,16 +38,6 @@ import qualified Prelude as P
 
 -- * Content Negotiation
 
--- ** UseContentType constraint
-
--- | Combines Consumes & MimeRender for an operation
-type UseContentType operation model mediatype = (Consumes operation mediatype, MimeRender mediatype model)
-
--- ** UseAccept constraint
-
--- | Combines Produces & MimeUnrender for an operation
-type UseAccept operation model mediatype = (Produces operation mediatype, MimeUnrender mediatype model)
-
 -- ** Mime Types
 
 data MimeJSON = MimeJSON deriving (P.Typeable)

@@ -61,7 +61,7 @@ import qualified Prelude as P
 
 -- ** {{operationId}}
 
--- | {{{vendorExtensions.x-haddockPath}}}
+-- | @{{{vendorExtensions.x-haddockPath}}}@
 -- {{#summary}}
 -- {{{.}}}
 -- {{/summary}}{{#notes}}
@@ -70,7 +70,7 @@ import qualified Prelude as P
 -- AuthMethod: {{#authMethods}}{{{name}}}{{#hasMore}}, {{/hasMore}}{{/authMethods}}
 -- {{/hasAuthMethods}}
 {{operationId}} 
-  :: {{#allParams}}{{#required}}{{#isBodyParam}}UseContentType {{{vendorExtensions.x-operationType}}} {{dataType}} contentType
+  :: {{#allParams}}{{#required}}{{#isBodyParam}}(Consumes {{{vendorExtensions.x-operationType}}} contentType, MimeRender contentType {{dataType}})   
   => contentType -- ^ request content-type (mimetype)
   -> {{/isBodyParam}}{{/required}}{{/allParams}}{{#allParams}}{{#required}}{{dataType}} -- ^ "{{{paramName}}}"{{#description}} - {{/description}} {{{description}}}
   -> {{/required}}{{/allParams}}{{requestType}} {{{vendorExtensions.x-operationType}}} {{#vendorExtensions.x-hasBodyOrFormParam}}contentType{{/vendorExtensions.x-hasBodyOrFormParam}}{{^vendorExtensions.x-hasBodyOrFormParam}}MimeNoContent{{/vendorExtensions.x-hasBodyOrFormParam}} {{vendorExtensions.x-returnType}}
@@ -102,7 +102,7 @@ instance Produces {{{vendorExtensions.x-operationType}}} {{{x-mediaDataType}}}
 
 -- | Designates the body parameter of a request
 class HasBodyParam req param where
-  setBodyParam :: forall contentType res. UseContentType req param contentType => {{requestType}} req contentType res -> param -> {{requestType}} req contentType res
+  setBodyParam :: forall contentType res. (Consumes req contentType, MimeRender contentType param) => {{requestType}} req contentType res -> param -> {{requestType}} req contentType res
   setBodyParam req xs =
     req `_setBodyLBS` mimeRender (P.Proxy :: P.Proxy contentType) xs & _addContentTypeHeader
 
