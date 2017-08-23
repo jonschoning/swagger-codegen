@@ -48,6 +48,7 @@ import qualified GHC.Base as P (Alternative)
 import qualified Control.Arrow as P (left)
 
 import Data.Monoid ((<>))
+import Data.Function ((&))
 import Data.Set (Set)
 import Data.Text (Text)
 import GHC.Base ((<|>))
@@ -80,10 +81,7 @@ addPet _ body =
 data AddPet 
 
 -- | /Body Param/ "body" - Pet object that needs to be added to the store
-instance HasBodyParam AddPet Pet where
-  setBodyParam :: forall contentType res. UseContentType AddPet Pet contentType => SwaggerPetstoreRequest AddPet contentType res -> Pet -> SwaggerPetstoreRequest AddPet contentType res
-  setBodyParam req xs = 
-    req `_setBodyLBS` mimeRender (P.Proxy :: P.Proxy contentType) xs 
+instance HasBodyParam AddPet Pet 
 
 -- | @application/json@
 instance Consumes AddPet MimeJSON
@@ -219,10 +217,7 @@ updatePet _ body =
 data UpdatePet 
 
 -- | /Body Param/ "body" - Pet object that needs to be added to the store
-instance HasBodyParam UpdatePet Pet where
-  setBodyParam :: forall contentType res. UseContentType UpdatePet Pet contentType => SwaggerPetstoreRequest UpdatePet contentType res -> Pet -> SwaggerPetstoreRequest UpdatePet contentType res
-  setBodyParam req xs = 
-    req `_setBodyLBS` mimeRender (P.Proxy :: P.Proxy contentType) xs 
+instance HasBodyParam UpdatePet Pet 
 
 -- | @application/json@
 instance Consumes UpdatePet MimeJSON
@@ -393,10 +388,7 @@ placeOrder _ body =
 data PlaceOrder 
 
 -- | /Body Param/ "body" - order placed for purchasing the pet
-instance HasBodyParam PlaceOrder Order where
-  setBodyParam :: forall contentType res. UseContentType PlaceOrder Order contentType => SwaggerPetstoreRequest PlaceOrder contentType res -> Order -> SwaggerPetstoreRequest PlaceOrder contentType res
-  setBodyParam req xs = 
-    req `_setBodyLBS` mimeRender (P.Proxy :: P.Proxy contentType) xs 
+instance HasBodyParam PlaceOrder Order 
 -- | @application/xml@
 instance Produces PlaceOrder MimeXML
 -- | @application/json@
@@ -423,10 +415,7 @@ createUser _ body =
 data CreateUser 
 
 -- | /Body Param/ "body" - Created user object
-instance HasBodyParam CreateUser User where
-  setBodyParam :: forall contentType res. UseContentType CreateUser User contentType => SwaggerPetstoreRequest CreateUser contentType res -> User -> SwaggerPetstoreRequest CreateUser contentType res
-  setBodyParam req xs = 
-    req `_setBodyLBS` mimeRender (P.Proxy :: P.Proxy contentType) xs 
+instance HasBodyParam CreateUser User 
 -- | @application/xml@
 instance Produces CreateUser MimeXML
 -- | @application/json@
@@ -453,10 +442,7 @@ createUsersWithArrayInput _ body =
 data CreateUsersWithArrayInput 
 
 -- | /Body Param/ "body" - List of user object
-instance HasBodyParam CreateUsersWithArrayInput [User] where
-  setBodyParam :: forall contentType res. UseContentType CreateUsersWithArrayInput [User] contentType => SwaggerPetstoreRequest CreateUsersWithArrayInput contentType res -> [User] -> SwaggerPetstoreRequest CreateUsersWithArrayInput contentType res
-  setBodyParam req xs = 
-    req `_setBodyLBS` mimeRender (P.Proxy :: P.Proxy contentType) xs 
+instance HasBodyParam CreateUsersWithArrayInput [User] 
 -- | @application/xml@
 instance Produces CreateUsersWithArrayInput MimeXML
 -- | @application/json@
@@ -483,10 +469,7 @@ createUsersWithListInput _ body =
 data CreateUsersWithListInput 
 
 -- | /Body Param/ "body" - List of user object
-instance HasBodyParam CreateUsersWithListInput [User] where
-  setBodyParam :: forall contentType res. UseContentType CreateUsersWithListInput [User] contentType => SwaggerPetstoreRequest CreateUsersWithListInput contentType res -> [User] -> SwaggerPetstoreRequest CreateUsersWithListInput contentType res
-  setBodyParam req xs = 
-    req `_setBodyLBS` mimeRender (P.Proxy :: P.Proxy contentType) xs 
+instance HasBodyParam CreateUsersWithListInput [User] 
 -- | @application/xml@
 instance Produces CreateUsersWithListInput MimeXML
 -- | @application/json@
@@ -603,10 +586,7 @@ updateUser _ username body =
 data UpdateUser 
 
 -- | /Body Param/ "body" - Updated user object
-instance HasBodyParam UpdateUser User where
-  setBodyParam :: forall contentType res. UseContentType UpdateUser User contentType => SwaggerPetstoreRequest UpdateUser contentType res -> User -> SwaggerPetstoreRequest UpdateUser contentType res
-  setBodyParam req xs = 
-    req `_setBodyLBS` mimeRender (P.Proxy :: P.Proxy contentType) xs 
+instance HasBodyParam UpdateUser User 
 -- | @application/xml@
 instance Produces UpdateUser MimeXML
 -- | @application/json@
@@ -618,7 +598,9 @@ instance Produces UpdateUser MimeJSON
 
 -- | Designates the body parameter of a request
 class HasBodyParam req param where
-  setBodyParam :: UseContentType req param contentType => SwaggerPetstoreRequest req contentType res -> param -> SwaggerPetstoreRequest req contentType res
+  setBodyParam :: forall contentType res. UseContentType req param contentType => SwaggerPetstoreRequest req contentType res -> param -> SwaggerPetstoreRequest req contentType res
+  setBodyParam req xs =
+    req `_setBodyLBS` mimeRender (P.Proxy :: P.Proxy contentType) xs & _addContentTypeHeader
 
 -- * HasOptionalParam
 
@@ -693,6 +675,19 @@ _addHeader :: SwaggerPetstoreRequest req contentType res -> [NH.Header] -> Swagg
 _addHeader req header = 
     let _params = params req
     in req { params = _params { paramsHeaders = header P.++ paramsHeaders _params } }
+
+
+_addContentTypeHeader :: forall req contentType res. MimeType contentType => SwaggerPetstoreRequest req contentType res -> SwaggerPetstoreRequest req contentType res
+_addContentTypeHeader req =
+    case mimeType (P.Proxy :: P.Proxy contentType) of 
+        Just m -> req `_addHeader` [("content-type", BC.pack $ P.show m)]
+        Nothing -> req
+
+_addAcceptHeader :: forall req contentType res accept. MimeType accept => SwaggerPetstoreRequest req contentType res -> accept -> SwaggerPetstoreRequest req contentType res
+_addAcceptHeader req accept =
+    case mimeType' accept of 
+        Just m -> req `_addHeader` [("accept", BC.pack $ P.show m)]
+        Nothing -> req
 
 _addQuery :: SwaggerPetstoreRequest req contentType res -> [NH.QueryItem] -> SwaggerPetstoreRequest req contentType res
 _addQuery req query = 

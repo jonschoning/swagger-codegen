@@ -15,7 +15,10 @@ module {{title}}.MimeTypes where
 
 import qualified Data.Aeson as A
 
+import qualified Data.ByteString as B
 import qualified Data.ByteString.Lazy as BL
+import qualified Data.ByteString.Builder as BB
+import qualified Data.ByteString.Char8 as BC
 import qualified Data.ByteString.Lazy.Char8 as BCL
 
 import qualified Network.HTTP.Media as ME
@@ -40,6 +43,11 @@ import qualified Prelude as P
 -- | Combines Consumes & MimeRender for an operation
 type UseContentType operation model mediatype = (Consumes operation mediatype, MimeRender mediatype model)
 
+-- ** UseAccept constraint
+
+-- | Combines Produces & MimeUnrender for an operation
+type UseAccept operation model mediatype = (Produces operation mediatype, MimeUnrender mediatype model)
+
 -- ** Mime Types
 
 data MimeJSON = MimeJSON deriving (P.Typeable)
@@ -48,6 +56,7 @@ data MimePlainText = MimePlainText deriving (P.Typeable)
 data MimeFormUrlEncoded = MimeFormUrlEncoded deriving (P.Typeable)
 data MimeMultipartFormData = MimeMultipartFormData deriving (P.Typeable)
 data MimeNoContent = MimeNoContent deriving (P.Typeable)
+data MimeOctetStream = MimeOctetStream deriving (P.Typeable)
 
 {{#x-unknownMimeTypes}}data {{{x-mediaDataType}}} = {{{x-mediaDataType}}} deriving (P.Typeable)
 {{/x-unknownMimeTypes}}
@@ -55,18 +64,24 @@ data MimeNoContent = MimeNoContent deriving (P.Typeable)
 -- ** MimeType Class
 
 class MimeType mtype  where
-  mimeType :: mtype -> Maybe ME.MediaType
-  mimeType p =
-    case mimeTypes p of
-      [] -> Nothing
-      (x:_) -> Just x
-  mimeTypes :: mtype -> [ME.MediaType]
+  {-# MINIMAL mimeType | mimeTypes #-}
+
+  mimeTypes :: P.Proxy mtype -> [ME.MediaType]
   mimeTypes p =
     case mimeType p of
       Just x -> [x]
       Nothing -> []
-    
-  {-# MINIMAL mimeType | mimeTypes #-}
+
+  mimeType :: P.Proxy mtype -> Maybe ME.MediaType
+  mimeType p =
+    case mimeTypes p of
+      [] -> Nothing
+      (x:_) -> Just x
+
+  mimeType' :: mtype -> Maybe ME.MediaType
+  mimeType' _ = mimeType (P.Proxy :: P.Proxy mtype)
+  mimeTypes' :: mtype -> [ME.MediaType]
+  mimeTypes' _ = mimeTypes (P.Proxy :: P.Proxy mtype)
 
 -- ** MimeType Instances
 
@@ -92,7 +107,8 @@ instance MimeType MimeMultipartFormData where
 -- | @text/plain;charset=utf-8@
 instance MimeType MimePlainText where
   mimeType _ = Just $ "text" ME.// "plain" ME./: ("charset", "utf-8")
-
+instance MimeType MimeOctetStream where
+  mimeType _ = Just $ "application" ME.// "octet-stream"
 instance MimeType MimeNoContent where
   mimeType _ = Nothing
 
@@ -122,7 +138,10 @@ instance MimeRender MimePlainText TL.Text where mimeRender _ = TL.encodeUtf8
 instance MimeRender MimePlainText T.Text where mimeRender _ = BL.fromStrict . T.encodeUtf8
 -- | @BCL.pack@
 instance MimeRender MimePlainText String where mimeRender _ = BCL.pack
-
+-- | @BCL.id@
+instance MimeRender MimeOctetStream BL.ByteString where mimeRender _ = P.id
+-- | @BL.fromStrict@
+instance MimeRender MimeOctetStream B.ByteString where mimeRender _ = BL.fromStrict
 -- ** MimeUnrender Class
 
 class MimeType mtype => MimeUnrender mtype o where
@@ -142,6 +161,10 @@ instance MimeUnrender MimePlainText TL.Text where mimeUnrender _ = P.left P.show
 instance MimeUnrender MimePlainText T.Text where mimeUnrender _ = P.left P.show . T.decodeUtf8' . BL.toStrict
 -- | @P.Right . BCL.unpack@
 instance MimeUnrender MimePlainText String where mimeUnrender _ = P.Right . BCL.unpack
+-- | @P.Right . P.id@
+instance MimeUnrender MimeOctetStream BL.ByteString where mimeUnrender _ = P.Right . P.id
+-- | @P.Right . BL.toStrict@
+instance MimeUnrender MimeOctetStream B.ByteString where mimeUnrender _ = P.Right . BL.toStrict
 
 
 {{#x-unknownMimeTypes}}
@@ -153,8 +176,8 @@ instance MimeUnrender MimePlainText String where mimeUnrender _ = P.Right . BCL.
 
 -- ** Request Consumes
 
-class Consumes req mtype where
+class MimeType mtype => Consumes req mtype where
 
 -- ** Request Produces
 
-class Produces req mtype where
+class MimeType mtype => Produces req mtype where

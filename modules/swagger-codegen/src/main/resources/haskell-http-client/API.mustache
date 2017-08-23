@@ -48,6 +48,7 @@ import qualified GHC.Base as P (Alternative)
 import qualified Control.Arrow as P (left)
 
 import Data.Monoid ((<>))
+import Data.Function ((&))
 import Data.Set (Set)
 import Data.Text (Text)
 import GHC.Base ((<|>))
@@ -82,10 +83,7 @@ import qualified Prelude as P
 data {{{vendorExtensions.x-operationType}}} {{#allParams}}{{#isBodyParam}}{{#description}}
 
 -- | /Body Param/ "{{{baseName}}}" - {{{description}}}{{/description}}
-instance HasBodyParam {{{vendorExtensions.x-operationType}}} {{{dataType}}} where
-  setBodyParam :: forall contentType res. UseContentType {{{vendorExtensions.x-operationType}}} {{{dataType}}} contentType => {{requestType}} {{{vendorExtensions.x-operationType}}} contentType res -> {{{dataType}}} -> {{requestType}} {{{vendorExtensions.x-operationType}}} contentType res
-  setBodyParam req xs = 
-    req `_setBodyLBS` mimeRender (P.Proxy :: P.Proxy contentType) xs{{/isBodyParam}}{{/allParams}} {{#vendorExtensions.x-hasOptionalParams}}{{#allParams}}{{^isBodyParam}}{{^required}}{{#description}}
+instance HasBodyParam {{{vendorExtensions.x-operationType}}} {{{dataType}}}{{/isBodyParam}}{{/allParams}} {{#vendorExtensions.x-hasOptionalParams}}{{#allParams}}{{^isBodyParam}}{{^required}}{{#description}}
 
 -- | /Optional Param/ "{{{baseName}}}" - {{{description}}}{{/description}}
 instance HasOptionalParam {{{vendorExtensions.x-operationType}}} {{{vendorExtensions.x-paramNameType}}} where
@@ -104,7 +102,9 @@ instance Produces {{{vendorExtensions.x-operationType}}} {{{x-mediaDataType}}}
 
 -- | Designates the body parameter of a request
 class HasBodyParam req param where
-  setBodyParam :: UseContentType req param contentType => {{requestType}} req contentType res -> param -> {{requestType}} req contentType res
+  setBodyParam :: forall contentType res. UseContentType req param contentType => {{requestType}} req contentType res -> param -> {{requestType}} req contentType res
+  setBodyParam req xs =
+    req `_setBodyLBS` mimeRender (P.Proxy :: P.Proxy contentType) xs & _addContentTypeHeader
 
 -- * HasOptionalParam
 
@@ -171,6 +171,19 @@ _addHeader :: {{requestType}} req contentType res -> [NH.Header] -> {{requestTyp
 _addHeader req header = 
     let _params = params req
     in req { params = _params { paramsHeaders = header P.++ paramsHeaders _params } }
+
+
+_addContentTypeHeader :: forall req contentType res. MimeType contentType => {{requestType}} req contentType res -> {{requestType}} req contentType res
+_addContentTypeHeader req =
+    case mimeType (P.Proxy :: P.Proxy contentType) of 
+        Just m -> req `_addHeader` [("content-type", BC.pack $ P.show m)]
+        Nothing -> req
+
+_addAcceptHeader :: forall req contentType res accept. MimeType accept => {{requestType}} req contentType res -> accept -> {{requestType}} req contentType res
+_addAcceptHeader req accept =
+    case mimeType' accept of 
+        Just m -> req `_addHeader` [("accept", BC.pack $ P.show m)]
+        Nothing -> req
 
 _addQuery :: {{requestType}} req contentType res -> [NH.QueryItem] -> {{requestType}} req contentType res
 _addQuery req query = 
