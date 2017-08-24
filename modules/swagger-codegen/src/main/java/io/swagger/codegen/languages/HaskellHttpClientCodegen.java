@@ -42,6 +42,9 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
     protected String artifactId = "swagger-haskell-http-client";
     protected String artifactVersion = "1.0.0";
 
+    protected String defaultDateTimeFormat = "%Y-%m-%dT%H:%M:%S%Q%z";
+    protected String defaultDateFormat = "%Y-%m-%d";
+
     // CLI
     protected String GENERATE_LENSES = "generateLenses";
     protected String DERIVING = "deriving";
@@ -149,16 +152,20 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
         typeMapping.put("char", "Char");
         typeMapping.put("float", "Float");
         typeMapping.put("double", "Double");
-        typeMapping.put("DateTime", "Integer");
+        typeMapping.put("Date", "Day");
+        typeMapping.put("DateTime", "UTCTime");
         typeMapping.put("file", "FilePath");
         typeMapping.put("number", "Double");
         typeMapping.put("integer", "Int");
         typeMapping.put("any", "Value");
         typeMapping.put("UUID", "Text");
+        typeMapping.put("binary", "ByteString");
+        typeMapping.put("ByteArray", "ByteString");
 
         knownMimeDataTypes.put("application/json", "MimeJSON");
         knownMimeDataTypes.put("application/xml", "MimeXML");
         knownMimeDataTypes.put("application/x-www-form-urlencoded", "MimeFormUrlEncoded");
+        knownMimeDataTypes.put("application/octet-stream", "MimeOctetStream");
         knownMimeDataTypes.put("multipart/form-data", "MimeMultipartFormData");
         knownMimeDataTypes.put("text/plain", "MimePlainText");
 
@@ -168,9 +175,13 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
         //cliOptions.add(new CliOption(CodegenConstants.MODEL_PACKAGE, CodegenConstants.MODEL_PACKAGE_DESC));
         //cliOptions.add(new CliOption(CodegenConstants.API_PACKAGE, CodegenConstants.API_PACKAGE_DESC));
 
-        cliOptions.add(new CliOption(NO_JSON_NULLS, "fail when encountering JSON Null during model decoding (Default: false)"));
-        cliOptions.add(new CliOption(GENERATE_LENSES, "Generate Lens optics for Models (Default: false)"));
+        cliOptions.add(new CliOption(NO_JSON_NULLS, "fail when encountering JSON Null during model decoding").defaultValue(Boolean.FALSE.toString()));
+        cliOptions.add(new CliOption(GENERATE_LENSES, "Generate Lens optics for Models").defaultValue(Boolean.FALSE.toString()));
+
         cliOptions.add(new CliOption(DERIVING, "Additional classes to include in the deriving() clause of Models"));
+
+        cliOptions.add(new CliOption("dateTimeFormat", "format string used to parse/render a datetime").defaultValue(defaultDateTimeFormat));
+        cliOptions.add(new CliOption("dateFormat", "format string used to parse/render a date").defaultValue(defaultDateFormat));
 
         // cliOptions.add(new CliOption(MODEL_IMPORTS, "Additional imports in the Models file"));
         // cliOptions.add(new CliOption(MODEL_EXTENSIONS, "Additional extensions in the Models file"));
@@ -182,6 +193,12 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
         if (additionalProperties.containsKey(DERIVING)) {
             String deriving = (String) additionalProperties.get(DERIVING);
             additionalProperties.put(DERIVING, StringUtils.join(deriving.split(" "), ","));
+        }
+        if (!additionalProperties.containsKey("dateTimeFormat")) {
+            additionalProperties.put("dateTimeFormat", defaultDateTimeFormat);
+        }
+        if (!additionalProperties.containsKey("dateFormat")) {
+            additionalProperties.put("dateFormat", defaultDateFormat);
         }
     }
 
@@ -369,7 +386,7 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
 
                 if (uniqueOptionalParamsByName.containsKey(paramNameType)) {
                     CodegenParameter lastParam = this.uniqueOptionalParamsByName.get(paramNameType);
-                    if (lastParam.dataType.equals(param.dataType)) {
+                    if (lastParam.dataType != null && lastParam.dataType.equals(param.dataType)) {
                         param.vendorExtensions.put("x-duplicate", true);
                     } else {
                         paramNameType = paramNameType + param.dataType;
@@ -521,6 +538,16 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
         return input.replace("{-", "{_-").replace("-}", "-_}");
     }
 
+    @Override
+    public boolean isDataTypeFile(String dataType) {
+        return dataType != null && dataType.equals("FilePath");
+    }
+
+    @Override
+    public boolean isDataTypeBinary(final String dataType) {
+        return dataType != null && dataType.equals("B.ByteString");
+    }
+
     private void processMediaType(Map<String, String> m) {
         String mediaType = m.get((MEDIA_TYPE));
         String[] mediaTypeParts = mediaType.split("/",2);
@@ -600,6 +627,7 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
     }
 
     private String fixOperatorChars(String string) {
+        if(string == null) return null;
         StringBuilder sb = new StringBuilder();
         String name = string;
         //Check if it is a reserved word, in which case the underscore is added when property name is generated.
@@ -625,6 +653,7 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
 
     // Remove characters from a string that do not belong in a model classname
     private String fixModelChars(String string, String replacement) {
+        if(string == null) return null;
         return string.replace(".", replacement).replace("-", replacement);
     }
 
@@ -633,6 +662,7 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
     }
 
     private String capitalize(String word) {
+        if(word == null) return null;
         if (word.length() > 0) {
             word = word.substring(0, 1).toUpperCase() + word.substring(1);
         }
@@ -651,13 +681,11 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
         }
     }
 
-    private boolean isModelledType(CodegenParameter param) {
-        return isModelledType(param.baseType == null ? param.dataType : param.baseType);
-    }
-
-    private boolean isModelledType(String typeName) {
-        return !languageSpecificPrimitives.contains(typeName) && !typeMapping.values().contains(typeName);
-    }
-
-
+//    private boolean isModelledType(CodegenParameter param) {
+//        return isModelledType(param.baseType == null ? param.dataType : param.baseType);
+//    }
+//
+//    private boolean isModelledType(String typeName) {
+//        return !languageSpecificPrimitives.contains(typeName) && !typeMapping.values().contains(typeName);
+//    }
 }

@@ -10,9 +10,20 @@ Module : SwaggerPetstore.Lens
 
 module SwaggerPetstore.Lens where
 
-import Control.Applicative
 import Data.Text (Text)
-import Prelude 
+
+import qualified Data.Aeson as A
+import Data.Aeson (Value)
+import qualified Data.ByteString as B
+import Data.ByteString.Lazy (ByteString)
+import qualified Data.Data as P (Data, Typeable)
+import qualified Data.Map as Map
+
+import qualified Data.Time as TI
+import Data.Time (UTCTime)
+
+import Prelude (($), (.),(<$>),(<*>),(=<<),Maybe(..),Bool(..),Char,Double,FilePath,Float,Int,Integer,String,fmap,undefined,mempty,maybe,pure,Monad,Applicative,Functor)
+import qualified Prelude as P
 
 import SwaggerPetstore.Model
 
@@ -75,7 +86,7 @@ orderQuantityT f s = _mtraversal orderQuantity (\b -> s { orderQuantity = Just b
 {-# INLINE orderQuantityT #-}
 
 -- | 'orderShipDate' Traversal
-orderShipDateT :: Traversal_' Order Integer
+orderShipDateT :: Traversal_' Order UTCTime
 orderShipDateT f s = _mtraversal orderShipDate (\b -> s { orderShipDate = Just b}) f s
 {-# INLINE orderShipDateT #-}
 

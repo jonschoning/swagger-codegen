@@ -20,9 +20,14 @@ import {{title}}.Model as M
 import {{title}}.MimeTypes
 
 import qualified Data.Aeson as A
+import Data.Aeson (Value)
+
+import qualified Data.Time as TI
+import Data.Time (UTCTime)
 
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Lazy as BL
+import Data.ByteString.Lazy (ByteString)
 import qualified Data.ByteString.Builder as BB
 import qualified Data.ByteString.Char8 as BC
 import qualified Data.ByteString.Lazy.Char8 as BCL
@@ -53,7 +58,7 @@ import Data.Set (Set)
 import Data.Text (Text)
 import GHC.Base ((<|>))
 
-import Prelude (($), (.),(<$>),(<*>),Maybe(..),Bool(..),Char,Double,FilePath,Float,Int,Integer,String,fmap,undefined,mempty)
+import Prelude (($), (.),(<$>),(<*>),(=<<),Maybe(..),Bool(..),Char,Double,FilePath,Float,Int,Integer,String,fmap,undefined,mempty,maybe,pure,Monad,Applicative,Functor)
 import qualified Prelude as P
 
 -- * Operations
@@ -71,7 +76,7 @@ import qualified Prelude as P
 -- {{/hasAuthMethods}}
 {{operationId}} 
   :: {{#allParams}}{{#required}}{{#isBodyParam}}(Consumes {{{vendorExtensions.x-operationType}}} contentType, MimeRender contentType {{dataType}})   
-  => contentType -- ^ request content-type (mimetype)
+  => contentType -- ^ request content-type ('MimeType')
   -> {{/isBodyParam}}{{/required}}{{/allParams}}{{#allParams}}{{#required}}{{dataType}} -- ^ "{{{paramName}}}"{{#description}} - {{/description}} {{{description}}}
   -> {{/required}}{{/allParams}}{{requestType}} {{{vendorExtensions.x-operationType}}} {{#vendorExtensions.x-hasBodyOrFormParam}}contentType{{/vendorExtensions.x-hasBodyOrFormParam}}{{^vendorExtensions.x-hasBodyOrFormParam}}MimeNoContent{{/vendorExtensions.x-hasBodyOrFormParam}} {{vendorExtensions.x-returnType}}
 {{operationId}} {{#allParams}}{{#required}}{{#isBodyParam}}_ {{/isBodyParam}}{{/required}}{{/allParams}}{{#allParams}}{{#required}}{{{paramName}}} {{/required}}{{/allParams}}=

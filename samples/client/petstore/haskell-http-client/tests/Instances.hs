@@ -61,7 +61,7 @@ instance Arbitrary Order where
     <$> arbitrary -- orderId :: Maybe Integer
     <*> arbitrary -- orderPetId :: Maybe Integer
     <*> arbitrary -- orderQuantity :: Maybe Int
-    <*> arbitrary -- orderShipDate :: Maybe Integer
+    <*> arbitrary -- orderShipDate :: Maybe UTCTime
     <*> arbitrary -- orderStatus :: Maybe Text
     <*> arbitrary -- orderComplete :: Maybe Bool
     

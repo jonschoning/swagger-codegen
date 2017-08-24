@@ -20,9 +20,14 @@ import SwaggerPetstore.Model as M
 import SwaggerPetstore.MimeTypes
 
 import qualified Data.Aeson as A
+import Data.Aeson (Value)
+
+import qualified Data.Time as TI
+import Data.Time (UTCTime)
 
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Lazy as BL
+import Data.ByteString.Lazy (ByteString)
 import qualified Data.ByteString.Builder as BB
 import qualified Data.ByteString.Char8 as BC
 import qualified Data.ByteString.Lazy.Char8 as BCL
@@ -53,7 +58,7 @@ import Data.Set (Set)
 import Data.Text (Text)
 import GHC.Base ((<|>))
 
-import Prelude (($), (.),(<$>),(<*>),Maybe(..),Bool(..),Char,Double,FilePath,Float,Int,Integer,String,fmap,undefined,mempty)
+import Prelude (($), (.),(<$>),(<*>),(=<<),Maybe(..),Bool(..),Char,Double,FilePath,Float,Int,Integer,String,fmap,undefined,mempty,maybe,pure,Monad,Applicative,Functor)
 import qualified Prelude as P
 
 -- * Operations
@@ -71,7 +76,7 @@ import qualified Prelude as P
 -- 
 addPet 
   :: (Consumes AddPet contentType, MimeRender contentType Pet)   
-  => contentType -- ^ request content-type (mimetype)
+  => contentType -- ^ request content-type ('MimeType')
   -> Pet -- ^ "body" -  Pet object that needs to be added to the store
   -> SwaggerPetstoreRequest AddPet contentType ()
 addPet _ body =
@@ -207,7 +212,7 @@ instance Produces GetPetById MimeJSON
 -- 
 updatePet 
   :: (Consumes UpdatePet contentType, MimeRender contentType Pet)   
-  => contentType -- ^ request content-type (mimetype)
+  => contentType -- ^ request content-type ('MimeType')
   -> Pet -- ^ "body" -  Pet object that needs to be added to the store
   -> SwaggerPetstoreRequest UpdatePet contentType ()
 updatePet _ body =
@@ -378,7 +383,7 @@ instance Produces GetOrderById MimeJSON
 -- 
 placeOrder 
   :: (Consumes PlaceOrder contentType, MimeRender contentType Order)   
-  => contentType -- ^ request content-type (mimetype)
+  => contentType -- ^ request content-type ('MimeType')
   -> Order -- ^ "body" -  order placed for purchasing the pet
   -> SwaggerPetstoreRequest PlaceOrder contentType Order
 placeOrder _ body =
@@ -405,7 +410,7 @@ instance Produces PlaceOrder MimeJSON
 -- 
 createUser 
   :: (Consumes CreateUser contentType, MimeRender contentType User)   
-  => contentType -- ^ request content-type (mimetype)
+  => contentType -- ^ request content-type ('MimeType')
   -> User -- ^ "body" -  Created user object
   -> SwaggerPetstoreRequest CreateUser contentType ()
 createUser _ body =
@@ -432,7 +437,7 @@ instance Produces CreateUser MimeJSON
 -- 
 createUsersWithArrayInput 
   :: (Consumes CreateUsersWithArrayInput contentType, MimeRender contentType [User])   
-  => contentType -- ^ request content-type (mimetype)
+  => contentType -- ^ request content-type ('MimeType')
   -> [User] -- ^ "body" -  List of user object
   -> SwaggerPetstoreRequest CreateUsersWithArrayInput contentType ()
 createUsersWithArrayInput _ body =
@@ -459,7 +464,7 @@ instance Produces CreateUsersWithArrayInput MimeJSON
 -- 
 createUsersWithListInput 
   :: (Consumes CreateUsersWithListInput contentType, MimeRender contentType [User])   
-  => contentType -- ^ request content-type (mimetype)
+  => contentType -- ^ request content-type ('MimeType')
   -> [User] -- ^ "body" -  List of user object
   -> SwaggerPetstoreRequest CreateUsersWithListInput contentType ()
 createUsersWithListInput _ body =
@@ -574,7 +579,7 @@ instance Produces LogoutUser MimeJSON
 -- 
 updateUser 
   :: (Consumes UpdateUser contentType, MimeRender contentType User)   
-  => contentType -- ^ request content-type (mimetype)
+  => contentType -- ^ request content-type ('MimeType')
   -> Text -- ^ "username" -  name that need to be updated
   -> User -- ^ "body" -  Updated user object
   -> SwaggerPetstoreRequest UpdateUser contentType ()

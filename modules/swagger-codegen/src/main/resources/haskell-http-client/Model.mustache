@@ -15,15 +15,21 @@ Module : {{title}}.Model
 
 module {{title}}.Model where
 
-import Data.Aeson (FromJSON(..), ToJSON(..))
-import Data.Aeson.Types 
-import Data.Data (Data, Typeable)
+import Data.Aeson ((.:),(.:!),(.:?),(.=))
 import Data.Text (Text)
-import Control.Applicative
 
+import qualified Data.Aeson as A
+import Data.Aeson (Value)
+import qualified Data.ByteString as B
+import Data.ByteString.Lazy (ByteString)
+import qualified Data.Data as P (Data, Typeable)
 import qualified Data.Map as Map
 
-import Prelude 
+import qualified Data.Time as TI
+import Data.Time (UTCTime)
+
+import Prelude (($), (.),(<$>),(<*>),(>>=),Maybe(..),Bool(..),Char,Double,FilePath,Float,Int,Integer,String,fmap,undefined,mempty,maybe,pure,Monad,Applicative,Functor)
+import qualified Prelude as P
 
 
 {{#imports}}import {{import}}
@@ -42,18 +48,18 @@ import Prelude
 data {{classname}} = {{classname}}
   { {{#vars}}{{name}} :: {{^required}}Maybe {{/required}}{{datatype}} -- ^ {{#required}}/Required/ {{/required}}{{#readOnly}}/ReadOnly/ {{/readOnly}}"{{baseName}}"{{#description}} - {{description}}{{/description}}{{#hasMore}}
   , {{/hasMore}}{{/vars}}
-  } deriving (Show,Eq,Typeable{{#deriving}},{{deriving}}{{/deriving}})
+  } deriving (P.Show,P.Eq,P.Typeable{{#deriving}},{{deriving}}{{/deriving}})
 
-instance FromJSON {{classname}} where
-  parseJSON = withObject "{{classname}}" $ \o ->
+instance A.FromJSON {{classname}} where
+  parseJSON = A.withObject "{{classname}}" $ \o ->
     {{classname}}
-      <$>{{#vars}} o {{#required}}.: {{/required}}{{^required}}{{#noJsonNulls}}.:!{{/noJsonNulls}}{{^noJsonNulls}}.:?{{/noJsonNulls}}{{/required}} "{{baseName}}" {{#hasMore}}
+      <$>{{#vars}} (o {{#required}}.: {{/required}}{{^required}}{{#noJsonNulls}}.:!{{/noJsonNulls}}{{^noJsonNulls}}.:?{{/noJsonNulls}}{{/required}} "{{baseName}}"{{#isDateTime}}{{^required}} >>= P.mapM {{/required}}_readDateTime{{/isDateTime}}{{#isDate}}{{^required}} >>= P.mapM {{/required}}_showDate{{/isDate}}){{#hasMore}}
       <*>{{/hasMore}}{{/vars}}
 
-instance ToJSON {{classname}} where
+instance A.ToJSON {{classname}} where
   toJSON {{classname}} {..} =
-    omitNulls
-      [ {{#vars}}"{{baseName}}" .= {{name}}{{#hasMore}}
+    _omitNulls
+      [ {{#vars}}"{{baseName}}" .= {{#isDateTime}}{{^required}}P.fmap {{/required}}_showDateTime{{/isDateTime}}{{#isDate}}{{^required}}P.fmap {{/required}}_showDate{{/isDate}} {{name}}{{#hasMore}}
       , {{/hasMore}}{{/vars}}
       ]
 
@@ -69,7 +75,7 @@ mk{{classname}} {{#requiredVars}}{{name}} {{/requiredVars}}=
 
 {{/vendorExtensions.x-customNewtype}}
 {{#vendorExtensions.x-customNewtype}}
-newtype {{classname}} = {{classname}} {{vendorExtensions.x-customNewtype}} deriving (Show, Eq, Data, Typeable, Generic, FromJSON, ToJSON)
+newtype {{classname}} = {{classname}} {{vendorExtensions.x-customNewtype}} deriving (P.Show, P.Eq, P.Data, P.Typeable, P.Generic, A.FromJSON, A.ToJSON)
 {-# WARNING {{classname}} "untested/unimlemented behavior" #-}
 {{/vendorExtensions.x-customNewtype}}
 
@@ -78,9 +84,44 @@ newtype {{classname}} = {{classname}} {{vendorExtensions.x-customNewtype}} deriv
 
 -- * Utils
 
--- | Removes Null fields.  OpenAPI-Specification 2.0 does not allow Null in JSON.
-omitNulls :: [(Text, Value)] -> Value
-omitNulls = object . filter notNull
+-- | Removes Null fields.  (OpenAPI-Specification 2.0 does not allow Null in JSON)
+
+_omitNulls :: [(Text, A.Value)] -> A.Value
+_omitNulls = A.object . P.filter notNull
   where
-    notNull (_, Null) = False
+    notNull (_, A.Null) = False
     notNull _ = True
+
+-- * Date Formatting
+
+-- | @TI.parseTimeM True TI.defaultTimeLocale _dateTimeFormat@
+_readDateTime
+  :: (TI.ParseTime t, P.Monad m)
+  => String -> m t
+_readDateTime = TI.parseTimeM True TI.defaultTimeLocale _dateTimeFormat
+
+-- | @TI.formatTime TI.defaultTimeLocale _dateTimeFormat@
+_showDateTime
+  :: TI.FormatTime t
+  => t -> String
+_showDateTime = TI.formatTime TI.defaultTimeLocale _dateTimeFormat
+
+-- | @{{{dateTimeFormat}}}@
+_dateTimeFormat :: String
+_dateTimeFormat = "{{{dateTimeFormat}}}"
+
+-- | @TI.parseTimeM True TI.defaultTimeLocale _dateFormat@
+_readDate
+  :: (TI.ParseTime t, P.Monad m)
+  => String -> m t
+_readDate = TI.parseTimeM True TI.defaultTimeLocale _dateFormat
+
+-- | @TI.formatTime TI.defaultTimeLocale _dateFormat@
+_showDate
+  :: TI.FormatTime t
+  => t -> String
+_showDate = TI.formatTime TI.defaultTimeLocale _dateFormat
+
+-- | @{{{dateFormat}}}@
+_dateFormat :: String
+_dateFormat = "{{{dateFormat}}}"
