@@ -31,6 +31,7 @@ import qualified Control.Monad.Logger as LG
 
 import qualified Data.Map as Map
 import qualified Data.Text as T
+import qualified Text.Printf as T
 
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Char8 as BC
@@ -47,10 +48,17 @@ import qualified Network.HTTP.Types.URI as NH
 
 data SwaggerPetstoreConfig = SwaggerPetstoreConfig
   { configHost  :: BCL.ByteString
-  , configUserAgent :: BCL.ByteString
+  , configUserAgent :: Text
   , configExecLoggingT :: ExecLoggingT
   , configFilterLoggingT :: LG.LogSource -> LG.LogLevel -> Bool
   }
+
+instance Show SwaggerPetstoreConfig where
+  show c =
+    T.printf
+      "{ configHost = %v, configUserAgent = %v, ..}"
+      (show (configHost c))
+      (show (configUserAgent c))
 
 mkConfig :: SwaggerPetstoreConfig
 mkConfig =
@@ -166,7 +174,7 @@ _toInitRequest
 _toInitRequest accept config req0 = do
   parsedReq <- NH.parseRequest $ BCL.unpack $ BCL.append (configHost config) (BCL.concat (urlPath req0))
   let req1 = _addAcceptHeader req0 accept  
-      reqHeaders = ("User-Agent", WH.toHeader (show (configUserAgent config))) : paramsHeaders (params req1)
+      reqHeaders = ("User-Agent", WH.toHeader (configUserAgent config)) : paramsHeaders (params req1)
       reqQuery = NH.renderQuery True (paramsQuery (params req1))
       pReq = parsedReq { NH.method = (rMethod req1)
                        , NH.requestHeaders = reqHeaders
