@@ -295,12 +295,12 @@ data UploadFile
 -- | /Optional Param/ "additionalMetadata" - Additional data to pass to server
 instance HasOptionalParam UploadFile AdditionalMetadata where
   applyOptionalParam req (AdditionalMetadata xs) =
-    req `_addForm` toForm ("additionalMetadata", xs)
+    req `_addMultiFormPart` NH.partLBS "additionalMetadata" (mimeRender' MimeMultipartFormData xs)
 
 -- | /Optional Param/ "file" - file to upload
 instance HasOptionalParam UploadFile File where
   applyOptionalParam req (File xs) =
-    req `_addForm` toForm ("file", xs)
+    req `_addMultiFormPart` NH.partFileSource "file" xs
 
 -- | @multipart/form-data@
 instance Consumes UploadFile MimeMultipartFormData

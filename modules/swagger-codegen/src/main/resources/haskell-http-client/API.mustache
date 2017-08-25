@@ -81,7 +81,7 @@ import qualified Prelude as P
   -> {{/required}}{{/allParams}}{{requestType}} {{{vendorExtensions.x-operationType}}} {{#vendorExtensions.x-hasBodyOrFormParam}}contentType{{/vendorExtensions.x-hasBodyOrFormParam}}{{^vendorExtensions.x-hasBodyOrFormParam}}MimeNoContent{{/vendorExtensions.x-hasBodyOrFormParam}} {{vendorExtensions.x-returnType}}
 {{operationId}} {{#allParams}}{{#required}}{{#isBodyParam}}_ {{/isBodyParam}}{{/required}}{{/allParams}}{{#allParams}}{{#required}}{{{paramName}}} {{/required}}{{/allParams}}=
   _mkRequest "{{httpMethod}}" [{{#pathParams}}{{#vendorExtensions.x-pathPrefix}}"{{.}}",{{/vendorExtensions.x-pathPrefix}}toPath {{{paramName}}}{{#hasMore}},{{/hasMore}}{{/pathParams}}{{#vendorExtensions.x-pathSuffix}}{{#vendorExtensions.x-hasPathParams}},{{/vendorExtensions.x-hasPathParams}}"{{.}}"{{/vendorExtensions.x-pathSuffix}}]{{#allParams}}{{#required}}
-    {{#isHeaderParam}}`_addHeader` {{>_headerColl}} ("{{{baseName}}}", {{{paramName}}}){{/isHeaderParam}}{{#isQueryParam}}`_addQuery` {{>_queryColl}} ("{{{baseName}}}", Just {{{paramName}}}){{/isQueryParam}}{{#isFormParam}}`_addForm` {{>_formColl}} ("{{{baseName}}}", {{{paramName}}}){{/isFormParam}}{{#isBodyParam}}`setBodyParam` {{{paramName}}}{{/isBodyParam}}{{/required}}{{/allParams}}{{#isDeprecated}}
+    {{#isHeaderParam}}`_addHeader` {{>_headerColl}} ("{{{baseName}}}", {{{paramName}}}){{/isHeaderParam}}{{#isQueryParam}}`_addQuery` {{>_queryColl}} ("{{{baseName}}}", Just {{{paramName}}}){{/isQueryParam}}{{#isFormParam}}{{#isFile}}`_addMultiFormPart` NH.partFileSource "{{{baseName}}}" {{{paramName}}}{{/isFile}}{{^isFile}}{{#isMultipart}}`_addMultiFormPart` NH.partLBS "{{{baseName}}}" (mimeRender' MimeMultipartFormData {{{paramName}}}){{/isMultipart}}{{^isMultipart}}`_addForm` {{>_formColl}} ("{{{baseName}}}", {{{paramName}}}){{/isMultipart}}{{/isFile}}{{/isFormParam}}{{#isBodyParam}}`setBodyParam` {{{paramName}}}{{/isBodyParam}}{{/required}}{{/allParams}}{{#isDeprecated}}
 
 {-# DEPRECATED {{operationId}} "" #-}{{/isDeprecated}}
 
@@ -93,7 +93,7 @@ instance HasBodyParam {{{vendorExtensions.x-operationType}}} {{{dataType}}}{{/is
 -- | /Optional Param/ "{{{baseName}}}" - {{{description}}}{{/description}}
 instance HasOptionalParam {{{vendorExtensions.x-operationType}}} {{{vendorExtensions.x-paramNameType}}} where
   applyOptionalParam req ({{{vendorExtensions.x-paramNameType}}} xs) =
-    {{#isHeaderParam}}req `_addHeader` {{>_headerColl}} ("{{{baseName}}}", xs){{/isHeaderParam}}{{#isQueryParam}}req `_addQuery` {{>_queryColl}} ("{{{baseName}}}", Just xs){{/isQueryParam}}{{#isFormParam}}req `_addForm` {{>_formColl}} ("{{{baseName}}}", xs){{/isFormParam}}{{/required}}{{/isBodyParam}}{{/allParams}}{{/vendorExtensions.x-hasOptionalParams}}{{#hasConsumes}}
+    {{#isHeaderParam}}req `_addHeader` {{>_headerColl}} ("{{{baseName}}}", xs){{/isHeaderParam}}{{#isQueryParam}}req `_addQuery` {{>_queryColl}} ("{{{baseName}}}", Just xs){{/isQueryParam}}{{#isFormParam}}{{#isFile}}req `_addMultiFormPart` NH.partFileSource "{{{baseName}}}" xs{{/isFile}}{{^isFile}}{{#isMultipart}}req `_addMultiFormPart` NH.partLBS "{{{baseName}}}" (mimeRender' MimeMultipartFormData xs){{/isMultipart}}{{^isMultipart}}req `_addForm` {{>_formColl}} ("{{{baseName}}}", xs){{/isMultipart}}{{/isFile}}{{/isFormParam}}{{/required}}{{/isBodyParam}}{{/allParams}}{{/vendorExtensions.x-hasOptionalParams}}{{#hasConsumes}}
 
 {{#consumes}}-- | @{{{mediaType}}}@
 instance Consumes {{{vendorExtensions.x-operationType}}} {{{x-mediaDataType}}}

@@ -142,7 +142,7 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
         );
 
         typeMapping.clear();
-        typeMapping.put("array", "List");
+//        typeMapping.put("array", "List");
         typeMapping.put("set", "Set");
         typeMapping.put("boolean", "Bool");
         typeMapping.put("string", "Text");
@@ -447,6 +447,9 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
             for (Map<String, String> m : op.consumes) {
                 processMediaType(m);
             }
+            if (isMultipart(op.consumes)) {
+                op.isMultipart = Boolean.TRUE;
+            }
         }
         if (op.hasProduces) {
             for (Map<String, String> m : op.produces) {
@@ -679,6 +682,16 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
         } else {
             return name + "2";
         }
+    }
+    private static boolean isMultipart(List<Map<String, String>> consumes) {
+        for(Map<String, String> consume : consumes) {
+            if (consume != null) {
+                if ("multipart/form-data".equals(consume.get(MEDIA_TYPE))) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
 //    private boolean isModelledType(CodegenParameter param) {
