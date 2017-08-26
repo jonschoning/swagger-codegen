@@ -51,6 +51,7 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
     protected String DERIVING = "deriving";
     protected String ALLOW_FROMJSON_NULLS = "allowFromJsonNulls";
     protected String ALLOW_TOJSON_NULLS = "allowToJsonNulls";
+    protected String GENERATE_FORMURLENCODED_INSTANCES = "generateFormUrlEncodedInstances";
 
     // protected String MODEL_IMPORTS = "modelImports";
     // protected String MODEL_EXTENSIONS = "modelExtensions";
@@ -65,6 +66,7 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
     protected Map<String, CodegenModel> modelNames = new HashMap<String, CodegenModel>();
     protected Map<String, Map<String,String>> allMimeTypes = new HashMap<String, Map<String,String>>();
     protected Map<String, String> knownMimeDataTypes = new HashMap<String, String>();
+    protected Map<String, Set<String>> modelMimeTypes = new HashMap<String, Set<String>>();
     protected ArrayList<Map<String,String>> unknownMimeTypes = new ArrayList<Map<String,String>>();
 
     public CodegenType getTag() {
@@ -96,7 +98,7 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
 
         embeddedTemplateDir = templateDir = "haskell-http-client";
         apiPackage = "API";
-        modelPackage = "Types";
+        modelPackage = "Model";
 
         // Haskell keywords and reserved function names, taken mostly from https://wiki.haskell.org/Keywords
         setReservedWordsLowerCase(
@@ -179,8 +181,9 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
 
         cliOptions.add(new CliOption(ALLOW_FROMJSON_NULLS, "allow JSON Null during model decoding from JSON").defaultValue(Boolean.TRUE.toString()));
         cliOptions.add(new CliOption(ALLOW_TOJSON_NULLS, "allow emitting JSON Null during model encoding to JSON").defaultValue(Boolean.FALSE.toString()));
-        cliOptions.add(new CliOption(GENERATE_LENSES, "Generate Lens optics for Models").defaultValue(Boolean.FALSE.toString()));
+        cliOptions.add(new CliOption(GENERATE_LENSES, "Generate Lens optics for Models").defaultValue(Boolean.TRUE.toString()));
         cliOptions.add(new CliOption(GENERATE_MODEL_CONSTRUCTORS, "Generate smart constructors (only supply required fields) for models").defaultValue(Boolean.TRUE.toString()));
+        cliOptions.add(new CliOption(GENERATE_FORMURLENCODED_INSTANCES, "Generate FromForm/ToForm instances for models that are used by operations that produce or consume application/x-www-form-urlencoded").defaultValue(Boolean.TRUE.toString()));
 
         cliOptions.add(new CliOption(DERIVING, "Additional classes to include in the deriving() clause of Models"));
 
@@ -220,10 +223,15 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
         } else {
             additionalProperties.put(GENERATE_MODEL_CONSTRUCTORS, true);
         }
+        if (additionalProperties.containsKey(GENERATE_FORMURLENCODED_INSTANCES)) {
+            convertPropertyToBooleanAndWriteBack(GENERATE_FORMURLENCODED_INSTANCES);
+        } else {
+            additionalProperties.put(GENERATE_FORMURLENCODED_INSTANCES, true);
+        }
         if (additionalProperties.containsKey(GENERATE_LENSES)) {
             convertPropertyToBooleanAndWriteBack(GENERATE_LENSES);
         } else {
-            additionalProperties.put(GENERATE_LENSES, false);
+            additionalProperties.put(GENERATE_LENSES, true);
         }
         if (additionalProperties.containsKey(DERIVING)) {
             String deriving = (String) additionalProperties.get(DERIVING);
@@ -481,7 +489,7 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
 
         if (op.hasConsumes) {
             for (Map<String, String> m : op.consumes) {
-                processMediaType(m);
+                processMediaType(op,m);
             }
             if (isMultipart(op.consumes)) {
                 op.isMultipart = Boolean.TRUE;
@@ -489,7 +497,7 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
         }
         if (op.hasProduces) {
             for (Map<String, String> m : op.produces) {
-                processMediaType(m);
+                processMediaType(op,m);
             }
         }
 
@@ -505,6 +513,31 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
         additionalProperties.put("x-unknownMimeTypes", unknownMimeTypes);
 
         return ret;
+    }
+
+    @Override
+    public Map<String, Object> postProcessOperationsWithModels(Map<String, Object> objs, List<Object> allModels) {
+        for (Object o : allModels) {
+            HashMap<String, Object> h = (HashMap<String, Object>) o;
+            CodegenModel m = (CodegenModel) h.get("model");
+            if (modelMimeTypes.containsKey(m.classname)) {
+                Set<String> mimeTypes = modelMimeTypes.get(m.classname);
+                m.vendorExtensions.put("x-mimeTypes", mimeTypes);
+                if ((boolean)additionalProperties.get(GENERATE_FORMURLENCODED_INSTANCES) && mimeTypes.contains("MimeFormUrlEncoded")) {
+                    Boolean hasMimeFormUrlEncoded = true;
+                    for (CodegenProperty v : m.vars) {
+                        if (!(v.isPrimitiveType || v.isString || v.isDate || v.isDateTime)) {
+                            hasMimeFormUrlEncoded = false;
+                        }
+                    }
+                    if (hasMimeFormUrlEncoded) {
+                        m.vendorExtensions.put("x-hasMimeFormUrlEncoded", true);
+                    }
+                }
+            }
+
+        }
+        return objs;
     }
 
     @Override
@@ -587,8 +620,11 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
         return dataType != null && dataType.equals("B.ByteString");
     }
 
-    private void processMediaType(Map<String, String> m) {
-        String mediaType = m.get((MEDIA_TYPE));
+    private void processMediaType(CodegenOperation op, Map<String, String> m) {
+        String mediaType = m.get(MEDIA_TYPE);
+
+        if(StringUtils.isBlank(mediaType)) return;
+
         String[] mediaTypeParts = mediaType.split("/",2);
         if(mediaTypeParts.length > 1) {
             m.put("x-mediaMainType", mediaTypeParts[0]);
@@ -597,11 +633,20 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
             m.put("x-mediaMainType", mediaTypeParts[0]);
             m.put("x-mediaSubType", "");
         }
-        m.put(MEDIA_DATA_TYPE, getMimeDataType(mediaType));
+
+        String mimeType = getMimeDataType(mediaType);
+        m.put(MEDIA_DATA_TYPE, mimeType);
 
         allMimeTypes.put(mediaType, m);
         if(!knownMimeDataTypes.containsKey(mediaType) && !unknownMimeTypes.contains(m)) {
             unknownMimeTypes.add(m);
+        }
+        for (CodegenParameter param : op.allParams) {
+            if (param.isBodyParam || param.isFormParam && (!param.isPrimitiveType && !param.isListContainer && !param.isMapContainer)) {
+                Set<String> mimeTypes = modelMimeTypes.containsKey(param.dataType) ? modelMimeTypes.get(param.dataType) : new HashSet();
+                mimeTypes.add(mimeType);
+                modelMimeTypes.put(param.dataType, mimeTypes);
+            }
         }
     }
 

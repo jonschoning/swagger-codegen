@@ -11,6 +11,7 @@ Module : SwaggerPetstore.Model
 {-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE TupleSections #-}
 {-# OPTIONS_GHC -fno-warn-unused-matches -fno-warn-unused-binds -fno-warn-unused-imports #-}
 
 module SwaggerPetstore.Model where
@@ -18,12 +19,17 @@ module SwaggerPetstore.Model where
 import Data.Aeson ((.:),(.:!),(.:?),(.=))
 import Data.Text (Text)
 
-import qualified Data.Aeson as A
 import Data.Aeson (Value)
-import qualified Data.ByteString as B
 import Data.ByteString.Lazy (ByteString)
+
+import qualified Data.Aeson as A
+import qualified Data.ByteString as B
 import qualified Data.Data as P (Data, Typeable)
+import qualified Data.HashMap.Lazy as HM
 import qualified Data.Map as Map
+import qualified Data.Maybe as P
+import qualified Web.FormUrlEncoded as WH
+import qualified Web.HttpApiData as WH
 
 import qualified Data.Time as TI
 import Data.Time (UTCTime)
@@ -59,6 +65,7 @@ instance A.ToJSON ApiResponse where
       , "message" .=  apiResponseMessage
       ]
 
+
 -- | Construct a value of type 'ApiResponse' (by applying it's required fields, if any)
 mkApiResponse
   :: ApiResponse
@@ -90,6 +97,7 @@ instance A.ToJSON Category where
       [ "id" .=  categoryId
       , "name" .=  categoryName
       ]
+
 
 -- | Construct a value of type 'Category' (by applying it's required fields, if any)
 mkCategory
@@ -133,6 +141,7 @@ instance A.ToJSON Order where
       , "status" .=  orderStatus
       , "complete" .=  orderComplete
       ]
+
 
 -- | Construct a value of type 'Order' (by applying it's required fields, if any)
 mkOrder
@@ -181,6 +190,7 @@ instance A.ToJSON Pet where
       , "status" .=  petStatus
       ]
 
+
 -- | Construct a value of type 'Pet' (by applying it's required fields, if any)
 mkPet
   :: Text -- ^ 'petName' 
@@ -217,6 +227,7 @@ instance A.ToJSON Tag where
       [ "id" .=  tagId
       , "name" .=  tagName
       ]
+
 
 -- | Construct a value of type 'Tag' (by applying it's required fields, if any)
 mkTag
@@ -267,6 +278,7 @@ instance A.ToJSON User where
       , "userStatus" .=  userUserStatus
       ]
 
+
 -- | Construct a value of type 'User' (by applying it's required fields, if any)
 mkUser
   :: User
@@ -293,6 +305,9 @@ _omitNulls = A.object . P.filter notNull
   where
     notNull (_, A.Null) = False
     notNull _ = True
+
+_toFormItem :: (WH.ToHttpApiData a, Functor f) => t -> f a -> f (t, [Text])
+_toFormItem name x = (name,) . (:[]) . WH.toQueryParam <$> x
 
 -- * Date Formatting
 
