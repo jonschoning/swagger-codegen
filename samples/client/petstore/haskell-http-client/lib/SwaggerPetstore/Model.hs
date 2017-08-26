@@ -53,7 +53,7 @@ instance A.FromJSON ApiResponse where
 
 instance A.ToJSON ApiResponse where
   toJSON ApiResponse {..} =
-    _omitNulls
+   _omitNulls
       [ "code" .=  apiResponseCode
       , "type" .=  apiResponseType
       , "message" .=  apiResponseMessage
@@ -68,7 +68,7 @@ mkApiResponse =
   , apiResponseType = Nothing
   , apiResponseMessage = Nothing
   }
-
+  
 
 
 -- ** Category
@@ -86,7 +86,7 @@ instance A.FromJSON Category where
 
 instance A.ToJSON Category where
   toJSON Category {..} =
-    _omitNulls
+   _omitNulls
       [ "id" .=  categoryId
       , "name" .=  categoryName
       ]
@@ -99,7 +99,7 @@ mkCategory =
   { categoryId = Nothing
   , categoryName = Nothing
   }
-
+  
 
 
 -- ** Order
@@ -125,7 +125,7 @@ instance A.FromJSON Order where
 
 instance A.ToJSON Order where
   toJSON Order {..} =
-    _omitNulls
+   _omitNulls
       [ "id" .=  orderId
       , "petId" .=  orderPetId
       , "quantity" .=  orderQuantity
@@ -146,7 +146,7 @@ mkOrder =
   , orderStatus = Nothing
   , orderComplete = Nothing
   }
-
+  
 
 
 -- ** Pet
@@ -172,7 +172,7 @@ instance A.FromJSON Pet where
 
 instance A.ToJSON Pet where
   toJSON Pet {..} =
-    _omitNulls
+   _omitNulls
       [ "id" .=  petId
       , "category" .=  petCategory
       , "name" .=  petName
@@ -195,7 +195,7 @@ mkPet petName petPhotoUrls =
   , petTags = Nothing
   , petStatus = Nothing
   }
-
+  
 
 
 -- ** Tag
@@ -213,7 +213,7 @@ instance A.FromJSON Tag where
 
 instance A.ToJSON Tag where
   toJSON Tag {..} =
-    _omitNulls
+   _omitNulls
       [ "id" .=  tagId
       , "name" .=  tagName
       ]
@@ -226,7 +226,7 @@ mkTag =
   { tagId = Nothing
   , tagName = Nothing
   }
-
+  
 
 
 -- ** User
@@ -256,7 +256,7 @@ instance A.FromJSON User where
 
 instance A.ToJSON User where
   toJSON User {..} =
-    _omitNulls
+   _omitNulls
       [ "id" .=  userId
       , "username" .=  userUsername
       , "firstName" .=  userFirstName
@@ -281,7 +281,7 @@ mkUser =
   , userPhone = Nothing
   , userUserStatus = Nothing
   }
-
+  
 
 
 -- * Utils

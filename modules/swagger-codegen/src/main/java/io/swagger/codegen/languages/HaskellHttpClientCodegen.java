@@ -47,8 +47,10 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
 
     // CLI
     protected String GENERATE_LENSES = "generateLenses";
+    protected String GENERATE_MODEL_CONSTRUCTORS = "generateModelConstructors";
     protected String DERIVING = "deriving";
-    protected String NO_JSON_NULLS = "noJsonNulls";
+    protected String ALLOW_FROMJSON_NULLS = "allowFromJsonNulls";
+    protected String ALLOW_TOJSON_NULLS = "allowToJsonNulls";
 
     // protected String MODEL_IMPORTS = "modelImports";
     // protected String MODEL_EXTENSIONS = "modelExtensions";
@@ -175,13 +177,17 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
         //cliOptions.add(new CliOption(CodegenConstants.MODEL_PACKAGE, CodegenConstants.MODEL_PACKAGE_DESC));
         //cliOptions.add(new CliOption(CodegenConstants.API_PACKAGE, CodegenConstants.API_PACKAGE_DESC));
 
-        cliOptions.add(new CliOption(NO_JSON_NULLS, "fail when encountering JSON Null during model decoding").defaultValue(Boolean.FALSE.toString()));
+        cliOptions.add(new CliOption(ALLOW_FROMJSON_NULLS, "allow JSON Null during model decoding from JSON").defaultValue(Boolean.TRUE.toString()));
+        cliOptions.add(new CliOption(ALLOW_TOJSON_NULLS, "allow emitting JSON Null during model encoding to JSON").defaultValue(Boolean.FALSE.toString()));
         cliOptions.add(new CliOption(GENERATE_LENSES, "Generate Lens optics for Models").defaultValue(Boolean.FALSE.toString()));
+        cliOptions.add(new CliOption(GENERATE_MODEL_CONSTRUCTORS, "Generate smart constructors (only supply required fields) for models").defaultValue(Boolean.TRUE.toString()));
 
         cliOptions.add(new CliOption(DERIVING, "Additional classes to include in the deriving() clause of Models"));
 
         cliOptions.add(new CliOption("dateTimeFormat", "format string used to parse/render a datetime").defaultValue(defaultDateTimeFormat));
         cliOptions.add(new CliOption("dateFormat", "format string used to parse/render a date").defaultValue(defaultDateFormat));
+
+        cliOptions.add(new CliOption(CodegenConstants.HIDE_GENERATION_TIMESTAMP, "hides the timestamp when files were generated").defaultValue(Boolean.TRUE.toString()));
 
         // cliOptions.add(new CliOption(MODEL_IMPORTS, "Additional imports in the Models file"));
         // cliOptions.add(new CliOption(MODEL_EXTENSIONS, "Additional extensions in the Models file"));
@@ -190,6 +196,35 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
     @Override
     public void processOpts() {
         super.processOpts();
+        // default HIDE_GENERATION_TIMESTAMP to true
+        if (additionalProperties.containsKey(CodegenConstants.HIDE_GENERATION_TIMESTAMP)) {
+            convertPropertyToBooleanAndWriteBack(CodegenConstants.HIDE_GENERATION_TIMESTAMP);
+        } else {
+            additionalProperties.put(CodegenConstants.HIDE_GENERATION_TIMESTAMP, true);
+        }
+
+        if (additionalProperties.containsKey(ALLOW_FROMJSON_NULLS)) {
+            convertPropertyToBooleanAndWriteBack(ALLOW_FROMJSON_NULLS);
+        } else {
+            additionalProperties.put(ALLOW_FROMJSON_NULLS, true);
+        }
+
+        if (additionalProperties.containsKey(ALLOW_TOJSON_NULLS)) {
+            convertPropertyToBooleanAndWriteBack(ALLOW_TOJSON_NULLS);
+        } else {
+            additionalProperties.put(ALLOW_TOJSON_NULLS, false);
+        }
+
+        if (additionalProperties.containsKey(GENERATE_MODEL_CONSTRUCTORS)) {
+            convertPropertyToBooleanAndWriteBack(GENERATE_MODEL_CONSTRUCTORS);
+        } else {
+            additionalProperties.put(GENERATE_MODEL_CONSTRUCTORS, true);
+        }
+        if (additionalProperties.containsKey(GENERATE_LENSES)) {
+            convertPropertyToBooleanAndWriteBack(GENERATE_LENSES);
+        } else {
+            additionalProperties.put(GENERATE_LENSES, false);
+        }
         if (additionalProperties.containsKey(DERIVING)) {
             String deriving = (String) additionalProperties.get(DERIVING);
             additionalProperties.put(DERIVING, StringUtils.join(deriving.split(" "), ","));
@@ -263,7 +298,7 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
         // apiTemplateFiles.put("Model.mustache", ".hs");
 
         // lens
-        if (additionalProperties.containsKey(GENERATE_LENSES)) {
+        if ((boolean)additionalProperties.get(GENERATE_LENSES)) {
             supportingFiles.add(new SupportingFile("Lens.mustache", "lib/" + apiName, "Lens.hs"));
         }
 

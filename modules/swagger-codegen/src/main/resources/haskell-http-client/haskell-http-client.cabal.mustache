@@ -14,7 +14,9 @@ description:    .
                 .
                 swagger version: {{swaggerVersion}}
                 .
-                OpenAPI-Specification: https://github.com/OAI/OpenAPI-Specification/blob/master/versions/{{swaggerVersion}}.md
+                {{^hideGenerationTimestamp}}Generated on: {{generatedDate}}
+                .
+                {{/hideGenerationTimestamp}}OpenAPI-Specification: https://github.com/OAI/OpenAPI-Specification/blob/master/versions/{{swaggerVersion}}.md
 category:       Web
 homepage:       https://github.com/swagger-api/swagger-codegen#readme
 author:         Author Name Here

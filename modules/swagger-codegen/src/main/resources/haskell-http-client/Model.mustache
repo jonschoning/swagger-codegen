@@ -53,16 +53,17 @@ data {{classname}} = {{classname}}
 instance A.FromJSON {{classname}} where
   parseJSON = A.withObject "{{classname}}" $ \o ->
     {{classname}}
-      <$>{{#vars}} (o {{#required}}.: {{/required}}{{^required}}{{#noJsonNulls}}.:!{{/noJsonNulls}}{{^noJsonNulls}}.:?{{/noJsonNulls}}{{/required}} "{{baseName}}"{{#isDateTime}}{{^required}} >>= P.mapM {{/required}}_readDateTime{{/isDateTime}}{{#isDate}}{{^required}} >>= P.mapM {{/required}}_showDate{{/isDate}}){{#hasMore}}
+      <$>{{#vars}} (o {{#required}}.: {{/required}}{{^required}}{{^allowFromJsonNulls}}.:!{{/allowFromJsonNulls}}{{#allowFromJsonNulls}}.:?{{/allowFromJsonNulls}}{{/required}} "{{baseName}}"{{#isDateTime}}{{^required}} >>= P.mapM {{/required}}_readDateTime{{/isDateTime}}{{#isDate}}{{^required}} >>= P.mapM {{/required}}_showDate{{/isDate}}){{#hasMore}}
       <*>{{/hasMore}}{{/vars}}
 
 instance A.ToJSON {{classname}} where
   toJSON {{classname}} {..} =
-    _omitNulls
+   {{^allowToJsonNulls}}_omitNulls{{/allowToJsonNulls}}{{#allowToJsonNulls}}A.object{{/allowToJsonNulls}}
       [ {{#vars}}"{{baseName}}" .= {{#isDateTime}}{{^required}}P.fmap {{/required}}_showDateTime{{/isDateTime}}{{#isDate}}{{^required}}P.fmap {{/required}}_showDate{{/isDate}} {{name}}{{#hasMore}}
       , {{/hasMore}}{{/vars}}
       ]
 
+{{#generateModelConstructors}}
 -- | Construct a value of type '{{classname}}' (by applying it's required fields, if any)
 mk{{classname}}
   :: {{#requiredVars}}{{{datatype}}} -- ^ '{{name}}'{{#description}}:{{/description}} {{{description}}}
@@ -72,7 +73,8 @@ mk{{classname}} {{#requiredVars}}{{name}} {{/requiredVars}}=
   { {{#vars}}{{#required}}{{name}}{{/required}}{{^required}}{{name}} = {{#isListContainer}}Nothing{{/isListContainer}}{{#isMapContainer}}Nothing{{/isMapContainer}}{{^isContainer}}Nothing{{/isContainer}}{{/required}}{{#hasMore}}
   , {{/hasMore}}{{/vars}}
   }
-
+{{/generateModelConstructors}}
+  
 {{/vendorExtensions.x-customNewtype}}
 {{#vendorExtensions.x-customNewtype}}
 newtype {{classname}} = {{classname}} {{vendorExtensions.x-customNewtype}} deriving (P.Show, P.Eq, P.Data, P.Typeable, P.Generic, A.FromJSON, A.ToJSON)
