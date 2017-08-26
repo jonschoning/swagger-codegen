@@ -58,7 +58,7 @@ import Data.Set (Set)
 import Data.Text (Text)
 import GHC.Base ((<|>))
 
-import Prelude (($), (.),(<$>),(<*>),(>>=),Maybe(..),Bool(..),Char,Double,FilePath,Float,Int,Integer,String,fmap,undefined,mempty,maybe,pure,Monad,Applicative,Functor)
+import Prelude ((==),(/=),($), (.),(<$>),(<*>),(>>=),Maybe(..),Bool(..),Char,Double,FilePath,Float,Int,Integer,String,fmap,undefined,mempty,maybe,pure,Monad,Applicative,Functor)
 import qualified Prelude as P
 
 -- * Operations
@@ -81,7 +81,7 @@ import qualified Prelude as P
   -> {{/required}}{{/allParams}}{{requestType}} {{{vendorExtensions.x-operationType}}} {{#vendorExtensions.x-hasBodyOrFormParam}}contentType{{/vendorExtensions.x-hasBodyOrFormParam}}{{^vendorExtensions.x-hasBodyOrFormParam}}MimeNoContent{{/vendorExtensions.x-hasBodyOrFormParam}} {{vendorExtensions.x-returnType}}
 {{operationId}} {{#vendorExtensions.x-hasBodyOrFormParam}}_ {{/vendorExtensions.x-hasBodyOrFormParam}}{{#allParams}}{{#required}}{{{paramName}}} {{/required}}{{/allParams}}=
   _mkRequest "{{httpMethod}}" [{{#pathParams}}{{#vendorExtensions.x-pathPrefix}}"{{.}}",{{/vendorExtensions.x-pathPrefix}}toPath {{{paramName}}}{{#hasMore}},{{/hasMore}}{{/pathParams}}{{#vendorExtensions.x-pathSuffix}}{{#vendorExtensions.x-hasPathParams}},{{/vendorExtensions.x-hasPathParams}}"{{.}}"{{/vendorExtensions.x-pathSuffix}}]{{#allParams}}{{#required}}
-    {{#isHeaderParam}}`_setHeader` {{>_headerColl}} ("{{{baseName}}}", {{{paramName}}}){{/isHeaderParam}}{{#isQueryParam}}`_addQuery` {{>_queryColl}} ("{{{baseName}}}", Just {{{paramName}}}){{/isQueryParam}}{{#isFormParam}}{{#isFile}}`_addMultiFormPart` NH.partFileSource "{{{baseName}}}" {{{paramName}}}{{/isFile}}{{^isFile}}{{#isMultipart}}`_addMultiFormPart` NH.partLBS "{{{baseName}}}" (mimeRender' MimeMultipartFormData {{{paramName}}}){{/isMultipart}}{{^isMultipart}}`_addForm` {{>_formColl}} ("{{{baseName}}}", {{{paramName}}}){{/isMultipart}}{{/isFile}}{{/isFormParam}}{{#isBodyParam}}`setBodyParam` {{{paramName}}}{{/isBodyParam}}{{/required}}{{/allParams}}{{#isDeprecated}}
+    {{#isHeaderParam}}`_setHeader` {{>_headerColl}} ("{{{baseName}}}", {{{paramName}}}){{/isHeaderParam}}{{#isQueryParam}}`_setQuery` {{>_queryColl}} ("{{{baseName}}}", Just {{{paramName}}}){{/isQueryParam}}{{#isFormParam}}{{#isFile}}`_addMultiFormPart` NH.partFileSource "{{{baseName}}}" {{{paramName}}}{{/isFile}}{{^isFile}}{{#isMultipart}}`_addMultiFormPart` NH.partLBS "{{{baseName}}}" (mimeRender' MimeMultipartFormData {{{paramName}}}){{/isMultipart}}{{^isMultipart}}`_addForm` {{>_formColl}} ("{{{baseName}}}", {{{paramName}}}){{/isMultipart}}{{/isFile}}{{/isFormParam}}{{#isBodyParam}}`setBodyParam` {{{paramName}}}{{/isBodyParam}}{{/required}}{{/allParams}}{{#isDeprecated}}
 
 {-# DEPRECATED {{operationId}} "" #-}{{/isDeprecated}}
 
@@ -93,7 +93,7 @@ instance HasBodyParam {{{vendorExtensions.x-operationType}}} {{{dataType}}}{{/is
 -- | /Optional Param/ "{{{baseName}}}" - {{{description}}}{{/description}}
 instance HasOptionalParam {{{vendorExtensions.x-operationType}}} {{{vendorExtensions.x-paramNameType}}} where
   applyOptionalParam req ({{{vendorExtensions.x-paramNameType}}} xs) =
-    {{#isHeaderParam}}req `_setHeader` {{>_headerColl}} ("{{{baseName}}}", xs){{/isHeaderParam}}{{#isQueryParam}}req `_addQuery` {{>_queryColl}} ("{{{baseName}}}", Just xs){{/isQueryParam}}{{#isFormParam}}{{#isFile}}req `_addMultiFormPart` NH.partFileSource "{{{baseName}}}" xs{{/isFile}}{{^isFile}}{{#isMultipart}}req `_addMultiFormPart` NH.partLBS "{{{baseName}}}" (mimeRender' MimeMultipartFormData xs){{/isMultipart}}{{^isMultipart}}req `_addForm` {{>_formColl}} ("{{{baseName}}}", xs){{/isMultipart}}{{/isFile}}{{/isFormParam}}{{/required}}{{/isBodyParam}}{{/allParams}}{{/vendorExtensions.x-hasOptionalParams}}{{#hasConsumes}}
+    {{#isHeaderParam}}req `_setHeader` {{>_headerColl}} ("{{{baseName}}}", xs){{/isHeaderParam}}{{#isQueryParam}}req `_setQuery` {{>_queryColl}} ("{{{baseName}}}", Just xs){{/isQueryParam}}{{#isFormParam}}{{#isFile}}req `_addMultiFormPart` NH.partFileSource "{{{baseName}}}" xs{{/isFile}}{{^isFile}}{{#isMultipart}}req `_addMultiFormPart` NH.partLBS "{{{baseName}}}" (mimeRender' MimeMultipartFormData xs){{/isMultipart}}{{^isMultipart}}req `_addForm` {{>_formColl}} ("{{{baseName}}}", xs){{/isMultipart}}{{/isFile}}{{/isFormParam}}{{/required}}{{/isBodyParam}}{{/allParams}}{{/vendorExtensions.x-hasOptionalParams}}{{#hasConsumes}}
 
 {{#consumes}}-- | @{{{mediaType}}}@
 instance Consumes {{{vendorExtensions.x-operationType}}} {{{x-mediaDataType}}}
@@ -174,26 +174,34 @@ _mkParams = Params [] [] ParamBodyNone
 
 _setHeader :: {{requestType}} req contentType res -> [NH.Header] -> {{requestType}} req contentType res
 _setHeader req header = 
-    let _params = params req
+    let _params = params (req `_removeHeader` P.fmap P.fst header)
     in req { params = _params { paramsHeaders = header P.++ paramsHeaders _params } }
+
+_removeHeader :: {{requestType}} req contentType res -> [NH.HeaderName] -> {{requestType}} req contentType res
+_removeHeader req header = 
+    let _params = params req
+    in req { params = _params { paramsHeaders = [h | h <- paramsHeaders _params, cifst h `P.notElem` P.fmap CI.mk header] } }
+  where cifst = CI.mk . P.fst
 
 
 _setContentTypeHeader :: forall req contentType res. MimeType contentType => {{requestType}} req contentType res -> {{requestType}} req contentType res
 _setContentTypeHeader req =
     case mimeType (P.Proxy :: P.Proxy contentType) of 
         Just m -> req `_setHeader` [("content-type", BC.pack $ P.show m)]
-        Nothing -> req
+        Nothing -> req `_removeHeader` ["content-type"]
 
 _setAcceptHeader :: forall req contentType res accept. MimeType accept => {{requestType}} req contentType res -> accept -> {{requestType}} req contentType res
 _setAcceptHeader req accept =
     case mimeType' accept of 
         Just m -> req `_setHeader` [("accept", BC.pack $ P.show m)]
-        Nothing -> req
+        Nothing -> req `_removeHeader` ["accept"]
 
-_addQuery :: {{requestType}} req contentType res -> [NH.QueryItem] -> {{requestType}} req contentType res
-_addQuery req query = 
+_setQuery :: {{requestType}} req contentType res -> [NH.QueryItem] -> {{requestType}} req contentType res
+_setQuery req query = 
     let _params = params req 
-    in req { params = _params { paramsQuery = query P.++ paramsQuery _params } }
+    -- in req { params = _params { paramsQuery = query P.++ paramsQuery _params } }
+    in req { params = _params { paramsQuery = query P.++ [q | q <- paramsQuery _params, cifst q `P.notElem` P.fmap cifst query] } }
+  where cifst = CI.mk . P.fst
 
 _addForm :: {{requestType}} req contentType res -> WH.Form -> {{requestType}} req contentType res
 _addForm req newform = 
