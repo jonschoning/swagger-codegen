@@ -75,13 +75,13 @@ import qualified Prelude as P
 -- AuthMethod: {{#authMethods}}{{{name}}}{{#hasMore}}, {{/hasMore}}{{/authMethods}}
 -- {{/hasAuthMethods}}
 {{operationId}} 
-  :: {{#allParams}}{{#required}}{{#isBodyParam}}(Consumes {{{vendorExtensions.x-operationType}}} contentType, MimeRender contentType {{dataType}})   
+  :: {{#vendorExtensions.x-hasBodyOrFormParam}}(Consumes {{{vendorExtensions.x-operationType}}} contentType{{#allParams}}{{#isBodyParam}}{{#required}}, MimeRender contentType {{dataType}}{{/required}}{{/isBodyParam}}{{/allParams}})
   => contentType -- ^ request content-type ('MimeType')
-  -> {{/isBodyParam}}{{/required}}{{/allParams}}{{#allParams}}{{#required}}{{dataType}} -- ^ "{{{paramName}}}"{{#description}} - {{/description}} {{{description}}}
+  -> {{/vendorExtensions.x-hasBodyOrFormParam}}{{#allParams}}{{#required}}{{dataType}} -- ^ "{{{paramName}}}"{{#description}} - {{/description}} {{{description}}}
   -> {{/required}}{{/allParams}}{{requestType}} {{{vendorExtensions.x-operationType}}} {{#vendorExtensions.x-hasBodyOrFormParam}}contentType{{/vendorExtensions.x-hasBodyOrFormParam}}{{^vendorExtensions.x-hasBodyOrFormParam}}MimeNoContent{{/vendorExtensions.x-hasBodyOrFormParam}} {{vendorExtensions.x-returnType}}
-{{operationId}} {{#allParams}}{{#required}}{{#isBodyParam}}_ {{/isBodyParam}}{{/required}}{{/allParams}}{{#allParams}}{{#required}}{{{paramName}}} {{/required}}{{/allParams}}=
+{{operationId}} {{#vendorExtensions.x-hasBodyOrFormParam}}_ {{/vendorExtensions.x-hasBodyOrFormParam}}{{#allParams}}{{#required}}{{{paramName}}} {{/required}}{{/allParams}}=
   _mkRequest "{{httpMethod}}" [{{#pathParams}}{{#vendorExtensions.x-pathPrefix}}"{{.}}",{{/vendorExtensions.x-pathPrefix}}toPath {{{paramName}}}{{#hasMore}},{{/hasMore}}{{/pathParams}}{{#vendorExtensions.x-pathSuffix}}{{#vendorExtensions.x-hasPathParams}},{{/vendorExtensions.x-hasPathParams}}"{{.}}"{{/vendorExtensions.x-pathSuffix}}]{{#allParams}}{{#required}}
-    {{#isHeaderParam}}`_addHeader` {{>_headerColl}} ("{{{baseName}}}", {{{paramName}}}){{/isHeaderParam}}{{#isQueryParam}}`_addQuery` {{>_queryColl}} ("{{{baseName}}}", Just {{{paramName}}}){{/isQueryParam}}{{#isFormParam}}{{#isFile}}`_addMultiFormPart` NH.partFileSource "{{{baseName}}}" {{{paramName}}}{{/isFile}}{{^isFile}}{{#isMultipart}}`_addMultiFormPart` NH.partLBS "{{{baseName}}}" (mimeRender' MimeMultipartFormData {{{paramName}}}){{/isMultipart}}{{^isMultipart}}`_addForm` {{>_formColl}} ("{{{baseName}}}", {{{paramName}}}){{/isMultipart}}{{/isFile}}{{/isFormParam}}{{#isBodyParam}}`setBodyParam` {{{paramName}}}{{/isBodyParam}}{{/required}}{{/allParams}}{{#isDeprecated}}
+    {{#isHeaderParam}}`_setHeader` {{>_headerColl}} ("{{{baseName}}}", {{{paramName}}}){{/isHeaderParam}}{{#isQueryParam}}`_addQuery` {{>_queryColl}} ("{{{baseName}}}", Just {{{paramName}}}){{/isQueryParam}}{{#isFormParam}}{{#isFile}}`_addMultiFormPart` NH.partFileSource "{{{baseName}}}" {{{paramName}}}{{/isFile}}{{^isFile}}{{#isMultipart}}`_addMultiFormPart` NH.partLBS "{{{baseName}}}" (mimeRender' MimeMultipartFormData {{{paramName}}}){{/isMultipart}}{{^isMultipart}}`_addForm` {{>_formColl}} ("{{{baseName}}}", {{{paramName}}}){{/isMultipart}}{{/isFile}}{{/isFormParam}}{{#isBodyParam}}`setBodyParam` {{{paramName}}}{{/isBodyParam}}{{/required}}{{/allParams}}{{#isDeprecated}}
 
 {-# DEPRECATED {{operationId}} "" #-}{{/isDeprecated}}
 
@@ -93,7 +93,7 @@ instance HasBodyParam {{{vendorExtensions.x-operationType}}} {{{dataType}}}{{/is
 -- | /Optional Param/ "{{{baseName}}}" - {{{description}}}{{/description}}
 instance HasOptionalParam {{{vendorExtensions.x-operationType}}} {{{vendorExtensions.x-paramNameType}}} where
   applyOptionalParam req ({{{vendorExtensions.x-paramNameType}}} xs) =
-    {{#isHeaderParam}}req `_addHeader` {{>_headerColl}} ("{{{baseName}}}", xs){{/isHeaderParam}}{{#isQueryParam}}req `_addQuery` {{>_queryColl}} ("{{{baseName}}}", Just xs){{/isQueryParam}}{{#isFormParam}}{{#isFile}}req `_addMultiFormPart` NH.partFileSource "{{{baseName}}}" xs{{/isFile}}{{^isFile}}{{#isMultipart}}req `_addMultiFormPart` NH.partLBS "{{{baseName}}}" (mimeRender' MimeMultipartFormData xs){{/isMultipart}}{{^isMultipart}}req `_addForm` {{>_formColl}} ("{{{baseName}}}", xs){{/isMultipart}}{{/isFile}}{{/isFormParam}}{{/required}}{{/isBodyParam}}{{/allParams}}{{/vendorExtensions.x-hasOptionalParams}}{{#hasConsumes}}
+    {{#isHeaderParam}}req `_setHeader` {{>_headerColl}} ("{{{baseName}}}", xs){{/isHeaderParam}}{{#isQueryParam}}req `_addQuery` {{>_queryColl}} ("{{{baseName}}}", Just xs){{/isQueryParam}}{{#isFormParam}}{{#isFile}}req `_addMultiFormPart` NH.partFileSource "{{{baseName}}}" xs{{/isFile}}{{^isFile}}{{#isMultipart}}req `_addMultiFormPart` NH.partLBS "{{{baseName}}}" (mimeRender' MimeMultipartFormData xs){{/isMultipart}}{{^isMultipart}}req `_addForm` {{>_formColl}} ("{{{baseName}}}", xs){{/isMultipart}}{{/isFile}}{{/isFormParam}}{{/required}}{{/isBodyParam}}{{/allParams}}{{/vendorExtensions.x-hasOptionalParams}}{{#hasConsumes}}
 
 {{#consumes}}-- | @{{{mediaType}}}@
 instance Consumes {{{vendorExtensions.x-operationType}}} {{{x-mediaDataType}}}
@@ -109,7 +109,7 @@ instance Produces {{{vendorExtensions.x-operationType}}} {{{x-mediaDataType}}}
 class HasBodyParam req param where
   setBodyParam :: forall contentType res. (Consumes req contentType, MimeRender contentType param) => {{requestType}} req contentType res -> param -> {{requestType}} req contentType res
   setBodyParam req xs =
-    req `_setBodyLBS` mimeRender (P.Proxy :: P.Proxy contentType) xs & _addContentTypeHeader
+    req `_setBodyLBS` mimeRender (P.Proxy :: P.Proxy contentType) xs & _setContentTypeHeader
 
 -- * HasOptionalParam
 
@@ -172,22 +172,22 @@ _mkRequest m u = {{requestType}} m u _mkParams
 _mkParams :: Params
 _mkParams = Params [] [] ParamBodyNone
 
-_addHeader :: {{requestType}} req contentType res -> [NH.Header] -> {{requestType}} req contentType res
-_addHeader req header = 
+_setHeader :: {{requestType}} req contentType res -> [NH.Header] -> {{requestType}} req contentType res
+_setHeader req header = 
     let _params = params req
     in req { params = _params { paramsHeaders = header P.++ paramsHeaders _params } }
 
 
-_addContentTypeHeader :: forall req contentType res. MimeType contentType => {{requestType}} req contentType res -> {{requestType}} req contentType res
-_addContentTypeHeader req =
+_setContentTypeHeader :: forall req contentType res. MimeType contentType => {{requestType}} req contentType res -> {{requestType}} req contentType res
+_setContentTypeHeader req =
     case mimeType (P.Proxy :: P.Proxy contentType) of 
-        Just m -> req `_addHeader` [("content-type", BC.pack $ P.show m)]
+        Just m -> req `_setHeader` [("content-type", BC.pack $ P.show m)]
         Nothing -> req
 
-_addAcceptHeader :: forall req contentType res accept. MimeType accept => {{requestType}} req contentType res -> accept -> {{requestType}} req contentType res
-_addAcceptHeader req accept =
+_setAcceptHeader :: forall req contentType res accept. MimeType accept => {{requestType}} req contentType res -> accept -> {{requestType}} req contentType res
+_setAcceptHeader req accept =
     case mimeType' accept of 
-        Just m -> req `_addHeader` [("accept", BC.pack $ P.show m)]
+        Just m -> req `_setHeader` [("accept", BC.pack $ P.show m)]
         Nothing -> req
 
 _addQuery :: {{requestType}} req contentType res -> [NH.QueryItem] -> {{requestType}} req contentType res

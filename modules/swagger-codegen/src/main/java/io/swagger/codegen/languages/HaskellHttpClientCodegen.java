@@ -411,6 +411,7 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
 
         for (CodegenParameter param : op.allParams) {
             param.vendorExtensions.put("x-operationType", capitalize(op.operationId));
+            param.vendorExtensions.put("x-isBodyOrFormParam", param.isBodyParam || param.isFormParam);
             if (param.isCollectionFormatMulti) {
                 param.vendorExtensions.put("x-collectionFormat", mapCollectionFormat(param.collectionFormat));
             }
@@ -439,8 +440,6 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
                 param.vendorExtensions.put("x-paramNameType", paramNameType);
                 op.vendorExtensions.put("x-hasBodyOrFormParam", op.getHasBodyParam() || op.getHasFormParams());
             }
-        }
-        for (CodegenParameter param : op.bodyParams) {
         }
         if (op.getHasPathParams()) {
             String remainingPath = op.path;
@@ -474,6 +473,8 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
         for (CodegenParameter param : op.queryParams) {
         }
         for (CodegenParameter param : op.headerParams) {
+        }
+        for (CodegenParameter param : op.bodyParams) {
         }
         for (CodegenParameter param : op.formParams) {
         }

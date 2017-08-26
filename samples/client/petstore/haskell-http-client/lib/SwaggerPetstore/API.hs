@@ -75,7 +75,7 @@ import qualified Prelude as P
 -- AuthMethod: petstore_auth
 -- 
 addPet 
-  :: (Consumes AddPet contentType, MimeRender contentType Pet)   
+  :: (Consumes AddPet contentType, MimeRender contentType Pet)
   => contentType -- ^ request content-type ('MimeType')
   -> Pet -- ^ "body" -  Pet object that needs to be added to the store
   -> SwaggerPetstoreRequest AddPet contentType ()
@@ -119,7 +119,7 @@ deletePet petId =
 data DeletePet  
 instance HasOptionalParam DeletePet ApiUnderscorekey where
   applyOptionalParam req (ApiUnderscorekey xs) =
-    req `_addHeader` toHeader ("api_key", xs)
+    req `_setHeader` toHeader ("api_key", xs)
 -- | @application/xml@
 instance Produces DeletePet MimeXML
 -- | @application/json@
@@ -211,7 +211,7 @@ instance Produces GetPetById MimeJSON
 -- AuthMethod: petstore_auth
 -- 
 updatePet 
-  :: (Consumes UpdatePet contentType, MimeRender contentType Pet)   
+  :: (Consumes UpdatePet contentType, MimeRender contentType Pet)
   => contentType -- ^ request content-type ('MimeType')
   -> Pet -- ^ "body" -  Pet object that needs to be added to the store
   -> SwaggerPetstoreRequest UpdatePet contentType ()
@@ -246,9 +246,11 @@ instance Produces UpdatePet MimeJSON
 -- AuthMethod: petstore_auth
 -- 
 updatePetWithForm 
-  :: Integer -- ^ "petId" -  ID of pet that needs to be updated
+  :: (Consumes UpdatePetWithForm contentType)
+  => contentType -- ^ request content-type ('MimeType')
+  -> Integer -- ^ "petId" -  ID of pet that needs to be updated
   -> SwaggerPetstoreRequest UpdatePetWithForm contentType ()
-updatePetWithForm petId =
+updatePetWithForm _ petId =
   _mkRequest "POST" ["/pet/",toPath petId]
     
 
@@ -284,9 +286,11 @@ instance Produces UpdatePetWithForm MimeJSON
 -- AuthMethod: petstore_auth
 -- 
 uploadFile 
-  :: Integer -- ^ "petId" -  ID of pet to update
+  :: (Consumes UploadFile contentType)
+  => contentType -- ^ request content-type ('MimeType')
+  -> Integer -- ^ "petId" -  ID of pet to update
   -> SwaggerPetstoreRequest UploadFile contentType ApiResponse
-uploadFile petId =
+uploadFile _ petId =
   _mkRequest "POST" ["/pet/",toPath petId,"/uploadImage"]
     
 
@@ -382,7 +386,7 @@ instance Produces GetOrderById MimeJSON
 -- 
 -- 
 placeOrder 
-  :: (Consumes PlaceOrder contentType, MimeRender contentType Order)   
+  :: (Consumes PlaceOrder contentType, MimeRender contentType Order)
   => contentType -- ^ request content-type ('MimeType')
   -> Order -- ^ "body" -  order placed for purchasing the pet
   -> SwaggerPetstoreRequest PlaceOrder contentType Order
@@ -409,7 +413,7 @@ instance Produces PlaceOrder MimeJSON
 -- This can only be done by the logged in user.
 -- 
 createUser 
-  :: (Consumes CreateUser contentType, MimeRender contentType User)   
+  :: (Consumes CreateUser contentType, MimeRender contentType User)
   => contentType -- ^ request content-type ('MimeType')
   -> User -- ^ "body" -  Created user object
   -> SwaggerPetstoreRequest CreateUser contentType ()
@@ -436,7 +440,7 @@ instance Produces CreateUser MimeJSON
 -- 
 -- 
 createUsersWithArrayInput 
-  :: (Consumes CreateUsersWithArrayInput contentType, MimeRender contentType [User])   
+  :: (Consumes CreateUsersWithArrayInput contentType, MimeRender contentType [User])
   => contentType -- ^ request content-type ('MimeType')
   -> [User] -- ^ "body" -  List of user object
   -> SwaggerPetstoreRequest CreateUsersWithArrayInput contentType ()
@@ -463,7 +467,7 @@ instance Produces CreateUsersWithArrayInput MimeJSON
 -- 
 -- 
 createUsersWithListInput 
-  :: (Consumes CreateUsersWithListInput contentType, MimeRender contentType [User])   
+  :: (Consumes CreateUsersWithListInput contentType, MimeRender contentType [User])
   => contentType -- ^ request content-type ('MimeType')
   -> [User] -- ^ "body" -  List of user object
   -> SwaggerPetstoreRequest CreateUsersWithListInput contentType ()
@@ -578,7 +582,7 @@ instance Produces LogoutUser MimeJSON
 -- This can only be done by the logged in user.
 -- 
 updateUser 
-  :: (Consumes UpdateUser contentType, MimeRender contentType User)   
+  :: (Consumes UpdateUser contentType, MimeRender contentType User)
   => contentType -- ^ request content-type ('MimeType')
   -> Text -- ^ "username" -  name that need to be updated
   -> User -- ^ "body" -  Updated user object
@@ -605,7 +609,7 @@ instance Produces UpdateUser MimeJSON
 class HasBodyParam req param where
   setBodyParam :: forall contentType res. (Consumes req contentType, MimeRender contentType param) => SwaggerPetstoreRequest req contentType res -> param -> SwaggerPetstoreRequest req contentType res
   setBodyParam req xs =
-    req `_setBodyLBS` mimeRender (P.Proxy :: P.Proxy contentType) xs & _addContentTypeHeader
+    req `_setBodyLBS` mimeRender (P.Proxy :: P.Proxy contentType) xs & _setContentTypeHeader
 
 -- * HasOptionalParam
 
@@ -676,22 +680,22 @@ _mkRequest m u = SwaggerPetstoreRequest m u _mkParams
 _mkParams :: Params
 _mkParams = Params [] [] ParamBodyNone
 
-_addHeader :: SwaggerPetstoreRequest req contentType res -> [NH.Header] -> SwaggerPetstoreRequest req contentType res
-_addHeader req header = 
+_setHeader :: SwaggerPetstoreRequest req contentType res -> [NH.Header] -> SwaggerPetstoreRequest req contentType res
+_setHeader req header = 
     let _params = params req
     in req { params = _params { paramsHeaders = header P.++ paramsHeaders _params } }
 
 
-_addContentTypeHeader :: forall req contentType res. MimeType contentType => SwaggerPetstoreRequest req contentType res -> SwaggerPetstoreRequest req contentType res
-_addContentTypeHeader req =
+_setContentTypeHeader :: forall req contentType res. MimeType contentType => SwaggerPetstoreRequest req contentType res -> SwaggerPetstoreRequest req contentType res
+_setContentTypeHeader req =
     case mimeType (P.Proxy :: P.Proxy contentType) of 
-        Just m -> req `_addHeader` [("content-type", BC.pack $ P.show m)]
+        Just m -> req `_setHeader` [("content-type", BC.pack $ P.show m)]
         Nothing -> req
 
-_addAcceptHeader :: forall req contentType res accept. MimeType accept => SwaggerPetstoreRequest req contentType res -> accept -> SwaggerPetstoreRequest req contentType res
-_addAcceptHeader req accept =
+_setAcceptHeader :: forall req contentType res accept. MimeType accept => SwaggerPetstoreRequest req contentType res -> accept -> SwaggerPetstoreRequest req contentType res
+_setAcceptHeader req accept =
     case mimeType' accept of 
-        Just m -> req `_addHeader` [("accept", BC.pack $ P.show m)]
+        Just m -> req `_setHeader` [("accept", BC.pack $ P.show m)]
         Nothing -> req
 
 _addQuery :: SwaggerPetstoreRequest req contentType res -> [NH.QueryItem] -> SwaggerPetstoreRequest req contentType res
