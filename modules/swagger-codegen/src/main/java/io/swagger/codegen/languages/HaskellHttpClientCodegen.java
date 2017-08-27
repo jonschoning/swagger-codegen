@@ -410,7 +410,7 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
 
         String returnType = op.returnType;
         if (returnType == null || returnType.equals("null")) {
-            returnType = "()";
+            returnType = "NoContent";
         }
         if (returnType.indexOf(" ") >= 0) {
             returnType = "(" + returnType + ")";
