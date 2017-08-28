@@ -408,15 +408,6 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
         op.vendorExtensions.put("x-operationType", toHsTypeName(op.operationId));
         op.vendorExtensions.put("x-hasBodyOrFormParam", op.getHasBodyParam() || op.getHasFormParams());
 
-        String returnType = op.returnType;
-        if (returnType == null || returnType.equals("null")) {
-            returnType = "NoContent";
-        }
-        if (returnType.indexOf(" ") >= 0) {
-            returnType = "(" + returnType + ")";
-        }
-        op.vendorExtensions.put("x-returnType", returnType);
-
         for (CodegenParameter param : op.allParams) {
             param.vendorExtensions.put("x-operationType", capitalize(op.operationId));
             param.vendorExtensions.put("x-isBodyOrFormParam", param.isBodyParam || param.isFormParam);
@@ -500,6 +491,20 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
                 processMediaType(op,m);
             }
         }
+
+        String returnType = op.returnType;
+        if (returnType == null || returnType.equals("null")) {
+            if(op.hasProduces) {
+                returnType = "res";
+            } else {
+                returnType = "NoContent";
+            }
+        }
+        if (returnType.indexOf(" ") >= 0) {
+            returnType = "(" + returnType + ")";
+        }
+        op.vendorExtensions.put("x-returnType", returnType);
+
 
         return op;
     }
