@@ -128,7 +128,7 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
 
         supportingFiles.add(new SupportingFile("tests/ApproxEq.mustache", "tests", "ApproxEq.hs"));
         supportingFiles.add(new SupportingFile("tests/Instances.mustache", "tests", "Instances.hs"));
-        supportingFiles.add(new SupportingFile("tests/PropJSON.mustache", "tests", "PropJSON.hs"));
+        supportingFiles.add(new SupportingFile("tests/PropMime.mustache", "tests", "PropMime.hs"));
         supportingFiles.add(new SupportingFile("tests/Test.mustache", "tests", "Test.hs"));
 
         languageSpecificPrimitives = new HashSet<String>(
