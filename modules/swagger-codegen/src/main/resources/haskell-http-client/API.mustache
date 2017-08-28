@@ -83,7 +83,9 @@ import qualified Prelude as P
   _mkRequest "{{httpMethod}}" [{{#pathParams}}{{#vendorExtensions.x-pathPrefix}}"{{.}}",{{/vendorExtensions.x-pathPrefix}}toPath {{{paramName}}}{{#hasMore}},{{/hasMore}}{{/pathParams}}{{#vendorExtensions.x-pathSuffix}}{{#vendorExtensions.x-hasPathParams}},{{/vendorExtensions.x-hasPathParams}}"{{.}}"{{/vendorExtensions.x-pathSuffix}}]{{#allParams}}{{#required}}
     {{#isHeaderParam}}`_setHeader` {{>_headerColl}} ("{{{baseName}}}", {{{paramName}}}){{/isHeaderParam}}{{#isQueryParam}}`_setQuery` {{>_queryColl}} ("{{{baseName}}}", Just {{{paramName}}}){{/isQueryParam}}{{#isFormParam}}{{#isFile}}`_addMultiFormPart` NH.partFileSource "{{{baseName}}}" {{{paramName}}}{{/isFile}}{{^isFile}}{{#isMultipart}}`_addMultiFormPart` NH.partLBS "{{{baseName}}}" (mimeRender' MimeMultipartFormData {{{paramName}}}){{/isMultipart}}{{^isMultipart}}`_addForm` {{>_formColl}} ("{{{baseName}}}", {{{paramName}}}){{/isMultipart}}{{/isFile}}{{/isFormParam}}{{#isBodyParam}}`setBodyParam` {{{paramName}}}{{/isBodyParam}}{{/required}}{{/allParams}}{{#isDeprecated}}
 
-{-# DEPRECATED {{operationId}} "" #-}{{/isDeprecated}}
+{-# DEPRECATED {{operationId}} "" #-}{{/isDeprecated}}{{#vendorExtensions.x-hasUnknownReturn}}
+
+{-# WARNING {{operationId}} "has Produces, but no response datatype schema." #-}{{/vendorExtensions.x-hasUnknownReturn}}
 
 data {{{vendorExtensions.x-operationType}}} {{#allParams}}{{#isBodyParam}}{{#description}}
 

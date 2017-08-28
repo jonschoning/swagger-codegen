@@ -496,6 +496,7 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
         if (returnType == null || returnType.equals("null")) {
             if(op.hasProduces) {
                 returnType = "res";
+                op.vendorExtensions.put("x-hasUnknownReturn", true);
             } else {
                 returnType = "NoContent";
             }
