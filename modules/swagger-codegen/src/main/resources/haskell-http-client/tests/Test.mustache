@@ -18,5 +18,5 @@ main :: IO ()
 main =
   hspec $ modifyMaxSize (const 10) $
   do describe "JSON instances" $
-       do {{#models}}{{#model}}propJSONEq (Proxy :: Proxy {{classname}})
+       do {{#models}}{{#model}}propJSONMimeEq (Proxy :: Proxy {{classname}})
           {{/model}}{{/models}}
