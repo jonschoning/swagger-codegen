@@ -67,6 +67,7 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
     protected Map<String, Map<String,String>> allMimeTypes = new HashMap<String, Map<String,String>>();
     protected Map<String, String> knownMimeDataTypes = new HashMap<String, String>();
     protected Map<String, Set<String>> modelMimeTypes = new HashMap<String, Set<String>>();
+    protected String lastTag = "";
     protected ArrayList<Map<String,String>> unknownMimeTypes = new ArrayList<Map<String,String>>();
 
     public CodegenType getTag() {
@@ -514,6 +515,12 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
     @Override
     public Map<String, Object> postProcessOperations(Map<String, Object> objs) {
         Map<String, Object> ret = super.postProcessOperations(objs);
+
+        HashMap<String, Object> pathOps = (HashMap<String, Object>)ret.get("operations");
+        ArrayList<CodegenOperation> ops = (ArrayList<CodegenOperation>)pathOps.get("operation");
+        if(ops.size() > 0) {
+            ops.get(0).vendorExtensions.put("x-hasNewTag", true);
+        }
 
         additionalProperties.put("x-hasUnknownMimeTypes", !unknownMimeTypes.isEmpty());
         additionalProperties.put("x-unknownMimeTypes", unknownMimeTypes);

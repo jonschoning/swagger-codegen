@@ -62,9 +62,11 @@ import Prelude ((==),(/=),($), (.),(<$>),(<*>),(>>=),Maybe(..),Bool(..),Char,Dou
 import qualified Prelude as P
 
 -- * Operations
-{{#apiInfo}}{{#apis}}{{#operations}}{{#operation}}
+{{#apiInfo}}{{#apis}}{{#operations}}{{#operation}}{{#vendorExtensions.x-hasNewTag}}
 
--- ** {{operationId}}
+-- ** {{baseName}}{{/vendorExtensions.x-hasNewTag}}
+
+-- *** {{operationId}}
 
 -- | @{{{vendorExtensions.x-haddockPath}}}@
 -- {{#summary}}
@@ -85,7 +87,7 @@ import qualified Prelude as P
 
 {-# DEPRECATED {{operationId}} "" #-}{{/isDeprecated}}{{#vendorExtensions.x-hasUnknownReturn}}
 
-{-# WARNING {{operationId}} "has Produces, but no response datatype schema." #-}{{/vendorExtensions.x-hasUnknownReturn}}
+{-# WARNING {{operationId}} "has Produces instances, but no response schema." #-}{{/vendorExtensions.x-hasUnknownReturn}}
 
 data {{{vendorExtensions.x-operationType}}} {{#allParams}}{{#isBodyParam}}{{#description}}
 
