@@ -361,6 +361,18 @@
             </modules>
         </profile>
         <profile>
+            <id>haskell-http-client-client</id>
+            <activation>
+                <property>
+                    <name>env</name>
+                    <value>haskell-http-client</value>
+                </property>
+            </activation>
+            <modules>
+                <module>samples/client/petstore/haskell-http-client</module>
+            </modules>
+        </profile>
+        <profile>
             <id>java-client-jersey1</id>
             <activation>
                 <property>
