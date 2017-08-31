@@ -126,6 +126,8 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
         supportingFiles.add(new SupportingFile("stack.mustache", "", "stack.yaml"));
         supportingFiles.add(new SupportingFile("Setup.mustache", "", "Setup.hs"));
         supportingFiles.add(new SupportingFile(".gitignore", "", ".gitignore"));
+        supportingFiles.add(new SupportingFile(".travis.yml", "", ".travis.yml"));
+        supportingFiles.add(new SupportingFile("git_push.sh.mustache", "", "git_push.sh"));
 
         supportingFiles.add(new SupportingFile("tests/ApproxEq.mustache", "tests", "ApproxEq.hs"));
         supportingFiles.add(new SupportingFile("tests/Instances.mustache", "tests", "Instances.hs"));
@@ -292,6 +294,8 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
         // Set the filenames to write for the API
 
         // root
+        supportingFiles.add(new SupportingFile("haskell-http-client.cabal.mustache", "", cabalName + ".cabal"));
+
         supportingFiles.add(new SupportingFile("haskell-http-client.cabal.mustache", "", cabalName + ".cabal"));
         supportingFiles.add(new SupportingFile("package.mustache", "", "package.yaml"));
 
