@@ -47,9 +47,10 @@ import qualified Prelude as P
 {{#model}}
 
 -- ** {{classname}}
-{{#description}}-- | {{description}}{{/description}}{{#parent}}
--- {{^description}}|{{/description}}
--- Parent: '{{parent}}'{{/parent}}
+-- |{{#title}}
+-- {{{.}}}
+-- {{/title}}{{#description}}
+-- {{{.}}}{{/description}}
 {{^vendorExtensions.x-customNewtype}}
 data {{classname}} = {{classname}}
   { {{#vars}}{{name}} :: {{^required}}Maybe {{/required}}{{datatype}} -- ^ {{#required}}/Required/ {{/required}}{{#readOnly}}/ReadOnly/ {{/readOnly}}"{{baseName}}"{{#description}} - {{description}}{{/description}}{{#hasMore}}

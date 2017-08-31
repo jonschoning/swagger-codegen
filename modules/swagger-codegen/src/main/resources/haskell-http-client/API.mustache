@@ -203,7 +203,6 @@ _setAcceptHeader req accept =
 _setQuery :: {{requestType}} req contentType res -> [NH.QueryItem] -> {{requestType}} req contentType res
 _setQuery req query = 
     let _params = params req 
-    -- in req { params = _params { paramsQuery = query P.++ paramsQuery _params } }
     in req { params = _params { paramsQuery = query P.++ [q | q <- paramsQuery _params, cifst q `P.notElem` P.fmap cifst query] } }
   where cifst = CI.mk . P.fst
 

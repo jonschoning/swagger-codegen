@@ -412,7 +412,7 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
         for (CodegenParameter param : op.allParams) {
             param.vendorExtensions.put("x-operationType", capitalize(op.operationId));
             param.vendorExtensions.put("x-isBodyOrFormParam", param.isBodyParam || param.isFormParam);
-            if (param.isCollectionFormatMulti) {
+            if (!StringUtils.isBlank(param.collectionFormat)) {
                 param.vendorExtensions.put("x-collectionFormat", mapCollectionFormat(param.collectionFormat));
             }
             if (!param.required) {
