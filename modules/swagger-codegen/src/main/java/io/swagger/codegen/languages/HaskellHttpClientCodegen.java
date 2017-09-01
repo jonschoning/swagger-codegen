@@ -46,12 +46,14 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
     protected String defaultDateFormat = "%Y-%m-%d";
 
     // CLI
-    protected String GENERATE_LENSES = "generateLenses";
-    protected String GENERATE_MODEL_CONSTRUCTORS = "generateModelConstructors";
-    protected String DERIVING = "deriving";
-    protected String ALLOW_FROMJSON_NULLS = "allowFromJsonNulls";
-    protected String ALLOW_TOJSON_NULLS = "allowToJsonNulls";
-    protected String GENERATE_FORMURLENCODED_INSTANCES = "generateFormUrlEncodedInstances";
+    public static final String ALLOW_FROMJSON_NULLS = "allowFromJsonNulls";
+    public static final String ALLOW_TOJSON_NULLS = "allowToJsonNulls";
+    public static final String DATETIME_FORMAT = "dateTimeFormat";
+    public static final String DATE_FORMAT = "dateFormat";
+    public static final String GENERATE_FORM_URLENCODED_INSTANCES = "generateFormUrlEncodedInstances";
+    public static final String GENERATE_LENSES = "generateLenses";
+    public static final String GENERATE_MODEL_CONSTRUCTORS = "generateModelConstructors";
+    public static final String MODEL_DERIVING = "modelDeriving";
 
     // protected String MODEL_IMPORTS = "modelImports";
     // protected String MODEL_EXTENSIONS = "modelExtensions";
@@ -79,6 +81,7 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
     public String getHelp() {
         return "Generates a Haskell http-client library.";
     }
+
 
     public HaskellHttpClientCodegen() {
         super();
@@ -179,19 +182,19 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
         importMapping.clear();
         importMapping.put("Map", "qualified Data.Map as Map");
 
-        //cliOptions.add(new CliOption(CodegenConstants.MODEL_PACKAGE, CodegenConstants.MODEL_PACKAGE_DESC));
-        //cliOptions.add(new CliOption(CodegenConstants.API_PACKAGE, CodegenConstants.API_PACKAGE_DESC));
+        cliOptions.add(new CliOption(CodegenConstants.MODEL_PACKAGE, CodegenConstants.MODEL_PACKAGE_DESC));
+        cliOptions.add(new CliOption(CodegenConstants.API_PACKAGE, CodegenConstants.API_PACKAGE_DESC));
 
         cliOptions.add(new CliOption(ALLOW_FROMJSON_NULLS, "allow JSON Null during model decoding from JSON").defaultValue(Boolean.TRUE.toString()));
         cliOptions.add(new CliOption(ALLOW_TOJSON_NULLS, "allow emitting JSON Null during model encoding to JSON").defaultValue(Boolean.FALSE.toString()));
         cliOptions.add(new CliOption(GENERATE_LENSES, "Generate Lens optics for Models").defaultValue(Boolean.TRUE.toString()));
         cliOptions.add(new CliOption(GENERATE_MODEL_CONSTRUCTORS, "Generate smart constructors (only supply required fields) for models").defaultValue(Boolean.TRUE.toString()));
-        cliOptions.add(new CliOption(GENERATE_FORMURLENCODED_INSTANCES, "Generate FromForm/ToForm instances for models that are used by operations that produce or consume application/x-www-form-urlencoded").defaultValue(Boolean.TRUE.toString()));
+        cliOptions.add(new CliOption(GENERATE_FORM_URLENCODED_INSTANCES, "Generate FromForm/ToForm instances for models that are used by operations that produce or consume application/x-www-form-urlencoded").defaultValue(Boolean.TRUE.toString()));
 
-        cliOptions.add(new CliOption(DERIVING, "Additional classes to include in the deriving() clause of Models"));
+        cliOptions.add(new CliOption(MODEL_DERIVING, "Additional classes to include in the deriving() clause of Models"));
 
-        cliOptions.add(new CliOption("dateTimeFormat", "format string used to parse/render a datetime").defaultValue(defaultDateTimeFormat));
-        cliOptions.add(new CliOption("dateFormat", "format string used to parse/render a date").defaultValue(defaultDateFormat));
+        cliOptions.add(new CliOption(DATETIME_FORMAT, "format string used to parse/render a datetime").defaultValue(defaultDateTimeFormat));
+        cliOptions.add(new CliOption(DATE_FORMAT, "format string used to parse/render a date").defaultValue(defaultDateFormat));
 
         cliOptions.add(new CliOption(CodegenConstants.HIDE_GENERATION_TIMESTAMP, "hides the timestamp when files were generated").defaultValue(Boolean.TRUE.toString()));
 
@@ -199,6 +202,34 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
         // cliOptions.add(new CliOption(MODEL_EXTENSIONS, "Additional extensions in the Models file"));
     }
 
+    public void setAllowFromJsonNulls(Boolean value) {
+        additionalProperties.put(ALLOW_FROMJSON_NULLS, value);
+    }
+    public void setAllowToJsonNulls(Boolean value) {
+        additionalProperties.put(ALLOW_TOJSON_NULLS, value);
+    }
+    public void setGenerateModelConstructors(Boolean value) {
+        additionalProperties.put(GENERATE_MODEL_CONSTRUCTORS, value);
+    }
+    public void setGenerateFormUrlEncodedInstances(Boolean value) {
+        additionalProperties.put(GENERATE_FORM_URLENCODED_INSTANCES, value);
+    }
+    public void setGenerateLenses(Boolean value) {
+        additionalProperties.put(GENERATE_LENSES, value);
+    }
+    public void setModelDeriving(String value) {
+        if(StringUtils.isBlank(value)) {
+            additionalProperties.remove(MODEL_DERIVING);
+        } else {
+            additionalProperties.put(MODEL_DERIVING, StringUtils.join(value.split(" "), ","));
+        }
+    }
+    public void setDateTimeFormat(String value) {
+        additionalProperties.put(DATETIME_FORMAT, value);
+    }
+    public void setDateFormat(String value) {
+        additionalProperties.put(DATE_FORMAT, value);
+    }
     @Override
     public void processOpts() {
         super.processOpts();
@@ -210,42 +241,53 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
         }
 
         if (additionalProperties.containsKey(ALLOW_FROMJSON_NULLS)) {
-            convertPropertyToBooleanAndWriteBack(ALLOW_FROMJSON_NULLS);
+            setAllowFromJsonNulls(convertPropertyToBoolean(ALLOW_FROMJSON_NULLS));
         } else {
-            additionalProperties.put(ALLOW_FROMJSON_NULLS, true);
+            setAllowFromJsonNulls(true);
         }
 
         if (additionalProperties.containsKey(ALLOW_TOJSON_NULLS)) {
-            convertPropertyToBooleanAndWriteBack(ALLOW_TOJSON_NULLS);
+            setAllowToJsonNulls(convertPropertyToBoolean(ALLOW_TOJSON_NULLS));
         } else {
-            additionalProperties.put(ALLOW_TOJSON_NULLS, false);
+            setAllowToJsonNulls(false);
         }
 
         if (additionalProperties.containsKey(GENERATE_MODEL_CONSTRUCTORS)) {
-            convertPropertyToBooleanAndWriteBack(GENERATE_MODEL_CONSTRUCTORS);
+            setGenerateModelConstructors(convertPropertyToBoolean(GENERATE_MODEL_CONSTRUCTORS));
         } else {
-            additionalProperties.put(GENERATE_MODEL_CONSTRUCTORS, true);
+            setGenerateModelConstructors(true);
         }
-        if (additionalProperties.containsKey(GENERATE_FORMURLENCODED_INSTANCES)) {
-            convertPropertyToBooleanAndWriteBack(GENERATE_FORMURLENCODED_INSTANCES);
+
+        if (additionalProperties.containsKey(GENERATE_FORM_URLENCODED_INSTANCES)) {
+            setGenerateFormUrlEncodedInstances(convertPropertyToBoolean(GENERATE_FORM_URLENCODED_INSTANCES));
         } else {
-            additionalProperties.put(GENERATE_FORMURLENCODED_INSTANCES, true);
+            setGenerateFormUrlEncodedInstances(true);
         }
+
         if (additionalProperties.containsKey(GENERATE_LENSES)) {
-            convertPropertyToBooleanAndWriteBack(GENERATE_LENSES);
+            setGenerateLenses(convertPropertyToBoolean(GENERATE_LENSES));
         } else {
-            additionalProperties.put(GENERATE_LENSES, true);
+            setGenerateLenses(true);
         }
-        if (additionalProperties.containsKey(DERIVING)) {
-            String deriving = (String) additionalProperties.get(DERIVING);
-            additionalProperties.put(DERIVING, StringUtils.join(deriving.split(" "), ","));
+
+        if (additionalProperties.containsKey(MODEL_DERIVING)) {
+            setModelDeriving(additionalProperties.get(MODEL_DERIVING).toString());
+        } else {
+            setModelDeriving("");
         }
-        if (!additionalProperties.containsKey("dateTimeFormat")) {
-            additionalProperties.put("dateTimeFormat", defaultDateTimeFormat);
+
+        if (additionalProperties.containsKey(DATETIME_FORMAT)) {
+            setDateTimeFormat(additionalProperties.get(DATETIME_FORMAT).toString());
+        } else {
+            setDateTimeFormat(defaultDateTimeFormat);
         }
-        if (!additionalProperties.containsKey("dateFormat")) {
-            additionalProperties.put("dateFormat", defaultDateFormat);
+
+        if (additionalProperties.containsKey(DATE_FORMAT)) {
+            setDateFormat(additionalProperties.get(DATE_FORMAT).toString());
+        } else {
+            setDateFormat(defaultDateFormat);
         }
+
     }
 
 //    @Override
@@ -540,7 +582,7 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
             if (modelMimeTypes.containsKey(m.classname)) {
                 Set<String> mimeTypes = modelMimeTypes.get(m.classname);
                 m.vendorExtensions.put("x-mimeTypes", mimeTypes);
-                if ((boolean)additionalProperties.get(GENERATE_FORMURLENCODED_INSTANCES) && mimeTypes.contains("MimeFormUrlEncoded")) {
+                if ((boolean)additionalProperties.get(GENERATE_FORM_URLENCODED_INSTANCES) && mimeTypes.contains("MimeFormUrlEncoded")) {
                     Boolean hasMimeFormUrlEncoded = true;
                     for (CodegenProperty v : m.vars) {
                         if (!(v.isPrimitiveType || v.isString || v.isDate || v.isDateTime)) {
