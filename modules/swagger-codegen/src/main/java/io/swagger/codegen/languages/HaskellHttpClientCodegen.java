@@ -225,11 +225,21 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
         }
     }
     public void setDateTimeFormat(String value) {
-        additionalProperties.put(DATETIME_FORMAT, value);
+        if(StringUtils.isBlank(value)) {
+            additionalProperties.remove(DATETIME_FORMAT);
+        } else {
+            additionalProperties.put(DATETIME_FORMAT, value);
+        }
+
     }
     public void setDateFormat(String value) {
-        additionalProperties.put(DATE_FORMAT, value);
+        if(StringUtils.isBlank(value)) {
+            additionalProperties.remove(DATE_FORMAT);
+        } else {
+            additionalProperties.put(DATE_FORMAT, value);
+        }
     }
+
     @Override
     public void processOpts() {
         super.processOpts();
@@ -279,13 +289,13 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
         if (additionalProperties.containsKey(DATETIME_FORMAT)) {
             setDateTimeFormat(additionalProperties.get(DATETIME_FORMAT).toString());
         } else {
-            setDateTimeFormat(defaultDateTimeFormat);
+            setDateTimeFormat(null);
         }
 
         if (additionalProperties.containsKey(DATE_FORMAT)) {
             setDateFormat(additionalProperties.get(DATE_FORMAT).toString());
         } else {
-            setDateFormat(defaultDateFormat);
+            setDateFormat(null);
         }
 
     }

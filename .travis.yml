@@ -24,6 +24,7 @@ cache:
   - $HOME/samples/client/petstore/typescript-angularjs/node_modules
   - $HOME/samples/client/petstore/typescript-angularjs/typings
   - $HOME/.cocoapods/repos/master
+  timeout: 1000
 # note: docker is not yet supported in iOS build
 #services:
 #  - docker
@@ -54,6 +55,7 @@ before_install:
   - brew install python3
   - pip install virtualenv
   - mkdir -p ~/.local/bin
+  - export PATH=$HOME/.local/bin:$PATH
   - travis_retry curl --insecure -L https://www.stackage.org/stack/osx-x86_64 | tar xz --strip-components=1 --include '*/stack' -C ~/.local/bin
   # start local petstore server
   - git clone -b docker --single-branch https://github.com/wing328/swagger-samples
@@ -79,13 +81,14 @@ before_install:
   - xcpretty -v
   # show go version
   - go version
+  # show stack version
+  - stack --version
 
 install:
   # Add Godeps dependencies to GOPATH and PATH
    - eval "$(curl -sL https://raw.githubusercontent.com/travis-ci/gimme/master/gimme | GIMME_GO_VERSION=1.4 bash)"
    - export GOPATH="${TRAVIS_BUILD_DIR}/Godeps/_workspace"
    - export PATH="${TRAVIS_BUILD_DIR}/Godeps/_workspace/bin:$PATH"
-   - export PATH=$HOME/.local/bin:$PATH
 
 script:
   # fail fast
