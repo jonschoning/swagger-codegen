@@ -205,35 +205,42 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
     public void setAllowFromJsonNulls(Boolean value) {
         additionalProperties.put(ALLOW_FROMJSON_NULLS, value);
     }
+
     public void setAllowToJsonNulls(Boolean value) {
         additionalProperties.put(ALLOW_TOJSON_NULLS, value);
     }
+
     public void setGenerateModelConstructors(Boolean value) {
         additionalProperties.put(GENERATE_MODEL_CONSTRUCTORS, value);
     }
+
     public void setGenerateFormUrlEncodedInstances(Boolean value) {
         additionalProperties.put(GENERATE_FORM_URLENCODED_INSTANCES, value);
     }
+
     public void setGenerateLenses(Boolean value) {
         additionalProperties.put(GENERATE_LENSES, value);
     }
+
     public void setModelDeriving(String value) {
-        if(StringUtils.isBlank(value)) {
+        if (StringUtils.isBlank(value)) {
             additionalProperties.remove(MODEL_DERIVING);
         } else {
             additionalProperties.put(MODEL_DERIVING, StringUtils.join(value.split(" "), ","));
         }
     }
+
     public void setDateTimeFormat(String value) {
-        if(StringUtils.isBlank(value)) {
+        if (StringUtils.isBlank(value)) {
             additionalProperties.remove(DATETIME_FORMAT);
         } else {
             additionalProperties.put(DATETIME_FORMAT, value);
         }
 
     }
+
     public void setDateFormat(String value) {
-        if(StringUtils.isBlank(value)) {
+        if (StringUtils.isBlank(value)) {
             additionalProperties.remove(DATE_FORMAT);
         } else {
             additionalProperties.put(DATE_FORMAT, value);
