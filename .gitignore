@@ -168,6 +168,7 @@ samples/server/petstore/aspnetcore/.vs/
 effective.pom
 # kotlin
 samples/client/petstore/kotlin/src/main/kotlin/test/
+\?
 
 # haskell
 .stack-work
