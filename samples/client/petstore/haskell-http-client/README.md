@@ -62,11 +62,11 @@ These options allow some customization of the code generation process.
 
 **haskell-http-client specific options:**
 
-| OPTION                          | DESCRIPTION                                                                                                                   | DEFAULT  | ACTUAL                              |
-| ------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- | -------- | ----------------------------------- |
+| OPTION                          | DESCRIPTION                                                                                                                   | DEFAULT  | ACTUAL                                |
+| ------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- | -------- | ------------------------------------- |
 | allowFromJsonNulls              | allow JSON Null during model decoding from JSON                                                                               | true     | true              |
 | allowToJsonNulls                | allow emitting JSON Null during model encoding to JSON                                                                        | false    | false                |
-| dateFormat                      | format string used to parse/render a date                                                                                     | %Y-%m-%d |                       |
+| dateFormat                      | format string used to parse/render a date                                                                                     | %Y-%m-%d | %Y-%m-%d                      |
 | dateTimeFormat                  | format string used to parse/render a datetime. (Defaults to [formatISO8601Millis][1] when not provided)                       |          |                   |
 | generateFormUrlEncodedInstances | Generate FromForm/ToForm instances for models used by x-www-form-urlencoded operations (model fields must be primitive types) | true     | true |
 | generateLenses                  | Generate Lens optics for Models                                                                                               | true     | true                  |

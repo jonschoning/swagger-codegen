@@ -241,7 +241,7 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
 
     public void setDateFormat(String value) {
         if (StringUtils.isBlank(value)) {
-            additionalProperties.remove(DATE_FORMAT);
+            additionalProperties.put(DATE_FORMAT, defaultDateFormat);
         } else {
             additionalProperties.put(DATE_FORMAT, value);
         }

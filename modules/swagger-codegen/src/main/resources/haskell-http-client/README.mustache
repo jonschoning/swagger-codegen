@@ -62,16 +62,16 @@ These options allow some customization of the code generation process.
 
 **haskell-http-client specific options:**
 
-| OPTION                          | DESCRIPTION                                                                                                                   | DEFAULT  | ACTUAL                              |
-| ------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- | -------- | ----------------------------------- |
-| allowFromJsonNulls              | allow JSON Null during model decoding from JSON                                                                               | true     | {{allowFromJsonNulls}}              |
-| allowToJsonNulls                | allow emitting JSON Null during model encoding to JSON                                                                        | false    | {{allowToJsonNulls}}                |
-| dateFormat                      | format string used to parse/render a date                                                                                     | %Y-%m-%d | {{dateFormat}}                      |
-| dateTimeFormat                  | format string used to parse/render a datetime. (Defaults to [formatISO8601Millis][1] when not provided)                       |          | {{dateTimeFormat}}                  |
-| generateFormUrlEncodedInstances | Generate FromForm/ToForm instances for models used by x-www-form-urlencoded operations (model fields must be primitive types) | true     | {{generateFormUrlEncodedInstances}} |
-| generateLenses                  | Generate Lens optics for Models                                                                                               | true     | {{generateLenses}}                  |
-| generateModelConstructors       | Generate smart constructors (only supply required fields) for models                                                          | true     | {{generateModelConstructors}}       |
-| modelDeriving                   | Additional classes to include in the deriving() clause of Models                                                              |          | {{modelDeriving}}                   |
+| OPTION                          | DESCRIPTION                                                                                                                   | DEFAULT  | ACTUAL                                |
+| ------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- | -------- | ------------------------------------- |
+| allowFromJsonNulls              | allow JSON Null during model decoding from JSON                                                                               | true     | {{{allowFromJsonNulls}}}              |
+| allowToJsonNulls                | allow emitting JSON Null during model encoding to JSON                                                                        | false    | {{{allowToJsonNulls}}}                |
+| dateFormat                      | format string used to parse/render a date                                                                                     | %Y-%m-%d | {{{dateFormat}}}                      |
+| dateTimeFormat                  | format string used to parse/render a datetime. (Defaults to [formatISO8601Millis][1] when not provided)                       |          | {{{dateTimeFormat}}}                  |
+| generateFormUrlEncodedInstances | Generate FromForm/ToForm instances for models used by x-www-form-urlencoded operations (model fields must be primitive types) | true     | {{{generateFormUrlEncodedInstances}}} |
+| generateLenses                  | Generate Lens optics for Models                                                                                               | true     | {{{generateLenses}}}                  |
+| generateModelConstructors       | Generate smart constructors (only supply required fields) for models                                                          | true     | {{{generateModelConstructors}}}       |
+| modelDeriving                   | Additional classes to include in the deriving() clause of Models                                                              |          | {{{modelDeriving}}}                   |
 
 [1]: https://www.stackage.org/haddock/lts-9.0/iso8601-time-0.1.4/Data-Time-ISO8601.html#v:formatISO8601Millis
 
