@@ -192,7 +192,7 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
         cliOptions.add(CliOption.newBoolean(GENERATE_FORM_URLENCODED_INSTANCES, "Generate FromForm/ToForm instances for models that are used by operations that produce or consume application/x-www-form-urlencoded").defaultValue(Boolean.TRUE.toString()));
 
         cliOptions.add(CliOption.newString(MODEL_DERIVING, "Additional classes to include in the deriving() clause of Models"));
-        cliOptions.add(CliOption.newBoolean(STRICT_FIELDS, "Add strictness annotations to all model fields").defaultValue((Boolean.FALSE.toString())));
+        cliOptions.add(CliOption.newBoolean(STRICT_FIELDS, "Add strictness annotations to all model fields").defaultValue((Boolean.TRUE.toString())));
 
         cliOptions.add(CliOption.newString(DATETIME_FORMAT, "format string used to parse/render a datetime"));
         cliOptions.add(CliOption.newString(DATE_FORMAT, "format string used to parse/render a date").defaultValue(defaultDateFormat));
@@ -313,7 +313,7 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
         if (additionalProperties.containsKey(STRICT_FIELDS)) {
             setStrictFields(convertPropertyToBoolean(STRICT_FIELDS));
         } else {
-            setStrictFields(false);
+            setStrictFields(true);
         }
 
     }
