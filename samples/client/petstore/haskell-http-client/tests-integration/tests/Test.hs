@@ -91,7 +91,7 @@ testPetOps mgr config =
         Just pet@S.Pet {S.petId = Just petId} -> go (petId, pet)
         _ -> pendingWith "no petId") $
       it "getPetById" $ \(petId, pet) -> do
-        let getPetByIdRequest = S.getPetById petId
+        let getPetByIdRequest = S.getPetById (S.PetId petId)
         getPetByIdRequestResult <- S.dispatchMime mgr config getPetByIdRequest S.MimeJSON
         NH.responseStatus (S.mimeResultResponse getPetByIdRequestResult) `shouldBe` NH.status200
         case S.mimeResult getPetByIdRequestResult of
@@ -99,7 +99,7 @@ testPetOps mgr config =
           Left (S.MimeError e _) -> assertFailure e
 
     it "findPetsByStatus" $ do
-      let findPetsByStatusRequest = S.findPetsByStatus ["available","pending","sold"]
+      let findPetsByStatusRequest = S.findPetsByStatus (S.Status ["available","pending","sold"])
       findPetsByStatusResult <- S.dispatchMime mgr config findPetsByStatusRequest S.MimeJSON
       NH.responseStatus (S.mimeResultResponse findPetsByStatusResult) `shouldBe` NH.status200
       case S.mimeResult findPetsByStatusResult of
@@ -107,7 +107,7 @@ testPetOps mgr config =
         Left (S.MimeError e _) -> assertFailure e
       
     it "findPetsByTags" $ do
-      let findPetsByTagsRequest = S.findPetsByTags ["name","tag1"]
+      let findPetsByTagsRequest = S.findPetsByTags (S.Tags ["name","tag1"])
       findPetsByTagsResult <- S.dispatchMime mgr config findPetsByTagsRequest S.MimeJSON
       NH.responseStatus (S.mimeResultResponse findPetsByTagsResult) `shouldBe` NH.status200
       case S.mimeResult findPetsByTagsResult of
@@ -129,9 +129,9 @@ testPetOps mgr config =
     it "updatePetWithFormRequest" $ do
       readIORef _pet >>= \case
         Just S.Pet {S.petId = Just petId} -> do
-          let updatePetWithFormRequest = S.updatePetWithForm S.MimeFormUrlEncoded petId
+          let updatePetWithFormRequest = S.updatePetWithForm S.MimeFormUrlEncoded (S.PetId petId)
                   `S.applyOptionalParam` S.Name2 "petName"
-                  `S.applyOptionalParam` S.Status "pending"
+                  `S.applyOptionalParam` S.StatusText "pending"
           updatePetWithFormResponse <- S.dispatchLbs mgr config updatePetWithFormRequest S.MimeJSON
           NH.responseStatus updatePetWithFormResponse `shouldBe` NH.status200
         _ -> pendingWith "no pet"
@@ -141,7 +141,7 @@ testPetOps mgr config =
         Just pet@S.Pet {S.petId = Just petId} -> go petId
         _ -> pendingWith "no petId") $
       it "uploadFile" $ \petId -> do
-          let uploadFileRequest = S.uploadFile S.MimeMultipartFormData petId
+          let uploadFileRequest = S.uploadFile S.MimeMultipartFormData (S.PetId petId)
                   `S.applyOptionalParam` S.File "package.yaml"
                   `S.applyOptionalParam` S.AdditionalMetadata "a package.yaml file"
           uploadFileRequestResult <- S.dispatchMime mgr config uploadFileRequest S.MimeJSON
@@ -155,7 +155,7 @@ testPetOps mgr config =
         Just pet@S.Pet {S.petId = Just petId} -> go petId
         _ -> pendingWith "no petId") $
       it "deletePet" $ \petId -> do
-        let deletePetRequest = S.deletePet petId
+        let deletePetRequest = S.deletePet (S.PetId petId)
                   `S.applyOptionalParam` S.ApiKey "api key"
         deletePetResponse <- S.dispatchLbs mgr config deletePetRequest S.MimeJSON
         NH.responseStatus deletePetResponse `shouldBe` NH.status200
@@ -200,7 +200,7 @@ testStoreOps mgr config = do
         Just order@S.Order {S.orderId = Just orderId} -> go (orderId, order)
         _ -> pendingWith "no orderId") $
       it "getOrderById" $ \(orderId, order) -> do
-        let getOrderByIdRequest = S.getOrderById orderId
+        let getOrderByIdRequest = S.getOrderById (S.OrderId orderId)
         getOrderByIdRequestResult <- S.dispatchMime mgr config getOrderByIdRequest S.MimeJSON
         NH.responseStatus (S.mimeResultResponse getOrderByIdRequestResult) `shouldBe` NH.status200
         case S.mimeResult getOrderByIdRequestResult of
@@ -212,7 +212,7 @@ testStoreOps mgr config = do
         Just S.Order {S.orderId = Just orderId} -> go (T.pack (show orderId))
         _ -> pendingWith "no orderId") $
       it "deleteOrder" $ \orderId -> do
-        let deleteOrderRequest = S.deleteOrder orderId
+        let deleteOrderRequest = S.deleteOrder (S.OrderIdText orderId)
         deleteOrderResult <- S.dispatchLbs mgr config deleteOrderRequest S.MimeJSON
         NH.responseStatus deleteOrderResult `shouldBe` NH.status200
 
@@ -249,19 +249,19 @@ testUserOps mgr config = do
 
     before (pure _users) $
       it "createUsersWithArrayInput" $ \users -> do
-        let createUsersWithArrayInputRequest = S.createUsersWithArrayInput S.MimeJSON users
+        let createUsersWithArrayInputRequest = S.createUsersWithArrayInput S.MimeJSON (S.Body users)
         createUsersWithArrayInputResult <- S.dispatchLbs mgr config createUsersWithArrayInputRequest S.MimeNoContent
         NH.responseStatus createUsersWithArrayInputResult `shouldBe` NH.status200
 
     before (pure _users) $
       it "createUsersWithListInput" $ \users -> do
-        let createUsersWithListInputRequest = S.createUsersWithListInput S.MimeJSON users
+        let createUsersWithListInputRequest = S.createUsersWithListInput S.MimeJSON (S.Body users)
         createUsersWithListInputResult <- S.dispatchLbs mgr config createUsersWithListInputRequest S.MimeNoContent
         NH.responseStatus createUsersWithListInputResult `shouldBe` NH.status200
 
     before (pure (_username, _user)) $
       it "getUserByName" $ \(username, user) -> do
-        let getUserByNameRequest = S.getUserByName username
+        let getUserByNameRequest = S.getUserByName (S.Username username)
         getUserByNameResult <- S.dispatchMime mgr config getUserByNameRequest S.MimeJSON
         NH.responseStatus (S.mimeResultResponse getUserByNameResult) `shouldBe` NH.status200
         case S.mimeResult getUserByNameResult of
@@ -270,13 +270,13 @@ testUserOps mgr config = do
 
     before (pure (_username, _password)) $
       it "loginUser" $ \(username, password) -> do
-        let loginUserRequest = S.loginUser username password
+        let loginUserRequest = S.loginUser (S.Username username) (S.Password password)
         loginUserResult <- S.dispatchLbs mgr config loginUserRequest S.MimeJSON
         NH.responseStatus loginUserResult `shouldBe` NH.status200
 
     before (pure (_username, _user)) $
       it "updateUser" $ \(username, user) -> do
-        let updateUserRequest = S.updateUser S.MimeJSON username user
+        let updateUserRequest = S.updateUser S.MimeJSON (S.Username username) user
         updateUserResult <- S.dispatchLbs mgr config updateUserRequest S.MimeJSON
         NH.responseStatus updateUserResult `shouldBe` NH.status200
 
@@ -286,6 +286,6 @@ testUserOps mgr config = do
 
     before (pure _username) $
       it "deleteUser" $ \username -> do
-        let deleteUserRequest = S.deleteUser username
+        let deleteUserRequest = S.deleteUser (S.Username username)
         deleteUserResult <- S.dispatchLbs mgr config deleteUserRequest S.MimeJSON
         NH.responseStatus deleteUserResult `shouldBe` NH.status200

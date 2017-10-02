@@ -65,7 +65,7 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
     static final String MEDIA_IS_JSON = "x-mediaIsJson";
 
 
-    protected Map<String, CodegenParameter> uniqueOptionalParamsByName = new HashMap<String, CodegenParameter>();
+    protected Map<String, CodegenParameter> uniqueParamsByName = new HashMap<String, CodegenParameter>();
     protected Map<String, CodegenModel> modelNames = new HashMap<String, CodegenModel>();
     protected Map<String, Map<String,String>> allMimeTypes = new HashMap<String, Map<String,String>>();
     protected Map<String, String> knownMimeDataTypes = new HashMap<String, String>();
@@ -478,13 +478,14 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
             if (!StringUtils.isBlank(param.collectionFormat)) {
                 param.vendorExtensions.put("x-collectionFormat", mapCollectionFormat(param.collectionFormat));
             }
-            if (!param.required) {
+            if(!param.required) {
                 op.vendorExtensions.put("x-hasOptionalParams", true);
-
+            }
+            if (typeMapping.containsKey(param.dataType) || param.isPrimitiveType || param.isListContainer || param.isMapContainer || param.isFile) {
                 String paramNameType = toTypeName("Param", param.paramName);
 
-                if (uniqueOptionalParamsByName.containsKey(paramNameType)) {
-                    CodegenParameter lastParam = this.uniqueOptionalParamsByName.get(paramNameType);
+                if (uniqueParamsByName.containsKey(paramNameType)) {
+                    CodegenParameter lastParam = this.uniqueParamsByName.get(paramNameType);
                     if (lastParam.dataType != null && lastParam.dataType.equals(param.dataType)) {
                         param.vendorExtensions.put("x-duplicate", true);
                     } else {
@@ -497,11 +498,10 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
                     while (modelNames.containsKey(paramNameType)) {
                         paramNameType = generateNextName(paramNameType);
                     }
-                    uniqueOptionalParamsByName.put(paramNameType, param);
+                    uniqueParamsByName.put(paramNameType, param);
                 }
 
                 param.vendorExtensions.put("x-paramNameType", paramNameType);
-                op.vendorExtensions.put("x-hasBodyOrFormParam", op.getHasBodyParam() || op.getHasFormParams());
             }
         }
         if (op.getHasPathParams()) {
@@ -619,7 +619,7 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
     public CodegenModel fromModel(String name, Model mod, Map<String, Model> allDefinitions) {
         CodegenModel model = super.fromModel(name, mod, allDefinitions);
 
-        while (uniqueOptionalParamsByName.containsKey(model.classname)) {
+        while (uniqueParamsByName.containsKey(model.classname)) {
             model.classname = generateNextName(model.classname);
         }
 

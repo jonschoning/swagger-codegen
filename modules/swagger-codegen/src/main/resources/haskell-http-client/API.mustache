@@ -3,16 +3,16 @@
 Module : {{title}}.API
 -}
 
-{-# LANGUAGE RecordWildCards #-}
-
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE ConstraintKinds #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE InstanceSigs #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 {-# OPTIONS_GHC -fno-warn-name-shadowing -fno-warn-unused-binds -fno-warn-unused-imports #-}
 
 module {{title}}.API where
@@ -81,11 +81,11 @@ import qualified Prelude as P
 -- Note: Has 'Produces' instances, but no response schema
 -- {{/vendorExtensions.x-hasUnknownReturn}}
 {{operationId}} 
-  :: {{#vendorExtensions.x-hasBodyOrFormParam}}(Consumes {{{vendorExtensions.x-operationType}}} contentType{{#allParams}}{{#isBodyParam}}{{#required}}, MimeRender contentType {{dataType}}{{/required}}{{/isBodyParam}}{{/allParams}})
+  :: {{#vendorExtensions.x-hasBodyOrFormParam}}(Consumes {{{vendorExtensions.x-operationType}}} contentType{{#allParams}}{{#isBodyParam}}{{#required}}, MimeRender contentType {{#vendorExtensions.x-paramNameType}}{{{.}}}{{/vendorExtensions.x-paramNameType}}{{^vendorExtensions.x-paramNameType}}{{{dataType}}}{{/vendorExtensions.x-paramNameType}}{{/required}}{{/isBodyParam}}{{/allParams}})
   => contentType -- ^ request content-type ('MimeType')
-  -> {{/vendorExtensions.x-hasBodyOrFormParam}}{{#allParams}}{{#required}}{{dataType}} -- ^ "{{{paramName}}}"{{#description}} - {{/description}} {{{description}}}
+  -> {{/vendorExtensions.x-hasBodyOrFormParam}}{{#allParams}}{{#required}}{{#vendorExtensions.x-paramNameType}}{{{.}}}{{/vendorExtensions.x-paramNameType}}{{^vendorExtensions.x-paramNameType}}{{{dataType}}}{{/vendorExtensions.x-paramNameType}} -- ^ "{{{paramName}}}"{{#description}} - {{/description}} {{{description}}}
   -> {{/required}}{{/allParams}}{{requestType}} {{{vendorExtensions.x-operationType}}} {{#vendorExtensions.x-hasBodyOrFormParam}}contentType{{/vendorExtensions.x-hasBodyOrFormParam}}{{^vendorExtensions.x-hasBodyOrFormParam}}MimeNoContent{{/vendorExtensions.x-hasBodyOrFormParam}} {{vendorExtensions.x-returnType}}
-{{operationId}} {{#vendorExtensions.x-hasBodyOrFormParam}}_ {{/vendorExtensions.x-hasBodyOrFormParam}}{{#allParams}}{{#required}}{{{paramName}}} {{/required}}{{/allParams}}=
+{{operationId}} {{#vendorExtensions.x-hasBodyOrFormParam}}_ {{/vendorExtensions.x-hasBodyOrFormParam}}{{#allParams}}{{#required}}{{#isBodyParam}}{{{paramName}}}{{/isBodyParam}}{{^isBodyParam}}({{{vendorExtensions.x-paramNameType}}} {{{paramName}}}){{/isBodyParam}} {{/required}}{{/allParams}}=
   _mkRequest "{{httpMethod}}" [{{#pathParams}}{{#vendorExtensions.x-pathPrefix}}"{{.}}",{{/vendorExtensions.x-pathPrefix}}toPath {{{paramName}}}{{#hasMore}},{{/hasMore}}{{/pathParams}}{{#vendorExtensions.x-pathSuffix}}{{#vendorExtensions.x-hasPathParams}},{{/vendorExtensions.x-hasPathParams}}"{{.}}"{{/vendorExtensions.x-pathSuffix}}]{{#allParams}}{{#required}}
     {{#isHeaderParam}}`setHeader` {{>_headerColl}} ("{{{baseName}}}", {{{paramName}}}){{/isHeaderParam}}{{#isQueryParam}}`_setQuery` {{>_queryColl}} ("{{{baseName}}}", Just {{{paramName}}}){{/isQueryParam}}{{#isFormParam}}{{#isFile}}`_addMultiFormPart` NH.partFileSource "{{{baseName}}}" {{{paramName}}}{{/isFile}}{{^isFile}}{{#isMultipart}}`_addMultiFormPart` NH.partLBS "{{{baseName}}}" (mimeRender' MimeMultipartFormData {{{paramName}}}){{/isMultipart}}{{^isMultipart}}`_addForm` {{>_formColl}} ("{{{baseName}}}", {{{paramName}}}){{/isMultipart}}{{/isFile}}{{/isFormParam}}{{#isBodyParam}}`setBodyParam` {{{paramName}}}{{/isBodyParam}}{{/required}}{{/allParams}}{{#isDeprecated}}
 
@@ -94,7 +94,7 @@ import qualified Prelude as P
 data {{{vendorExtensions.x-operationType}}} {{#allParams}}{{#isBodyParam}}{{#description}}
 
 -- | /Body Param/ "{{{baseName}}}" - {{{description}}}{{/description}}
-instance HasBodyParam {{{vendorExtensions.x-operationType}}} {{{dataType}}}{{/isBodyParam}}{{/allParams}} {{#vendorExtensions.x-hasOptionalParams}}{{#allParams}}{{^isBodyParam}}{{^required}}{{#description}}
+instance HasBodyParam {{{vendorExtensions.x-operationType}}} {{#vendorExtensions.x-paramNameType}}{{{.}}}{{/vendorExtensions.x-paramNameType}}{{^vendorExtensions.x-paramNameType}}{{{dataType}}}{{/vendorExtensions.x-paramNameType}}{{/isBodyParam}}{{/allParams}} {{#vendorExtensions.x-hasOptionalParams}}{{#allParams}}{{^isBodyParam}}{{^required}}{{#description}}
 
 -- | /Optional Param/ "{{{baseName}}}" - {{{description}}}{{/description}}
 instance HasOptionalParam {{{vendorExtensions.x-operationType}}} {{{vendorExtensions.x-paramNameType}}} where
@@ -137,9 +137,9 @@ infixl 2 -&-
  
 -- * Optional Request Parameter Types
 
-{{#apiInfo}}{{#apis}}{{#operations}}{{#operation}}{{#vendorExtensions.x-hasOptionalParams}}{{#allParams}}{{^required}}{{^vendorExtensions.x-duplicate}}
-newtype {{{vendorExtensions.x-paramNameType}}} = {{{vendorExtensions.x-paramNameType}}} { un{{{vendorExtensions.x-paramNameType}}} :: {{{dataType}}} } deriving (P.Eq, P.Show)
-{{/vendorExtensions.x-duplicate}}{{/required}}{{/allParams}}{{/vendorExtensions.x-hasOptionalParams}}{{/operation}}{{/operations}}{{/apis}}{{/apiInfo}}
+{{#apiInfo}}{{#apis}}{{#operations}}{{#operation}}{{#allParams}}{{^vendorExtensions.x-duplicate}}{{#vendorExtensions.x-paramNameType}}
+newtype {{{vendorExtensions.x-paramNameType}}} = {{{.}}} { un{{{.}}} :: {{{dataType}}} } deriving (P.Eq, P.Show{{#isBodyParam}}, A.ToJSON{{/isBodyParam}})
+{{/vendorExtensions.x-paramNameType}}{{/vendorExtensions.x-duplicate}}{{/allParams}}{{/operation}}{{/operations}}{{/apis}}{{/apiInfo}}
 
 -- * {{requestType}}
 

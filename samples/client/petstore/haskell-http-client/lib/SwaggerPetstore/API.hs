@@ -12,16 +12,16 @@
 Module : SwaggerPetstore.API
 -}
 
-{-# LANGUAGE RecordWildCards #-}
-
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE ConstraintKinds #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE InstanceSigs #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 {-# OPTIONS_GHC -fno-warn-name-shadowing -fno-warn-unused-binds -fno-warn-unused-imports #-}
 
 module SwaggerPetstore.API where
@@ -224,12 +224,12 @@ instance Produces TestClientModel MimeJSON
 testEndpointParameters 
   :: (Consumes TestEndpointParameters contentType)
   => contentType -- ^ request content-type ('MimeType')
-  -> Double -- ^ "number" -  None
-  -> Double -- ^ "double" -  None
-  -> Text -- ^ "patternWithoutDelimiter" -  None
-  -> ByteArray -- ^ "byte" -  None
+  -> Number -- ^ "number" -  None
+  -> ParamDouble -- ^ "double" -  None
+  -> PatternWithoutDelimiter -- ^ "patternWithoutDelimiter" -  None
+  -> Byte -- ^ "byte" -  None
   -> SwaggerPetstoreRequest TestEndpointParameters contentType res
-testEndpointParameters _ number double patternWithoutDelimiter byte =
+testEndpointParameters _ (Number number) (ParamDouble double) (PatternWithoutDelimiter patternWithoutDelimiter) (Byte byte) =
   _mkRequest "POST" ["/fake"]
     `_addForm` toForm ("number", number)
     `_addForm` toForm ("double", double)
@@ -376,10 +376,10 @@ instance Produces TestEnumParameters MimeAny
 testJsonFormData 
   :: (Consumes TestJsonFormData contentType)
   => contentType -- ^ request content-type ('MimeType')
-  -> Text -- ^ "param" -  field1
-  -> Text -- ^ "param2" -  field2
+  -> Param -- ^ "param" -  field1
+  -> Param2 -- ^ "param2" -  field2
   -> SwaggerPetstoreRequest TestJsonFormData contentType NoContent
-testJsonFormData _ param param2 =
+testJsonFormData _ (Param param) (Param2 param2) =
   _mkRequest "GET" ["/fake/jsonFormData"]
     `_addForm` toForm ("param", param)
     `_addForm` toForm ("param2", param2)
@@ -473,9 +473,9 @@ instance Produces AddPet MimeJSON
 -- Note: Has 'Produces' instances, but no response schema
 -- 
 deletePet 
-  :: Integer -- ^ "petId" -  Pet id to delete
+  :: PetId -- ^ "petId" -  Pet id to delete
   -> SwaggerPetstoreRequest DeletePet MimeNoContent res
-deletePet petId =
+deletePet (PetId petId) =
   _mkRequest "DELETE" ["/pet/",toPath petId]
     
 
@@ -500,9 +500,9 @@ instance Produces DeletePet MimeJSON
 -- AuthMethod: petstore_auth
 -- 
 findPetsByStatus 
-  :: [Text] -- ^ "status" -  Status values that need to be considered for filter
+  :: Status -- ^ "status" -  Status values that need to be considered for filter
   -> SwaggerPetstoreRequest FindPetsByStatus MimeNoContent [Pet]
-findPetsByStatus status =
+findPetsByStatus (Status status) =
   _mkRequest "GET" ["/pet/findByStatus"]
     `_setQuery` toQueryColl CommaSeparated ("status", Just status)
 
@@ -524,9 +524,9 @@ instance Produces FindPetsByStatus MimeJSON
 -- AuthMethod: petstore_auth
 -- 
 findPetsByTags 
-  :: [Text] -- ^ "tags" -  Tags to filter by
+  :: Tags -- ^ "tags" -  Tags to filter by
   -> SwaggerPetstoreRequest FindPetsByTags MimeNoContent [Pet]
-findPetsByTags tags =
+findPetsByTags (Tags tags) =
   _mkRequest "GET" ["/pet/findByTags"]
     `_setQuery` toQueryColl CommaSeparated ("tags", Just tags)
 
@@ -550,9 +550,9 @@ instance Produces FindPetsByTags MimeJSON
 -- AuthMethod: api_key
 -- 
 getPetById 
-  :: Integer -- ^ "petId" -  ID of pet to return
+  :: PetId -- ^ "petId" -  ID of pet to return
   -> SwaggerPetstoreRequest GetPetById MimeNoContent Pet
-getPetById petId =
+getPetById (PetId petId) =
   _mkRequest "GET" ["/pet/",toPath petId]
     
 
@@ -615,9 +615,9 @@ instance Produces UpdatePet MimeJSON
 updatePetWithForm 
   :: (Consumes UpdatePetWithForm contentType)
   => contentType -- ^ request content-type ('MimeType')
-  -> Integer -- ^ "petId" -  ID of pet that needs to be updated
+  -> PetId -- ^ "petId" -  ID of pet that needs to be updated
   -> SwaggerPetstoreRequest UpdatePetWithForm contentType res
-updatePetWithForm _ petId =
+updatePetWithForm _ (PetId petId) =
   _mkRequest "POST" ["/pet/",toPath petId]
     
 
@@ -629,8 +629,8 @@ instance HasOptionalParam UpdatePetWithForm Name2 where
     req `_addForm` toForm ("name", xs)
 
 -- | /Optional Param/ "status" - Updated status of the pet
-instance HasOptionalParam UpdatePetWithForm Status where
-  applyOptionalParam req (Status xs) =
+instance HasOptionalParam UpdatePetWithForm StatusText where
+  applyOptionalParam req (StatusText xs) =
     req `_addForm` toForm ("status", xs)
 
 -- | @application/x-www-form-urlencoded@
@@ -655,9 +655,9 @@ instance Produces UpdatePetWithForm MimeJSON
 uploadFile 
   :: (Consumes UploadFile contentType)
   => contentType -- ^ request content-type ('MimeType')
-  -> Integer -- ^ "petId" -  ID of pet to update
+  -> PetId -- ^ "petId" -  ID of pet to update
   -> SwaggerPetstoreRequest UploadFile contentType ApiResponse
-uploadFile _ petId =
+uploadFile _ (PetId petId) =
   _mkRequest "POST" ["/pet/",toPath petId,"/uploadImage"]
     
 
@@ -693,9 +693,9 @@ instance Produces UploadFile MimeJSON
 -- Note: Has 'Produces' instances, but no response schema
 -- 
 deleteOrder 
-  :: Text -- ^ "orderId" -  ID of the order that needs to be deleted
+  :: OrderIdText -- ^ "orderId" -  ID of the order that needs to be deleted
   -> SwaggerPetstoreRequest DeleteOrder MimeNoContent res
-deleteOrder orderId =
+deleteOrder (OrderIdText orderId) =
   _mkRequest "DELETE" ["/store/order/",toPath orderId]
     
 
@@ -735,9 +735,9 @@ instance Produces GetInventory MimeJSON
 -- For valid response try integer IDs with value <= 5 or > 10. Other values will generated exceptions
 -- 
 getOrderById 
-  :: Integer -- ^ "orderId" -  ID of pet that needs to be fetched
+  :: OrderId -- ^ "orderId" -  ID of pet that needs to be fetched
   -> SwaggerPetstoreRequest GetOrderById MimeNoContent Order
-getOrderById orderId =
+getOrderById (OrderId orderId) =
   _mkRequest "GET" ["/store/order/",toPath orderId]
     
 
@@ -817,9 +817,9 @@ instance Produces CreateUser MimeJSON
 -- Note: Has 'Produces' instances, but no response schema
 -- 
 createUsersWithArrayInput 
-  :: (Consumes CreateUsersWithArrayInput contentType, MimeRender contentType [User])
+  :: (Consumes CreateUsersWithArrayInput contentType, MimeRender contentType Body)
   => contentType -- ^ request content-type ('MimeType')
-  -> [User] -- ^ "body" -  List of user object
+  -> Body -- ^ "body" -  List of user object
   -> SwaggerPetstoreRequest CreateUsersWithArrayInput contentType res
 createUsersWithArrayInput _ body =
   _mkRequest "POST" ["/user/createWithArray"]
@@ -828,7 +828,7 @@ createUsersWithArrayInput _ body =
 data CreateUsersWithArrayInput 
 
 -- | /Body Param/ "body" - List of user object
-instance HasBodyParam CreateUsersWithArrayInput [User] 
+instance HasBodyParam CreateUsersWithArrayInput Body 
 -- | @application/xml@
 instance Produces CreateUsersWithArrayInput MimeXML
 -- | @application/json@
@@ -846,9 +846,9 @@ instance Produces CreateUsersWithArrayInput MimeJSON
 -- Note: Has 'Produces' instances, but no response schema
 -- 
 createUsersWithListInput 
-  :: (Consumes CreateUsersWithListInput contentType, MimeRender contentType [User])
+  :: (Consumes CreateUsersWithListInput contentType, MimeRender contentType Body)
   => contentType -- ^ request content-type ('MimeType')
-  -> [User] -- ^ "body" -  List of user object
+  -> Body -- ^ "body" -  List of user object
   -> SwaggerPetstoreRequest CreateUsersWithListInput contentType res
 createUsersWithListInput _ body =
   _mkRequest "POST" ["/user/createWithList"]
@@ -857,7 +857,7 @@ createUsersWithListInput _ body =
 data CreateUsersWithListInput 
 
 -- | /Body Param/ "body" - List of user object
-instance HasBodyParam CreateUsersWithListInput [User] 
+instance HasBodyParam CreateUsersWithListInput Body 
 -- | @application/xml@
 instance Produces CreateUsersWithListInput MimeXML
 -- | @application/json@
@@ -875,9 +875,9 @@ instance Produces CreateUsersWithListInput MimeJSON
 -- Note: Has 'Produces' instances, but no response schema
 -- 
 deleteUser 
-  :: Text -- ^ "username" -  The name that needs to be deleted
+  :: Username -- ^ "username" -  The name that needs to be deleted
   -> SwaggerPetstoreRequest DeleteUser MimeNoContent res
-deleteUser username =
+deleteUser (Username username) =
   _mkRequest "DELETE" ["/user/",toPath username]
     
 
@@ -897,9 +897,9 @@ instance Produces DeleteUser MimeJSON
 -- 
 -- 
 getUserByName 
-  :: Text -- ^ "username" -  The name that needs to be fetched. Use user1 for testing. 
+  :: Username -- ^ "username" -  The name that needs to be fetched. Use user1 for testing. 
   -> SwaggerPetstoreRequest GetUserByName MimeNoContent User
-getUserByName username =
+getUserByName (Username username) =
   _mkRequest "GET" ["/user/",toPath username]
     
 
@@ -919,10 +919,10 @@ instance Produces GetUserByName MimeJSON
 -- 
 -- 
 loginUser 
-  :: Text -- ^ "username" -  The user name for login
-  -> Text -- ^ "password" -  The password for login in clear text
+  :: Username -- ^ "username" -  The user name for login
+  -> Password -- ^ "password" -  The password for login in clear text
   -> SwaggerPetstoreRequest LoginUser MimeNoContent Text
-loginUser username password =
+loginUser (Username username) (Password password) =
   _mkRequest "GET" ["/user/login"]
     `_setQuery` toQuery ("username", Just username)
     `_setQuery` toQuery ("password", Just password)
@@ -969,10 +969,10 @@ instance Produces LogoutUser MimeJSON
 updateUser 
   :: (Consumes UpdateUser contentType, MimeRender contentType User)
   => contentType -- ^ request content-type ('MimeType')
-  -> Text -- ^ "username" -  name that need to be deleted
+  -> Username -- ^ "username" -  name that need to be deleted
   -> User -- ^ "body" -  Updated user object
   -> SwaggerPetstoreRequest UpdateUser contentType res
-updateUser _ username body =
+updateUser _ (Username username) body =
   _mkRequest "PUT" ["/user/",toPath username]
     
     `setBodyParam` body
@@ -1017,13 +1017,13 @@ infixl 2 -&-
 -- * Optional Request Parameter Types
 
 
-newtype BodyOuterBoolean = BodyOuterBoolean { unBodyOuterBoolean :: OuterBoolean } deriving (P.Eq, P.Show)
+newtype Number = Number { unNumber :: Double } deriving (P.Eq, P.Show)
 
-newtype BodyOuterComposite = BodyOuterComposite { unBodyOuterComposite :: OuterComposite } deriving (P.Eq, P.Show)
+newtype ParamDouble = ParamDouble { unParamDouble :: Double } deriving (P.Eq, P.Show)
 
-newtype Body = Body { unBody :: OuterNumber } deriving (P.Eq, P.Show)
+newtype PatternWithoutDelimiter = PatternWithoutDelimiter { unPatternWithoutDelimiter :: Text } deriving (P.Eq, P.Show)
 
-newtype BodyOuterString = BodyOuterString { unBodyOuterString :: OuterString } deriving (P.Eq, P.Show)
+newtype Byte = Byte { unByte :: ByteArray } deriving (P.Eq, P.Show)
 
 newtype ParamInteger = ParamInteger { unParamInteger :: Int } deriving (P.Eq, P.Show)
 
@@ -1040,8 +1040,6 @@ newtype ParamBinary = ParamBinary { unParamBinary :: Binary } deriving (P.Eq, P.
 newtype ParamDate = ParamDate { unParamDate :: Date } deriving (P.Eq, P.Show)
 
 newtype ParamDateTime = ParamDateTime { unParamDateTime :: DateTime } deriving (P.Eq, P.Show)
-
-newtype Password = Password { unPassword :: Text } deriving (P.Eq, P.Show)
 
 newtype Callback = Callback { unCallback :: Text } deriving (P.Eq, P.Show)
 
@@ -1061,15 +1059,35 @@ newtype EnumQueryInteger = EnumQueryInteger { unEnumQueryInteger :: Int } derivi
 
 newtype EnumQueryDouble = EnumQueryDouble { unEnumQueryDouble :: Double } deriving (P.Eq, P.Show)
 
+newtype Param = Param { unParam :: Text } deriving (P.Eq, P.Show)
+
+newtype Param2 = Param2 { unParam2 :: Text } deriving (P.Eq, P.Show)
+
 newtype ApiKey = ApiKey { unApiKey :: Text } deriving (P.Eq, P.Show)
+
+newtype Status = Status { unStatus :: [Text] } deriving (P.Eq, P.Show)
+
+newtype Tags = Tags { unTags :: [Text] } deriving (P.Eq, P.Show)
+
+newtype PetId = PetId { unPetId :: Integer } deriving (P.Eq, P.Show)
 
 newtype Name2 = Name2 { unName2 :: Text } deriving (P.Eq, P.Show)
 
-newtype Status = Status { unStatus :: Text } deriving (P.Eq, P.Show)
+newtype StatusText = StatusText { unStatusText :: Text } deriving (P.Eq, P.Show)
 
 newtype AdditionalMetadata = AdditionalMetadata { unAdditionalMetadata :: Text } deriving (P.Eq, P.Show)
 
 newtype File = File { unFile :: FilePath } deriving (P.Eq, P.Show)
+
+newtype OrderIdText = OrderIdText { unOrderIdText :: Text } deriving (P.Eq, P.Show)
+
+newtype OrderId = OrderId { unOrderId :: Integer } deriving (P.Eq, P.Show)
+
+newtype Body = Body { unBody :: [User] } deriving (P.Eq, P.Show, A.ToJSON)
+
+newtype Username = Username { unUsername :: Text } deriving (P.Eq, P.Show)
+
+newtype Password = Password { unPassword :: Text } deriving (P.Eq, P.Show)
 
 
 -- * SwaggerPetstoreRequest
