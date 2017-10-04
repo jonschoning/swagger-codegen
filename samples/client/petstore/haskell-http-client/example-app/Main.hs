@@ -26,9 +26,16 @@ main = do
 
   config0 <- S.withStdoutLogging =<< S.newConfig 
 
-  let config = case lookup "HOST" env of
-        Just h -> config0 { S.configHost = BCL.pack h }
-        _ -> config0
+  let config =
+        -- configure host
+        case lookup "HOST" env of
+            Just h -> config0 { S.configHost = BCL.pack h }
+            _ -> config0
+        -- each configured auth method is only applied to requests that specify them
+        `S.addAuthMethod` S.AuthBasicHttpBasicTest "username" "password"
+        `S.addAuthMethod` S.AuthApiKeyApiKey "secret-key"
+        `S.addAuthMethod` S.AuthApiKeyApiKeyQuery "secret-key"
+        `S.addAuthMethod` S.AuthOAuthPetstoreAuth "secret-key"
 
   putStrLn "******** CONFIG ********"
   putStrLn (show config)
@@ -155,7 +162,7 @@ runStore mgr config = do
 
   -- we can set arbitrary headers with setHeader
   let getInventoryRequest = S.getInventory
-        `S.setHeader` [("api_key","special-key")] 
+        `S.setHeader` [("random-header","random-value")] 
   getInventoryRequestRequestResult <- S.dispatchMime mgr config getInventoryRequest S.MimeJSON
   mapM_ (\r -> putStrLn $ "getInventoryRequest: found " <> (show . length) r <> " results") getInventoryRequestRequestResult
 

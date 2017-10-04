@@ -22,6 +22,7 @@ Module : SwaggerPetstore.API
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE ExistentialQuantification #-}
 {-# OPTIONS_GHC -fno-warn-name-shadowing -fno-warn-unused-binds -fno-warn-unused-imports #-}
 
 module SwaggerPetstore.API where
@@ -40,6 +41,7 @@ import qualified Data.ByteString.Lazy as BL
 import qualified Data.ByteString.Builder as BB
 import qualified Data.ByteString.Char8 as BC
 import qualified Data.ByteString.Lazy.Char8 as BCL
+import qualified Data.ByteString.Base64 as B64
 
 import qualified Network.HTTP.Client.MultipartFormData as NH
 import qualified Network.HTTP.Media as ME
@@ -49,7 +51,7 @@ import qualified Web.HttpApiData as WH
 import qualified Web.FormUrlEncoded as WH
 
 import qualified Data.CaseInsensitive as CI
-import qualified Data.Data as P (Typeable)
+import qualified Data.Data as P (Typeable, TypeRep, typeOf, typeRep)
 import qualified Data.Foldable as P
 import qualified Data.Map as Map
 import qualified Data.Set as Set
@@ -217,7 +219,7 @@ instance Produces TestClientModel MimeJSON
 -- 
 -- Fake endpoint for testing various parameters 假端點 偽のエンドポイント 가짜 엔드 포인트 
 -- 
--- AuthMethod: http_basic_test
+-- AuthMethod: 'AuthBasicHttpBasicTest'
 -- 
 -- Note: Has 'Produces' instances, but no response schema
 -- 
@@ -231,62 +233,63 @@ testEndpointParameters
   -> SwaggerPetstoreRequest TestEndpointParameters contentType res
 testEndpointParameters _ (Number number) (ParamDouble double) (PatternWithoutDelimiter patternWithoutDelimiter) (Byte byte) =
   _mkRequest "POST" ["/fake"]
-    `_addForm` toForm ("number", number)
-    `_addForm` toForm ("double", double)
-    `_addForm` toForm ("pattern_without_delimiter", patternWithoutDelimiter)
-    `_addForm` toForm ("byte", byte)
+    `addForm` toForm ("number", number)
+    `addForm` toForm ("double", double)
+    `addForm` toForm ("pattern_without_delimiter", patternWithoutDelimiter)
+    `addForm` toForm ("byte", byte)
+    `_hasAuthType` (P.Proxy :: P.Proxy AuthBasicHttpBasicTest)
 
 data TestEndpointParameters  
 
 -- | /Optional Param/ "integer" - None
 instance HasOptionalParam TestEndpointParameters ParamInteger where
   applyOptionalParam req (ParamInteger xs) =
-    req `_addForm` toForm ("integer", xs)
+    req `addForm` toForm ("integer", xs)
 
 -- | /Optional Param/ "int32" - None
 instance HasOptionalParam TestEndpointParameters Int32 where
   applyOptionalParam req (Int32 xs) =
-    req `_addForm` toForm ("int32", xs)
+    req `addForm` toForm ("int32", xs)
 
 -- | /Optional Param/ "int64" - None
 instance HasOptionalParam TestEndpointParameters Int64 where
   applyOptionalParam req (Int64 xs) =
-    req `_addForm` toForm ("int64", xs)
+    req `addForm` toForm ("int64", xs)
 
 -- | /Optional Param/ "float" - None
 instance HasOptionalParam TestEndpointParameters ParamFloat where
   applyOptionalParam req (ParamFloat xs) =
-    req `_addForm` toForm ("float", xs)
+    req `addForm` toForm ("float", xs)
 
 -- | /Optional Param/ "string" - None
 instance HasOptionalParam TestEndpointParameters ParamString where
   applyOptionalParam req (ParamString xs) =
-    req `_addForm` toForm ("string", xs)
+    req `addForm` toForm ("string", xs)
 
 -- | /Optional Param/ "binary" - None
 instance HasOptionalParam TestEndpointParameters ParamBinary where
   applyOptionalParam req (ParamBinary xs) =
-    req `_addForm` toForm ("binary", xs)
+    req `addForm` toForm ("binary", xs)
 
 -- | /Optional Param/ "date" - None
 instance HasOptionalParam TestEndpointParameters ParamDate where
   applyOptionalParam req (ParamDate xs) =
-    req `_addForm` toForm ("date", xs)
+    req `addForm` toForm ("date", xs)
 
 -- | /Optional Param/ "dateTime" - None
 instance HasOptionalParam TestEndpointParameters ParamDateTime where
   applyOptionalParam req (ParamDateTime xs) =
-    req `_addForm` toForm ("dateTime", xs)
+    req `addForm` toForm ("dateTime", xs)
 
 -- | /Optional Param/ "password" - None
 instance HasOptionalParam TestEndpointParameters Password where
   applyOptionalParam req (Password xs) =
-    req `_addForm` toForm ("password", xs)
+    req `addForm` toForm ("password", xs)
 
 -- | /Optional Param/ "callback" - None
 instance HasOptionalParam TestEndpointParameters Callback where
   applyOptionalParam req (Callback xs) =
-    req `_addForm` toForm ("callback", xs)
+    req `addForm` toForm ("callback", xs)
 
 -- | @application/xml; charset=utf-8@
 instance Consumes TestEndpointParameters MimeXmlCharsetutf8
@@ -321,12 +324,12 @@ data TestEnumParameters
 -- | /Optional Param/ "enum_form_string_array" - Form parameter enum test (string array)
 instance HasOptionalParam TestEnumParameters EnumFormStringArray where
   applyOptionalParam req (EnumFormStringArray xs) =
-    req `_addForm` toFormColl CommaSeparated ("enum_form_string_array", xs)
+    req `addForm` toFormColl CommaSeparated ("enum_form_string_array", xs)
 
 -- | /Optional Param/ "enum_form_string" - Form parameter enum test (string)
 instance HasOptionalParam TestEnumParameters EnumFormString where
   applyOptionalParam req (EnumFormString xs) =
-    req `_addForm` toForm ("enum_form_string", xs)
+    req `addForm` toForm ("enum_form_string", xs)
 
 -- | /Optional Param/ "enum_header_string_array" - Header parameter enum test (string array)
 instance HasOptionalParam TestEnumParameters EnumHeaderStringArray where
@@ -341,22 +344,22 @@ instance HasOptionalParam TestEnumParameters EnumHeaderString where
 -- | /Optional Param/ "enum_query_string_array" - Query parameter enum test (string array)
 instance HasOptionalParam TestEnumParameters EnumQueryStringArray where
   applyOptionalParam req (EnumQueryStringArray xs) =
-    req `_setQuery` toQueryColl CommaSeparated ("enum_query_string_array", Just xs)
+    req `setQuery` toQueryColl CommaSeparated ("enum_query_string_array", Just xs)
 
 -- | /Optional Param/ "enum_query_string" - Query parameter enum test (string)
 instance HasOptionalParam TestEnumParameters EnumQueryString where
   applyOptionalParam req (EnumQueryString xs) =
-    req `_setQuery` toQuery ("enum_query_string", Just xs)
+    req `setQuery` toQuery ("enum_query_string", Just xs)
 
 -- | /Optional Param/ "enum_query_integer" - Query parameter enum test (double)
 instance HasOptionalParam TestEnumParameters EnumQueryInteger where
   applyOptionalParam req (EnumQueryInteger xs) =
-    req `_setQuery` toQuery ("enum_query_integer", Just xs)
+    req `setQuery` toQuery ("enum_query_integer", Just xs)
 
 -- | /Optional Param/ "enum_query_double" - Query parameter enum test (double)
 instance HasOptionalParam TestEnumParameters EnumQueryDouble where
   applyOptionalParam req (EnumQueryDouble xs) =
-    req `_addForm` toForm ("enum_query_double", xs)
+    req `addForm` toForm ("enum_query_double", xs)
 
 -- | @*/*@
 instance Consumes TestEnumParameters MimeAny
@@ -381,8 +384,8 @@ testJsonFormData
   -> SwaggerPetstoreRequest TestJsonFormData contentType NoContent
 testJsonFormData _ (Param param) (Param2 param2) =
   _mkRequest "GET" ["/fake/jsonFormData"]
-    `_addForm` toForm ("param", param)
-    `_addForm` toForm ("param2", param2)
+    `addForm` toForm ("param", param)
+    `addForm` toForm ("param2", param2)
 
 data TestJsonFormData  
 
@@ -398,7 +401,7 @@ instance Consumes TestJsonFormData MimeJSON
 -- 
 -- To test class name in snake case
 -- 
--- AuthMethod: api_key_query
+-- AuthMethod: 'AuthApiKeyApiKeyQuery'
 -- 
 testClassname 
   :: (Consumes TestClassname contentType, MimeRender contentType Client)
@@ -408,6 +411,7 @@ testClassname
 testClassname _ body =
   _mkRequest "PATCH" ["/fake_classname_test"]
     `setBodyParam` body
+    `_hasAuthType` (P.Proxy :: P.Proxy AuthApiKeyApiKeyQuery)
 
 data TestClassname 
 
@@ -431,7 +435,7 @@ instance Produces TestClassname MimeJSON
 -- 
 -- 
 -- 
--- AuthMethod: petstore_auth
+-- AuthMethod: 'AuthOAuthPetstoreAuth'
 -- 
 -- Note: Has 'Produces' instances, but no response schema
 -- 
@@ -443,6 +447,7 @@ addPet
 addPet _ body =
   _mkRequest "POST" ["/pet"]
     `setBodyParam` body
+    `_hasAuthType` (P.Proxy :: P.Proxy AuthOAuthPetstoreAuth)
 
 data AddPet 
 
@@ -468,7 +473,7 @@ instance Produces AddPet MimeJSON
 -- 
 -- 
 -- 
--- AuthMethod: petstore_auth
+-- AuthMethod: 'AuthOAuthPetstoreAuth'
 -- 
 -- Note: Has 'Produces' instances, but no response schema
 -- 
@@ -478,6 +483,7 @@ deletePet
 deletePet (PetId petId) =
   _mkRequest "DELETE" ["/pet/",toPath petId]
     
+    `_hasAuthType` (P.Proxy :: P.Proxy AuthOAuthPetstoreAuth)
 
 data DeletePet  
 instance HasOptionalParam DeletePet ApiKey where
@@ -497,14 +503,15 @@ instance Produces DeletePet MimeJSON
 -- 
 -- Multiple status values can be provided with comma separated strings
 -- 
--- AuthMethod: petstore_auth
+-- AuthMethod: 'AuthOAuthPetstoreAuth'
 -- 
 findPetsByStatus 
   :: Status -- ^ "status" -  Status values that need to be considered for filter
   -> SwaggerPetstoreRequest FindPetsByStatus MimeNoContent [Pet]
 findPetsByStatus (Status status) =
   _mkRequest "GET" ["/pet/findByStatus"]
-    `_setQuery` toQueryColl CommaSeparated ("status", Just status)
+    `setQuery` toQueryColl CommaSeparated ("status", Just status)
+    `_hasAuthType` (P.Proxy :: P.Proxy AuthOAuthPetstoreAuth)
 
 data FindPetsByStatus  
 -- | @application/xml@
@@ -521,14 +528,15 @@ instance Produces FindPetsByStatus MimeJSON
 -- 
 -- Multiple tags can be provided with comma separated strings. Use tag1, tag2, tag3 for testing.
 -- 
--- AuthMethod: petstore_auth
+-- AuthMethod: 'AuthOAuthPetstoreAuth'
 -- 
 findPetsByTags 
   :: Tags -- ^ "tags" -  Tags to filter by
   -> SwaggerPetstoreRequest FindPetsByTags MimeNoContent [Pet]
 findPetsByTags (Tags tags) =
   _mkRequest "GET" ["/pet/findByTags"]
-    `_setQuery` toQueryColl CommaSeparated ("tags", Just tags)
+    `setQuery` toQueryColl CommaSeparated ("tags", Just tags)
+    `_hasAuthType` (P.Proxy :: P.Proxy AuthOAuthPetstoreAuth)
 
 {-# DEPRECATED findPetsByTags "" #-}
 
@@ -547,7 +555,7 @@ instance Produces FindPetsByTags MimeJSON
 -- 
 -- Returns a single pet
 -- 
--- AuthMethod: api_key
+-- AuthMethod: 'AuthApiKeyApiKey'
 -- 
 getPetById 
   :: PetId -- ^ "petId" -  ID of pet to return
@@ -555,6 +563,7 @@ getPetById
 getPetById (PetId petId) =
   _mkRequest "GET" ["/pet/",toPath petId]
     
+    `_hasAuthType` (P.Proxy :: P.Proxy AuthApiKeyApiKey)
 
 data GetPetById  
 -- | @application/xml@
@@ -571,7 +580,7 @@ instance Produces GetPetById MimeJSON
 -- 
 -- 
 -- 
--- AuthMethod: petstore_auth
+-- AuthMethod: 'AuthOAuthPetstoreAuth'
 -- 
 -- Note: Has 'Produces' instances, but no response schema
 -- 
@@ -583,6 +592,7 @@ updatePet
 updatePet _ body =
   _mkRequest "PUT" ["/pet"]
     `setBodyParam` body
+    `_hasAuthType` (P.Proxy :: P.Proxy AuthOAuthPetstoreAuth)
 
 data UpdatePet 
 
@@ -608,7 +618,7 @@ instance Produces UpdatePet MimeJSON
 -- 
 -- 
 -- 
--- AuthMethod: petstore_auth
+-- AuthMethod: 'AuthOAuthPetstoreAuth'
 -- 
 -- Note: Has 'Produces' instances, but no response schema
 -- 
@@ -620,18 +630,19 @@ updatePetWithForm
 updatePetWithForm _ (PetId petId) =
   _mkRequest "POST" ["/pet/",toPath petId]
     
+    `_hasAuthType` (P.Proxy :: P.Proxy AuthOAuthPetstoreAuth)
 
 data UpdatePetWithForm  
 
 -- | /Optional Param/ "name" - Updated name of the pet
 instance HasOptionalParam UpdatePetWithForm Name2 where
   applyOptionalParam req (Name2 xs) =
-    req `_addForm` toForm ("name", xs)
+    req `addForm` toForm ("name", xs)
 
 -- | /Optional Param/ "status" - Updated status of the pet
 instance HasOptionalParam UpdatePetWithForm StatusText where
   applyOptionalParam req (StatusText xs) =
-    req `_addForm` toForm ("status", xs)
+    req `addForm` toForm ("status", xs)
 
 -- | @application/x-www-form-urlencoded@
 instance Consumes UpdatePetWithForm MimeFormUrlEncoded
@@ -650,7 +661,7 @@ instance Produces UpdatePetWithForm MimeJSON
 -- 
 -- 
 -- 
--- AuthMethod: petstore_auth
+-- AuthMethod: 'AuthOAuthPetstoreAuth'
 -- 
 uploadFile 
   :: (Consumes UploadFile contentType)
@@ -660,6 +671,7 @@ uploadFile
 uploadFile _ (PetId petId) =
   _mkRequest "POST" ["/pet/",toPath petId,"/uploadImage"]
     
+    `_hasAuthType` (P.Proxy :: P.Proxy AuthOAuthPetstoreAuth)
 
 data UploadFile  
 
@@ -714,12 +726,13 @@ instance Produces DeleteOrder MimeJSON
 -- 
 -- Returns a map of status codes to quantities
 -- 
--- AuthMethod: api_key
+-- AuthMethod: 'AuthApiKeyApiKey'
 -- 
 getInventory 
   :: SwaggerPetstoreRequest GetInventory MimeNoContent ((Map.Map String Int))
 getInventory =
   _mkRequest "GET" ["/store/inventory"]
+    `_hasAuthType` (P.Proxy :: P.Proxy AuthApiKeyApiKey)
 
 data GetInventory  
 -- | @application/json@
@@ -924,8 +937,8 @@ loginUser
   -> SwaggerPetstoreRequest LoginUser MimeNoContent Text
 loginUser (Username username) (Password password) =
   _mkRequest "GET" ["/user/login"]
-    `_setQuery` toQuery ("username", Just username)
-    `_setQuery` toQuery ("password", Just password)
+    `setQuery` toQuery ("username", Just username)
+    `setQuery` toQuery ("password", Just password)
 
 data LoginUser  
 -- | @application/xml@
@@ -1014,79 +1027,115 @@ class HasOptionalParam req param where
 
 infixl 2 -&-
  
--- * Optional Request Parameter Types
+-- * Request Parameter Types
 
 
+-- | Number
 newtype Number = Number { unNumber :: Double } deriving (P.Eq, P.Show)
 
+-- | ParamDouble
 newtype ParamDouble = ParamDouble { unParamDouble :: Double } deriving (P.Eq, P.Show)
 
+-- | PatternWithoutDelimiter
 newtype PatternWithoutDelimiter = PatternWithoutDelimiter { unPatternWithoutDelimiter :: Text } deriving (P.Eq, P.Show)
 
+-- | Byte
 newtype Byte = Byte { unByte :: ByteArray } deriving (P.Eq, P.Show)
 
+-- | ParamInteger
 newtype ParamInteger = ParamInteger { unParamInteger :: Int } deriving (P.Eq, P.Show)
 
+-- | Int32
 newtype Int32 = Int32 { unInt32 :: Int } deriving (P.Eq, P.Show)
 
+-- | Int64
 newtype Int64 = Int64 { unInt64 :: Integer } deriving (P.Eq, P.Show)
 
+-- | ParamFloat
 newtype ParamFloat = ParamFloat { unParamFloat :: Float } deriving (P.Eq, P.Show)
 
+-- | ParamString
 newtype ParamString = ParamString { unParamString :: Text } deriving (P.Eq, P.Show)
 
+-- | ParamBinary
 newtype ParamBinary = ParamBinary { unParamBinary :: Binary } deriving (P.Eq, P.Show)
 
+-- | ParamDate
 newtype ParamDate = ParamDate { unParamDate :: Date } deriving (P.Eq, P.Show)
 
+-- | ParamDateTime
 newtype ParamDateTime = ParamDateTime { unParamDateTime :: DateTime } deriving (P.Eq, P.Show)
 
+-- | Callback
 newtype Callback = Callback { unCallback :: Text } deriving (P.Eq, P.Show)
 
+-- | EnumFormStringArray
 newtype EnumFormStringArray = EnumFormStringArray { unEnumFormStringArray :: [Text] } deriving (P.Eq, P.Show)
 
+-- | EnumFormString
 newtype EnumFormString = EnumFormString { unEnumFormString :: Text } deriving (P.Eq, P.Show)
 
+-- | EnumHeaderStringArray
 newtype EnumHeaderStringArray = EnumHeaderStringArray { unEnumHeaderStringArray :: [Text] } deriving (P.Eq, P.Show)
 
+-- | EnumHeaderString
 newtype EnumHeaderString = EnumHeaderString { unEnumHeaderString :: Text } deriving (P.Eq, P.Show)
 
+-- | EnumQueryStringArray
 newtype EnumQueryStringArray = EnumQueryStringArray { unEnumQueryStringArray :: [Text] } deriving (P.Eq, P.Show)
 
+-- | EnumQueryString
 newtype EnumQueryString = EnumQueryString { unEnumQueryString :: Text } deriving (P.Eq, P.Show)
 
+-- | EnumQueryInteger
 newtype EnumQueryInteger = EnumQueryInteger { unEnumQueryInteger :: Int } deriving (P.Eq, P.Show)
 
+-- | EnumQueryDouble
 newtype EnumQueryDouble = EnumQueryDouble { unEnumQueryDouble :: Double } deriving (P.Eq, P.Show)
 
+-- | Param
 newtype Param = Param { unParam :: Text } deriving (P.Eq, P.Show)
 
+-- | Param2
 newtype Param2 = Param2 { unParam2 :: Text } deriving (P.Eq, P.Show)
 
+-- | ApiKey
 newtype ApiKey = ApiKey { unApiKey :: Text } deriving (P.Eq, P.Show)
 
+-- | Status
 newtype Status = Status { unStatus :: [Text] } deriving (P.Eq, P.Show)
 
+-- | Tags
 newtype Tags = Tags { unTags :: [Text] } deriving (P.Eq, P.Show)
 
+-- | PetId
 newtype PetId = PetId { unPetId :: Integer } deriving (P.Eq, P.Show)
 
+-- | Name2
 newtype Name2 = Name2 { unName2 :: Text } deriving (P.Eq, P.Show)
 
+-- | StatusText
 newtype StatusText = StatusText { unStatusText :: Text } deriving (P.Eq, P.Show)
 
+-- | AdditionalMetadata
 newtype AdditionalMetadata = AdditionalMetadata { unAdditionalMetadata :: Text } deriving (P.Eq, P.Show)
 
+-- | File
 newtype File = File { unFile :: FilePath } deriving (P.Eq, P.Show)
 
+-- | OrderIdText
 newtype OrderIdText = OrderIdText { unOrderIdText :: Text } deriving (P.Eq, P.Show)
 
+-- | OrderId
 newtype OrderId = OrderId { unOrderId :: Integer } deriving (P.Eq, P.Show)
 
+-- | Body
 newtype Body = Body { unBody :: [User] } deriving (P.Eq, P.Show, A.ToJSON)
 
+-- | Username
 newtype Username = Username { unUsername :: Text } deriving (P.Eq, P.Show)
 
+-- | Password
 newtype Password = Password { unPassword :: Text } deriving (P.Eq, P.Show)
 
 
@@ -1097,6 +1146,7 @@ data SwaggerPetstoreRequest req contentType res = SwaggerPetstoreRequest
   { rMethod  :: NH.Method   -- ^ Method of SwaggerPetstoreRequest
   , rUrlPath :: [BCL.ByteString] -- ^ Endpoint of SwaggerPetstoreRequest
   , rParams   :: Params -- ^ params of SwaggerPetstoreRequest
+  , rAuthTypes :: [P.TypeRep] -- ^ types of auth methods
   }
   deriving (P.Show)
 
@@ -1114,6 +1164,11 @@ rUrlPathL f SwaggerPetstoreRequest{..} = (\rUrlPath -> SwaggerPetstoreRequest { 
 rParamsL :: Lens_' (SwaggerPetstoreRequest req contentType res) Params
 rParamsL f SwaggerPetstoreRequest{..} = (\rParams -> SwaggerPetstoreRequest { rParams, ..} ) <$> f rParams
 {-# INLINE rParamsL #-}
+
+-- | 'rParams' Lens
+rAuthTypesL :: Lens_' (SwaggerPetstoreRequest req contentType res) [P.TypeRep]
+rAuthTypesL f SwaggerPetstoreRequest{..} = (\rAuthTypes -> SwaggerPetstoreRequest { rAuthTypes, ..} ) <$> f rAuthTypes
+{-# INLINE rAuthTypesL #-}
 
 -- | Request Params
 data Params = Params
@@ -1152,7 +1207,7 @@ data ParamBody
 _mkRequest :: NH.Method -- ^ Method 
           -> [BCL.ByteString] -- ^ Endpoint
           -> SwaggerPetstoreRequest req contentType res -- ^ req: Request Type, res: Response Type
-_mkRequest m u = SwaggerPetstoreRequest m u _mkParams
+_mkRequest m u = SwaggerPetstoreRequest m u _mkParams []
 
 _mkParams :: Params
 _mkParams = Params [] [] ParamBodyNone
@@ -1184,8 +1239,8 @@ _setAcceptHeader req accept =
         Just m -> req `setHeader` [("accept", BC.pack $ P.show m)]
         Nothing -> req `removeHeader` ["accept"]
 
-_setQuery :: SwaggerPetstoreRequest req contentType res -> [NH.QueryItem] -> SwaggerPetstoreRequest req contentType res
-_setQuery req query = 
+setQuery :: SwaggerPetstoreRequest req contentType res -> [NH.QueryItem] -> SwaggerPetstoreRequest req contentType res
+setQuery req query = 
   req &
   L.over
     (rParamsL . paramsQueryL)
@@ -1193,8 +1248,8 @@ _setQuery req query =
   where
     cifst = CI.mk . P.fst
 
-_addForm :: SwaggerPetstoreRequest req contentType res -> WH.Form -> SwaggerPetstoreRequest req contentType res
-_addForm req newform = 
+addForm :: SwaggerPetstoreRequest req contentType res -> WH.Form -> SwaggerPetstoreRequest req contentType res
+addForm req newform = 
     let form = case paramsBody (rParams req) of
             ParamBodyFormUrlEncoded _form -> _form
             _ -> mempty
@@ -1215,6 +1270,9 @@ _setBodyLBS :: SwaggerPetstoreRequest req contentType res -> BL.ByteString -> Sw
 _setBodyLBS req body = 
     req & L.set (rParamsL . paramsBodyL) (ParamBodyBL body)
 
+_hasAuthType :: AuthMethod authMethod => SwaggerPetstoreRequest req contentType res -> P.Proxy authMethod -> SwaggerPetstoreRequest req contentType res
+_hasAuthType req proxy =
+  req & L.over rAuthTypesL (P.typeRep proxy :)
 
 -- ** Params Utils
 
@@ -1279,3 +1337,60 @@ _toCollA' c encode one xs = case c of
     {-# INLINE expandList #-}
     {-# INLINE combine #-}
   
+-- * AuthMethods
+
+-- | Provides a method to apply auth methods to requests
+class P.Typeable a => AuthMethod a where
+  applyAuthMethod :: SwaggerPetstoreRequest req contentType res -> a -> SwaggerPetstoreRequest req contentType res
+
+-- | An existential wrapper for any AuthMethod
+data AnyAuthMethod = forall a. AuthMethod a => AnyAuthMethod a deriving (P.Typeable)
+
+instance AuthMethod AnyAuthMethod where applyAuthMethod req (AnyAuthMethod a) = applyAuthMethod req a
+
+-- ** AuthApiKeyApiKey
+data AuthApiKeyApiKey =
+  AuthApiKeyApiKey Text -- ^ secret
+  deriving (P.Eq, P.Show, P.Typeable)
+
+instance AuthMethod AuthApiKeyApiKey where
+  applyAuthMethod req a@(AuthApiKeyApiKey secret) =
+    if (P.typeOf a `P.elem` rAuthTypes req)
+      then req `setHeader` toHeader ("api_key", secret)
+      else req
+
+-- ** AuthApiKeyApiKeyQuery
+data AuthApiKeyApiKeyQuery =
+  AuthApiKeyApiKeyQuery Text -- ^ secret
+  deriving (P.Eq, P.Show, P.Typeable)
+
+instance AuthMethod AuthApiKeyApiKeyQuery where
+  applyAuthMethod req a@(AuthApiKeyApiKeyQuery secret) =
+    if (P.typeOf a `P.elem` rAuthTypes req)
+      then req `setQuery` toQuery ("api_key_query", Just secret)
+      else req
+
+-- ** AuthBasicHttpBasicTest
+data AuthBasicHttpBasicTest =
+  AuthBasicHttpBasicTest B.ByteString B.ByteString -- ^ username password
+  deriving (P.Eq, P.Show, P.Typeable)
+
+instance AuthMethod AuthBasicHttpBasicTest where
+  applyAuthMethod req a@(AuthBasicHttpBasicTest user pw) =
+    if (P.typeOf a `P.elem` rAuthTypes req)
+      then req `setHeader` toHeader ("Authorization", T.decodeUtf8 cred)
+      else req
+    where cred = BC.append "Basic " (B64.encode $ BC.concat [ user, ":", pw ])
+
+-- ** AuthOAuthPetstoreAuth
+data AuthOAuthPetstoreAuth =
+  AuthOAuthPetstoreAuth Text -- ^ secret
+  deriving (P.Eq, P.Show, P.Typeable)
+
+instance AuthMethod AuthOAuthPetstoreAuth where
+  applyAuthMethod req a@(AuthOAuthPetstoreAuth secret) =
+    if (P.typeOf a `P.elem` rAuthTypes req)
+      then req `setHeader` toHeader ("Authorization", "Bearer " <> secret) 
+      else req
+
+

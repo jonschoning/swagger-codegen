@@ -49,17 +49,24 @@ main = do
 
   env <- getEnvironment
 
-  let host = case lookup "HOST" env of
-        Just h -> BCL.pack h
-        _ -> "http://0.0.0.0/v2"
+  mgr <- NH.newManager NH.defaultManagerSettings
 
   config0 <- S.withStdoutLogging =<< S.newConfig 
-  let config = config0 { S.configHost = host }
+
+  let config =
+        -- configure host
+        case lookup "HOST" env of
+            Just h -> config0 { S.configHost = BCL.pack h }
+            _ -> config0 { S.configHost = "http://0.0.0.0/v2" }
+        -- each configured auth method is only applied to requests that specify them
+        `S.addAuthMethod` S.AuthBasicHttpBasicTest "username" "password"
+        `S.addAuthMethod` S.AuthApiKeyApiKey "secret-key"
+        `S.addAuthMethod` S.AuthApiKeyApiKeyQuery "secret-key"
+        `S.addAuthMethod` S.AuthOAuthPetstoreAuth "secret-key"
 
   putStrLn "\n******** CONFIG ********"
   putStrLn (show config)
 
-  mgr <- NH.newManager NH.defaultManagerSettings
 
   hspec $ do
     testPetOps mgr config
