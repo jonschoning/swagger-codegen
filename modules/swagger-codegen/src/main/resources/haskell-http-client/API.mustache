@@ -140,10 +140,10 @@ infixl 2 -&-
  
 -- * Request Parameter Types
 
-{{#apiInfo}}{{#apis}}{{#operations}}{{#operation}}{{#allParams}}{{^vendorExtensions.x-duplicate}}{{#vendorExtensions.x-paramNameType}}
+{{#x-allUniqueParams}}
 -- | {{{vendorExtensions.x-paramNameType}}}
-newtype {{{vendorExtensions.x-paramNameType}}} = {{{.}}} { un{{{.}}} :: {{{dataType}}} } deriving (P.Eq, P.Show{{#isBodyParam}}, A.ToJSON{{/isBodyParam}})
-{{/vendorExtensions.x-paramNameType}}{{/vendorExtensions.x-duplicate}}{{/allParams}}{{/operation}}{{/operations}}{{/apis}}{{/apiInfo}}
+newtype {{{vendorExtensions.x-paramNameType}}} = {{{vendorExtensions.x-paramNameType}}} { un{{{vendorExtensions.x-paramNameType}}} :: {{{dataType}}} } deriving (P.Eq, P.Show{{#isBodyParam}}, A.ToJSON{{/isBodyParam}})
+{{/x-allUniqueParams}}
 
 -- * {{requestType}}
 

@@ -494,6 +494,7 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
                         while (typeNames.contains(paramNameType)) {
                             paramNameType = generateNextName(paramNameType);
                         }
+                        uniqueParamsByName.put(paramNameType, param);
                     }
                 } else {
                     while (typeNames.contains(paramNameType)) {
@@ -599,6 +600,7 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
 
         additionalProperties.put("x-hasUnknownMimeTypes", !unknownMimeTypes.isEmpty());
         additionalProperties.put("x-unknownMimeTypes", unknownMimeTypes);
+        additionalProperties.put("x-allUniqueParams", uniqueParamsByName.values());
 
         return ret;
     }
