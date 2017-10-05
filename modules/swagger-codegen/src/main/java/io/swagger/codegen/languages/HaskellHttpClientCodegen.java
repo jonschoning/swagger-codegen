@@ -466,18 +466,15 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
     public CodegenOperation fromOperation(String resourcePath, String httpMethod, Operation operation, Map<String, Model> definitions, Swagger swagger) {
         CodegenOperation op = super.fromOperation(resourcePath, httpMethod, operation, definitions, swagger);
 
-        op.vendorExtensions.put("x-baseOperationId", op.operationId);
-        op.vendorExtensions.put("x-haddockPath", String.format("%s %s", op.httpMethod, op.path.replace("/", "\\/")));
-        op.operationId = toVarName(op.operationId);
-
         String operationType = toTypeName("Op", op.operationId);
         op.vendorExtensions.put("x-operationType", operationType);
         typeNames.add(operationType);
 
+        op.vendorExtensions.put("x-haddockPath", String.format("%s %s", op.httpMethod, op.path.replace("/", "\\/")));
         op.vendorExtensions.put("x-hasBodyOrFormParam", op.getHasBodyParam() || op.getHasFormParams());
 
         for (CodegenParameter param : op.allParams) {
-            param.vendorExtensions.put("x-operationType", WordUtils.capitalize(op.operationId));
+            param.vendorExtensions.put("x-operationType", operationType);
             param.vendorExtensions.put("x-isBodyOrFormParam", param.isBodyParam || param.isFormParam);
             if (!StringUtils.isBlank(param.collectionFormat)) {
                 param.vendorExtensions.put("x-collectionFormat", mapCollectionFormat(param.collectionFormat));
@@ -641,7 +638,7 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
         typeNames.add(model.classname);
 
         // From the model name, compute the prefix for the fields.
-        String prefix = WordUtils.uncapitalize(model.classname);
+        String prefix = StringUtils.uncapitalize(model.classname);
         for (CodegenProperty prop : model.vars) {
             prop.name = toVarName(prefix, prop.name);
         }
@@ -778,6 +775,7 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
         }
         return false;
     }
+
     @Override
     public String toVarName(String name) {
         return toVarName("", name);
@@ -811,8 +809,28 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
         return toTypeName("Model", name);
     }
     public String toTypeName(String prefix, String name) {
-        name = camelize(underscore(sanitizeName(name)));
-
+        name =  escapeIdentifier(prefix, camelize(sanitizeName(name)));
+        return name;
+    }
+    @Override
+    public String toOperationId(String operationId) {
+        if (StringUtils.isEmpty(operationId)) {
+            throw new RuntimeException("Empty method/operation name (operationId) not allowed");
+        }
+        operationId = escapeIdentifier("op",camelize(sanitizeName(operationId), true));
+        String uniqueName = operationId;
+        String uniqueNameType = toTypeName("Op", operationId);
+        while (typeNames.contains(uniqueNameType)) {
+            uniqueName = generateNextName(uniqueName);
+            uniqueNameType = toTypeName("Op", uniqueName);
+        }
+        typeNames.add(uniqueNameType);
+        if(!operationId.equals(uniqueName)) {
+            LOGGER.warn("generated unique operationId `" + uniqueName + "`");
+        }
+        return uniqueName;
+    }
+    public String escapeIdentifier(String prefix, String name) {
         if(StringUtils.isBlank(prefix)) return name;
 
         if (isReservedWord(name)) {
