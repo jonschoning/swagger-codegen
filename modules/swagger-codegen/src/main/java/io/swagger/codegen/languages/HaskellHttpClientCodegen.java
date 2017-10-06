@@ -466,6 +466,9 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
     public CodegenOperation fromOperation(String resourcePath, String httpMethod, Operation operation, Map<String, Model> definitions, Swagger swagger) {
         CodegenOperation op = super.fromOperation(resourcePath, httpMethod, operation, definitions, swagger);
 
+        // prevent aliasing/sharing of operation.vendorExtensions reference
+        op.vendorExtensions = new LinkedHashMap();
+
         String operationType = toTypeName("Op", op.operationId);
         op.vendorExtensions.put("x-operationType", operationType);
         typeNames.add(operationType);
@@ -474,6 +477,7 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
         op.vendorExtensions.put("x-hasBodyOrFormParam", op.getHasBodyParam() || op.getHasFormParams());
 
         for (CodegenParameter param : op.allParams) {
+            param.vendorExtensions = new LinkedHashMap(); // prevent aliasing/sharing
             param.vendorExtensions.put("x-operationType", operationType);
             param.vendorExtensions.put("x-isBodyOrFormParam", param.isBodyParam || param.isFormParam);
             if (!StringUtils.isBlank(param.collectionFormat)) {
