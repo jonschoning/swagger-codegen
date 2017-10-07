@@ -511,34 +511,21 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
                 typeNames.add(paramNameType);
             }
         }
+
+        // build the parameterized path segments, according to pathParams
+        String xPath = "[\""+escapeText(op.path)+"\"]";
         if (op.getHasPathParams()) {
-            String remainingPath = op.path;
             for (CodegenParameter param : op.pathParams) {
-                String[] pieces = remainingPath.split("\\{" + param.baseName + "\\}");
-                if (pieces.length == 0)
-                    throw new RuntimeException("paramName {" + param.baseName + "} not in path " + op.path);
-                if (pieces.length > 2)
-                    throw new RuntimeException("paramName {" + param.baseName + "} found multiple times in path " + op.path);
-                if (pieces.length == 2) {
-                    param.vendorExtensions.put("x-pathPrefix", pieces[0]);
-                    remainingPath = pieces[1];
-                } else {
-                    if (remainingPath.startsWith("{" + param.baseName + "}")) {
-                        remainingPath = pieces[0];
-                    } else {
-                        param.vendorExtensions.put("x-pathPrefix", pieces[0]);
-                        remainingPath = "";
-                    }
-                }
+                xPath = xPath.replaceAll("\\{"+param.baseName+"\\}", "\",toPath " + param.paramName + ",\"");
             }
-            op.vendorExtensions.put("x-hasPathParams", true);
-            if (remainingPath.length() > 0) {
-                op.vendorExtensions.put("x-pathSuffix", remainingPath);
-            }
-        } else {
-            op.vendorExtensions.put("x-hasPathParams", false);
-            op.vendorExtensions.put("x-pathSuffix", op.path);
+            xPath = xPath.replaceAll(",\"\",",",");
+            xPath = xPath.replaceAll("\"\",",",");
+            xPath = xPath.replaceAll(",\"\"",",");
+            xPath = xPath.replaceAll("^\\[,","[");
+            xPath = xPath.replaceAll(",\\]$","]");
         }
+        op.vendorExtensions.put("x-path", xPath);
+
         for (CodegenParameter param : op.queryParams) {
         }
         for (CodegenParameter param : op.headerParams) {

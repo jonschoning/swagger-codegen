@@ -233,11 +233,11 @@ testEndpointParameters
   -> SwaggerPetstoreRequest TestEndpointParameters contentType res
 testEndpointParameters _ (Number number) (ParamDouble double) (PatternWithoutDelimiter patternWithoutDelimiter) (Byte byte) =
   _mkRequest "POST" ["/fake"]
+    `_hasAuthType` (P.Proxy :: P.Proxy AuthBasicHttpBasicTest)
     `addForm` toForm ("number", number)
     `addForm` toForm ("double", double)
     `addForm` toForm ("pattern_without_delimiter", patternWithoutDelimiter)
     `addForm` toForm ("byte", byte)
-    `_hasAuthType` (P.Proxy :: P.Proxy AuthBasicHttpBasicTest)
 
 data TestEndpointParameters  
 
@@ -410,8 +410,8 @@ testClassname
   -> SwaggerPetstoreRequest TestClassname contentType Client
 testClassname _ body =
   _mkRequest "PATCH" ["/fake_classname_test"]
-    `setBodyParam` body
     `_hasAuthType` (P.Proxy :: P.Proxy AuthApiKeyApiKeyQuery)
+    `setBodyParam` body
 
 data TestClassname 
 
@@ -446,8 +446,8 @@ addPet
   -> SwaggerPetstoreRequest AddPet contentType res
 addPet _ body =
   _mkRequest "POST" ["/pet"]
-    `setBodyParam` body
     `_hasAuthType` (P.Proxy :: P.Proxy AuthOAuthPetstoreAuth)
+    `setBodyParam` body
 
 data AddPet 
 
@@ -482,7 +482,6 @@ deletePet
   -> SwaggerPetstoreRequest DeletePet MimeNoContent res
 deletePet (PetId petId) =
   _mkRequest "DELETE" ["/pet/",toPath petId]
-    
     `_hasAuthType` (P.Proxy :: P.Proxy AuthOAuthPetstoreAuth)
 
 data DeletePet  
@@ -510,8 +509,8 @@ findPetsByStatus
   -> SwaggerPetstoreRequest FindPetsByStatus MimeNoContent [Pet]
 findPetsByStatus (Status status) =
   _mkRequest "GET" ["/pet/findByStatus"]
-    `setQuery` toQueryColl CommaSeparated ("status", Just status)
     `_hasAuthType` (P.Proxy :: P.Proxy AuthOAuthPetstoreAuth)
+    `setQuery` toQueryColl CommaSeparated ("status", Just status)
 
 data FindPetsByStatus  
 -- | @application/xml@
@@ -535,8 +534,8 @@ findPetsByTags
   -> SwaggerPetstoreRequest FindPetsByTags MimeNoContent [Pet]
 findPetsByTags (Tags tags) =
   _mkRequest "GET" ["/pet/findByTags"]
-    `setQuery` toQueryColl CommaSeparated ("tags", Just tags)
     `_hasAuthType` (P.Proxy :: P.Proxy AuthOAuthPetstoreAuth)
+    `setQuery` toQueryColl CommaSeparated ("tags", Just tags)
 
 {-# DEPRECATED findPetsByTags "" #-}
 
@@ -562,7 +561,6 @@ getPetById
   -> SwaggerPetstoreRequest GetPetById MimeNoContent Pet
 getPetById (PetId petId) =
   _mkRequest "GET" ["/pet/",toPath petId]
-    
     `_hasAuthType` (P.Proxy :: P.Proxy AuthApiKeyApiKey)
 
 data GetPetById  
@@ -591,8 +589,8 @@ updatePet
   -> SwaggerPetstoreRequest UpdatePet contentType res
 updatePet _ body =
   _mkRequest "PUT" ["/pet"]
-    `setBodyParam` body
     `_hasAuthType` (P.Proxy :: P.Proxy AuthOAuthPetstoreAuth)
+    `setBodyParam` body
 
 data UpdatePet 
 
@@ -629,7 +627,6 @@ updatePetWithForm
   -> SwaggerPetstoreRequest UpdatePetWithForm contentType res
 updatePetWithForm _ (PetId petId) =
   _mkRequest "POST" ["/pet/",toPath petId]
-    
     `_hasAuthType` (P.Proxy :: P.Proxy AuthOAuthPetstoreAuth)
 
 data UpdatePetWithForm  
@@ -670,7 +667,6 @@ uploadFile
   -> SwaggerPetstoreRequest UploadFile contentType ApiResponse
 uploadFile _ (PetId petId) =
   _mkRequest "POST" ["/pet/",toPath petId,"/uploadImage"]
-    
     `_hasAuthType` (P.Proxy :: P.Proxy AuthOAuthPetstoreAuth)
 
 data UploadFile  
@@ -709,7 +705,6 @@ deleteOrder
   -> SwaggerPetstoreRequest DeleteOrder MimeNoContent res
 deleteOrder (OrderIdText orderId) =
   _mkRequest "DELETE" ["/store/order/",toPath orderId]
-    
 
 data DeleteOrder  
 -- | @application/xml@
@@ -752,7 +747,6 @@ getOrderById
   -> SwaggerPetstoreRequest GetOrderById MimeNoContent Order
 getOrderById (OrderId orderId) =
   _mkRequest "GET" ["/store/order/",toPath orderId]
-    
 
 data GetOrderById  
 -- | @application/xml@
@@ -892,7 +886,6 @@ deleteUser
   -> SwaggerPetstoreRequest DeleteUser MimeNoContent res
 deleteUser (Username username) =
   _mkRequest "DELETE" ["/user/",toPath username]
-    
 
 data DeleteUser  
 -- | @application/xml@
@@ -914,7 +907,6 @@ getUserByName
   -> SwaggerPetstoreRequest GetUserByName MimeNoContent User
 getUserByName (Username username) =
   _mkRequest "GET" ["/user/",toPath username]
-    
 
 data GetUserByName  
 -- | @application/xml@
@@ -987,7 +979,6 @@ updateUser
   -> SwaggerPetstoreRequest UpdateUser contentType res
 updateUser _ (Username username) body =
   _mkRequest "PUT" ["/user/",toPath username]
-    
     `setBodyParam` body
 
 data UpdateUser 
