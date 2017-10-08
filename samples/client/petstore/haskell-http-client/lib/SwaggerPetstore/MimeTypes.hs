@@ -66,8 +66,8 @@ data MimeOctetStream = MimeOctetStream deriving (P.Typeable)
 data MimeNoContent = MimeNoContent deriving (P.Typeable)
 data MimeAny = MimeAny deriving (P.Typeable)
 
-data MimeXmlCharsetutf8 = MimeXmlCharsetutf8 deriving (P.Typeable)
 data MimeJsonCharsetutf8 = MimeJsonCharsetutf8 deriving (P.Typeable)
+data MimeXmlCharsetutf8 = MimeXmlCharsetutf8 deriving (P.Typeable)
 
 -- ** MimeType Class
 
@@ -117,15 +117,15 @@ instance MimeType MimeAny where
 instance MimeType MimeNoContent where
   mimeType _ = Nothing
 
--- | @application/xml; charset=utf-8@
-instance MimeType MimeXmlCharsetutf8 where
-  mimeType _ = Just $ P.fromString "application/xml; charset=utf-8"
-
 -- | @application/json; charset=utf-8@
 instance MimeType MimeJsonCharsetutf8 where
   mimeType _ = Just $ P.fromString "application/json; charset=utf-8"
 instance A.ToJSON a => MimeRender MimeJsonCharsetutf8 a where mimeRender _ = A.encode
 instance A.FromJSON a => MimeUnrender MimeJsonCharsetutf8 a where mimeUnrender _ = A.eitherDecode
+
+-- | @application/xml; charset=utf-8@
+instance MimeType MimeXmlCharsetutf8 where
+  mimeType _ = Just $ P.fromString "application/xml; charset=utf-8"
 
 
 -- ** MimeRender Class
@@ -183,8 +183,8 @@ instance MimeRender MimeNoContent NoContent where mimeRender _ = P.const BCL.emp
 -- instance MimeRender MimeOctetStream Int where mimeRender _ = BB.toLazyByteString . BB.intDec
 -- instance MimeRender MimeOctetStream Integer where mimeRender _ = BB.toLazyByteString . BB.integerDec
 
--- instance MimeRender MimeXmlCharsetutf8 T.Text where mimeRender _ = undefined
 -- instance MimeRender MimeJsonCharsetutf8 T.Text where mimeRender _ = undefined
+-- instance MimeRender MimeXmlCharsetutf8 T.Text where mimeRender _ = undefined
 
 -- ** MimeUnrender Class
 
@@ -217,8 +217,8 @@ instance MimeUnrender MimeOctetStream String where mimeUnrender _ = P.Right . BC
 -- | @P.Right . P.const NoContent@
 instance MimeUnrender MimeNoContent NoContent where mimeUnrender _ = P.Right . P.const NoContent
 
--- instance MimeUnrender MimeXmlCharsetutf8 T.Text where mimeUnrender _ = undefined
 -- instance MimeUnrender MimeJsonCharsetutf8 T.Text where mimeUnrender _ = undefined
+-- instance MimeUnrender MimeXmlCharsetutf8 T.Text where mimeUnrender _ = undefined
 
 -- ** Request Consumes
 

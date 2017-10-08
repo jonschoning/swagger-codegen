@@ -1399,6 +1399,45 @@ mkDog dogClassName =
   }
   
 
+-- * Parameter newtypes
+
+newtype AdditionalMetadata = AdditionalMetadata { unAdditionalMetadata :: Text } deriving (P.Eq, P.Show)
+newtype ApiKey = ApiKey { unApiKey :: Text } deriving (P.Eq, P.Show)
+newtype Body = Body { unBody :: [User] } deriving (P.Eq, P.Show, A.ToJSON)
+newtype Byte = Byte { unByte :: ByteArray } deriving (P.Eq, P.Show)
+newtype Callback = Callback { unCallback :: Text } deriving (P.Eq, P.Show)
+newtype EnumFormString = EnumFormString { unEnumFormString :: Text } deriving (P.Eq, P.Show)
+newtype EnumFormStringArray = EnumFormStringArray { unEnumFormStringArray :: [Text] } deriving (P.Eq, P.Show)
+newtype EnumHeaderString = EnumHeaderString { unEnumHeaderString :: Text } deriving (P.Eq, P.Show)
+newtype EnumHeaderStringArray = EnumHeaderStringArray { unEnumHeaderStringArray :: [Text] } deriving (P.Eq, P.Show)
+newtype EnumQueryDouble = EnumQueryDouble { unEnumQueryDouble :: Double } deriving (P.Eq, P.Show)
+newtype EnumQueryInteger = EnumQueryInteger { unEnumQueryInteger :: Int } deriving (P.Eq, P.Show)
+newtype EnumQueryString = EnumQueryString { unEnumQueryString :: Text } deriving (P.Eq, P.Show)
+newtype EnumQueryStringArray = EnumQueryStringArray { unEnumQueryStringArray :: [Text] } deriving (P.Eq, P.Show)
+newtype File = File { unFile :: FilePath } deriving (P.Eq, P.Show)
+newtype Int32 = Int32 { unInt32 :: Int } deriving (P.Eq, P.Show)
+newtype Int64 = Int64 { unInt64 :: Integer } deriving (P.Eq, P.Show)
+newtype Name2 = Name2 { unName2 :: Text } deriving (P.Eq, P.Show)
+newtype Number = Number { unNumber :: Double } deriving (P.Eq, P.Show)
+newtype OrderId = OrderId { unOrderId :: Integer } deriving (P.Eq, P.Show)
+newtype OrderIdText = OrderIdText { unOrderIdText :: Text } deriving (P.Eq, P.Show)
+newtype Param = Param { unParam :: Text } deriving (P.Eq, P.Show)
+newtype Param2 = Param2 { unParam2 :: Text } deriving (P.Eq, P.Show)
+newtype ParamBinary = ParamBinary { unParamBinary :: Binary } deriving (P.Eq, P.Show)
+newtype ParamDate = ParamDate { unParamDate :: Date } deriving (P.Eq, P.Show)
+newtype ParamDateTime = ParamDateTime { unParamDateTime :: DateTime } deriving (P.Eq, P.Show)
+newtype ParamDouble = ParamDouble { unParamDouble :: Double } deriving (P.Eq, P.Show)
+newtype ParamFloat = ParamFloat { unParamFloat :: Float } deriving (P.Eq, P.Show)
+newtype ParamInteger = ParamInteger { unParamInteger :: Int } deriving (P.Eq, P.Show)
+newtype ParamString = ParamString { unParamString :: Text } deriving (P.Eq, P.Show)
+newtype Password = Password { unPassword :: Text } deriving (P.Eq, P.Show)
+newtype PatternWithoutDelimiter = PatternWithoutDelimiter { unPatternWithoutDelimiter :: Text } deriving (P.Eq, P.Show)
+newtype PetId = PetId { unPetId :: Integer } deriving (P.Eq, P.Show)
+newtype Status = Status { unStatus :: [Text] } deriving (P.Eq, P.Show)
+newtype StatusText = StatusText { unStatusText :: Text } deriving (P.Eq, P.Show)
+newtype Tags = Tags { unTags :: [Text] } deriving (P.Eq, P.Show)
+newtype Username = Username { unUsername :: Text } deriving (P.Eq, P.Show)
+
 -- * Utils
 
 -- | Removes Null fields.  (OpenAPI-Specification 2.0 does not allow Null in JSON)

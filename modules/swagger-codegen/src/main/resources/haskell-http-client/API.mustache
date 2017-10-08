@@ -143,13 +143,6 @@ class HasOptionalParam req param where
 
 infixl 2 -&-
  
--- * Request Parameter Types
-
-{{#x-allUniqueParams}}
--- | {{{vendorExtensions.x-paramNameType}}}
-newtype {{{vendorExtensions.x-paramNameType}}} = {{{vendorExtensions.x-paramNameType}}} { un{{{vendorExtensions.x-paramNameType}}} :: {{{dataType}}} } deriving (P.Eq, P.Show{{#isBodyParam}}, A.ToJSON{{/isBodyParam}})
-{{/x-allUniqueParams}}
-
 -- * {{requestType}}
 
 -- | Represents a request. The "req" type variable is the request type. The "res" type variable is the response type.
