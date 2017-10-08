@@ -33,7 +33,6 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
 
     // source folder where to write the files
     protected String sourceFolder = "src";
-    protected String apiVersion = "0.0.1";
 
     protected String artifactId = "swagger-haskell-http-client";
     protected String artifactVersion = "1.0.0";
@@ -123,7 +122,6 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
                 )
         );
 
-        additionalProperties.put("apiVersion", apiVersion);
         additionalProperties.put("artifactId", artifactId);
         additionalProperties.put("artifactVersion", artifactVersion);
 
