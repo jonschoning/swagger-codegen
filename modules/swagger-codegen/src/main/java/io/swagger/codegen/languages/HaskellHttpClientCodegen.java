@@ -461,7 +461,6 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
             return null;
         }
     }
-
     @Override
     public CodegenOperation fromOperation(String resourcePath, String httpMethod, Operation operation, Map<String, Model> definitions, Swagger swagger) {
         CodegenOperation op = super.fromOperation(resourcePath, httpMethod, operation, definitions, swagger);
@@ -487,23 +486,32 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
                 op.vendorExtensions.put("x-hasOptionalParams", true);
             }
             if (typeMapping.containsKey(param.dataType) || param.isPrimitiveType || param.isListContainer || param.isMapContainer || param.isFile) {
+
                 String paramNameType = toTypeName("Param", param.paramName);
 
                 if (uniqueParamsByName.containsKey(paramNameType)) {
-                    CodegenParameter lastParam = this.uniqueParamsByName.get(paramNameType);
-                    if (lastParam.dataType != null && lastParam.dataType.equals(param.dataType)) {
-                        param.vendorExtensions.put("x-duplicate", true);
-                    } else {
+                    if(!checkParamForDuplicates(paramNameType, param)) {
                         paramNameType = paramNameType + param.dataType;
-                        while (typeNames.contains(paramNameType)) {
-                            paramNameType = generateNextName(paramNameType);
+                        if(!checkParamForDuplicates(paramNameType, param)) {
+                            while (typeNames.contains(paramNameType)) {
+                                paramNameType = generateNextName(paramNameType);
+                                if(checkParamForDuplicates(paramNameType, param)) {
+                                    break;
+                                }
+                            }
                         }
+
                         uniqueParamsByName.put(paramNameType, param);
                     }
                 } else {
+
                     while (typeNames.contains(paramNameType)) {
                         paramNameType = generateNextName(paramNameType);
+                        if(checkParamForDuplicates(paramNameType, param)) {
+                            break;
+                        }
                     }
+
                     uniqueParamsByName.put(paramNameType, param);
                 }
 
@@ -566,7 +574,8 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
 
         return op;
     }
-    
+
+    @Override
     public List<CodegenSecurity> fromSecurity(Map<String, SecuritySchemeDefinition> schemes) {
         List<CodegenSecurity> secs = super.fromSecurity(schemes);
         for(CodegenSecurity sec : secs) {
@@ -672,6 +681,15 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
     @Override
     public boolean isDataTypeBinary(final String dataType) {
         return dataType != null && dataType.equals("B.ByteString");
+    }
+
+    public Boolean checkParamForDuplicates(String paramNameType, CodegenParameter param) {
+        CodegenParameter lastParam = this.uniqueParamsByName.get(paramNameType);
+        if(lastParam != null && lastParam.dataType != null && lastParam.dataType.equals(param.dataType)) {
+            param.vendorExtensions.put("x-duplicate", true);
+            return true;
+        }
+        return false;
     }
 
     private void processMediaType(CodegenOperation op, Map<String, String> m) {
