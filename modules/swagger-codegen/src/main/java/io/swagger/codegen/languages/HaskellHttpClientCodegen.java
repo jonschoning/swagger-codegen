@@ -65,7 +65,6 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
 
     protected Map<String, CodegenParameter> uniqueParamsByName = new HashMap<String, CodegenParameter>();
     protected Set<String> typeNames = new HashSet<String>();
-    protected Map<String, Map<String,String>> allMimeTypes = new HashMap<String, Map<String,String>>();
     protected Map<String, String> knownMimeDataTypes = new HashMap<String, String>();
     protected Map<String, Set<String>> modelMimeTypes = new HashMap<String, Set<String>>();
     protected String lastTag = "";
@@ -713,8 +712,7 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
             m.put(MEDIA_IS_JSON, "true");
         }
 
-        allMimeTypes.put(mediaType, m);
-        if (!knownMimeDataTypes.containsKey(mediaType) && !unknownMimeTypes.contains(m)) {
+        if (!knownMimeDataTypes.containsValue(mimeType) && !unknownMimeTypesContainsType(mimeType)) {
             unknownMimeTypes.add(m);
         }
         for (CodegenParameter param : op.allParams) {
@@ -724,6 +722,17 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
                 modelMimeTypes.put(param.dataType, mimeTypes);
             }
         }
+    }
+
+    private Boolean unknownMimeTypesContainsType(String mimeType) {
+        for(Map<String,String> m : unknownMimeTypes) {
+            String mimeType0 = m.get(MEDIA_DATA_TYPE);
+            if(mimeType0 != null && mimeType0.equals(mimeType)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public String firstLetterToUpper(String word) {
