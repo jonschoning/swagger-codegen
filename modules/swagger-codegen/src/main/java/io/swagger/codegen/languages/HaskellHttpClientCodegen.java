@@ -372,6 +372,7 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
         supportingFiles.add(new SupportingFile("Client.mustache", "lib/" + apiName, "Client.hs"));
 
         supportingFiles.add(new SupportingFile("API.mustache", "lib/" + apiName, "API.hs"));
+        supportingFiles.add(new SupportingFile("Core.mustache", "lib/" + apiName, "Core.hs"));
         supportingFiles.add(new SupportingFile("Model.mustache", "lib/" + apiName, "Model.hs"));
         supportingFiles.add(new SupportingFile("MimeTypes.mustache", "lib/" + apiName, "MimeTypes.hs"));
 
@@ -383,7 +384,7 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
 
         // lens
         if ((boolean)additionalProperties.get(GENERATE_LENSES)) {
-            supportingFiles.add(new SupportingFile("Lens.mustache", "lib/" + apiName, "Lens.hs"));
+            supportingFiles.add(new SupportingFile("ModelLens.mustache", "lib/" + apiName, "ModelLens.hs"));
         }
 
         additionalProperties.put("title", apiName);

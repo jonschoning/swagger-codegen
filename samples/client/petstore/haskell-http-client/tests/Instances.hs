@@ -2,10 +2,9 @@
 
 module Instances where
 
-import Control.Monad
-import Data.Char (isSpace)
-import Data.List (sort)
-import Test.QuickCheck
+import SwaggerPetstore.Model
+import SwaggerPetstore.Core
+
 import qualified Data.Aeson as A
 import qualified Data.ByteString.Lazy as BL
 import qualified Data.HashMap.Strict as HM
@@ -14,8 +13,12 @@ import qualified Data.Text as T
 import qualified Data.Time as TI
 import qualified Data.Vector as V
 
+import Control.Monad
+import Data.Char (isSpace)
+import Data.List (sort)
+import Test.QuickCheck
+
 import ApproxEq
-import SwaggerPetstore.Model
 
 instance Arbitrary T.Text where
   arbitrary = T.pack <$> arbitrary

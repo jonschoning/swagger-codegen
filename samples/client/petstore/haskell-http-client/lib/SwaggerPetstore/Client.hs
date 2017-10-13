@@ -25,42 +25,32 @@ Module : SwaggerPetstore.Client
 
 module SwaggerPetstore.Client where
 
-import SwaggerPetstore.Model
-import SwaggerPetstore.API
-import SwaggerPetstore.MimeTypes
+import SwaggerPetstore.Core
 import SwaggerPetstore.Logging
+import SwaggerPetstore.MimeTypes
 
+import qualified Control.Exception.Safe as E
 import qualified Control.Monad.IO.Class as P
-import qualified Data.Aeson as A
 import qualified Data.Aeson.Types as A
+import qualified Data.ByteString.Char8 as BC
+import qualified Data.ByteString.Lazy as BL
+import qualified Data.ByteString.Lazy.Char8 as BCL
 import qualified Data.Proxy as P (Proxy(..))
+import qualified Data.Text as T
+import qualified Data.Text.Encoding as T
+import qualified Network.HTTP.Client as NH
+import qualified Network.HTTP.Client.MultipartFormData as NH
+import qualified Network.HTTP.Types as NH
+import qualified Text.Printf as T
+import qualified Web.FormUrlEncoded as WH
+import qualified Web.HttpApiData as WH
+
+import Control.Monad.Catch (MonadThrow)
 import Data.Function ((&))
 import Data.Monoid ((<>))
 import Data.Text (Text)
 import GHC.Exts (IsString(..))
-import Web.FormUrlEncoded as WH
-import Web.HttpApiData as WH
-import Control.Monad.Catch (MonadThrow)
 
-import qualified Data.Time as TI
-import qualified Data.Map as Map
-import qualified Data.Text as T
-import qualified Data.Text.Encoding as T
-import qualified Text.Printf as T
-
-import qualified Data.ByteString as B
-import qualified Data.ByteString.Lazy as BL
-import qualified Data.ByteString.Char8 as BC
-import qualified Data.ByteString.Lazy.Char8 as BCL
-import qualified Data.ByteString.Builder as BB
-import qualified Network.HTTP.Client as NH
-import qualified Network.HTTP.Client.TLS as NH
-import qualified Network.HTTP.Client.MultipartFormData as NH
-import qualified Network.HTTP.Types.Method as NH
-import qualified Network.HTTP.Types as NH
-import qualified Network.HTTP.Types.URI as NH
-
-import qualified Control.Exception.Safe as E
 -- * Config
 
 -- | 
