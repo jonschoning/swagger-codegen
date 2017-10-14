@@ -49,6 +49,8 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
     public static final String GENERATE_FORM_URLENCODED_INSTANCES = "generateFormUrlEncodedInstances";
     public static final String GENERATE_LENSES = "generateLenses";
     public static final String GENERATE_MODEL_CONSTRUCTORS = "generateModelConstructors";
+    public static final String INLINE_CONSUMES_CONTENT_TYPES = "inlineConsumesContentTypes";
+
     public static final String MODEL_DERIVING = "modelDeriving";
     public static final String STRICT_FIELDS = "strictFields";
     public static final String USE_MONAD_LOGGER = "useMonadLogger";
@@ -193,6 +195,7 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
         cliOptions.add(CliOption.newBoolean(GENERATE_LENSES, "Generate Lens optics for Models").defaultValue(Boolean.TRUE.toString()));
         cliOptions.add(CliOption.newBoolean(GENERATE_MODEL_CONSTRUCTORS, "Generate smart constructors (only supply required fields) for models").defaultValue(Boolean.TRUE.toString()));
         cliOptions.add(CliOption.newBoolean(GENERATE_FORM_URLENCODED_INSTANCES, "Generate FromForm/ToForm instances for models that are used by operations that produce or consume application/x-www-form-urlencoded").defaultValue(Boolean.TRUE.toString()));
+        cliOptions.add(CliOption.newBoolean(INLINE_CONSUMES_CONTENT_TYPES, "Inline (hardcode) the content-type on operations that do not have multiple content-types (Consumes)").defaultValue(Boolean.FALSE.toString()));
 
         cliOptions.add(CliOption.newString(MODEL_DERIVING, "Additional classes to include in the deriving() clause of Models"));
         cliOptions.add(CliOption.newBoolean(STRICT_FIELDS, "Add strictness annotations to all model fields").defaultValue((Boolean.TRUE.toString())));
@@ -219,6 +222,9 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
 
     public void setGenerateFormUrlEncodedInstances(Boolean value) {
         additionalProperties.put(GENERATE_FORM_URLENCODED_INSTANCES, value);
+    }
+    public void setInlineConsumesContentTypes (Boolean value) {
+        additionalProperties.put(INLINE_CONSUMES_CONTENT_TYPES, value);
     }
 
     public void setGenerateLenses(Boolean value) {
@@ -291,6 +297,12 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
             setGenerateFormUrlEncodedInstances(convertPropertyToBoolean(GENERATE_FORM_URLENCODED_INSTANCES));
         } else {
             setGenerateFormUrlEncodedInstances(true);
+        }
+
+        if (additionalProperties.containsKey(INLINE_CONSUMES_CONTENT_TYPES)) {
+            setInlineConsumesContentTypes(convertPropertyToBoolean(INLINE_CONSUMES_CONTENT_TYPES));
+        } else {
+            setInlineConsumesContentTypes(false);
         }
 
         if (additionalProperties.containsKey(GENERATE_LENSES)) {
@@ -645,6 +657,15 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
         if (op.hasConsumes) {
             for (Map<String, String> m : op.consumes) {
                 processMediaType(op,m);
+                if (op.consumes.size() == 1 && (boolean) additionalProperties.get(INLINE_CONSUMES_CONTENT_TYPES)) {
+                    op.vendorExtensions.put("x-inlineContentType", m);
+                    for (CodegenParameter param : op.allParams) {
+                        if(param.isBodyParam && param.required) {
+                            param.vendorExtensions.put("x-inlineContentType", m);
+                        }
+                    }
+                }
+
             }
             if (isMultipartOperation(op.consumes)) {
                 op.isMultipart = Boolean.TRUE;

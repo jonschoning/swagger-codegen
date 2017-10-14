@@ -70,6 +70,7 @@ These options allow some customization of the code generation process.
 | generateFormUrlEncodedInstances | Generate FromForm/ToForm instances for models used by x-www-form-urlencoded operations (model fields must be primitive types) | true     | true |
 | generateLenses                  | Generate Lens optics for Models                                                                                               | true     | true                  |
 | generateModelConstructors       | Generate smart constructors (only supply required fields) for models                                                          | true     | true       |
+| inlineConsumesContentTypes      | Inline (hardcode) the content-type on operations that do not have multiple content-types (Consumes)                           | true     | false      |
 | modelDeriving                   | Additional classes to include in the deriving() clause of Models                                                              |          |                    |
 | strictFields                    | Add strictness annotations to all model fields                                                                                | true     | true                  |
 | useMonadLogger                  | Use the monad-logger package to provide logging (if instead false, use the katip logging package)                             | false    | false                |
