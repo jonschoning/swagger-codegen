@@ -25,7 +25,7 @@ cabal-version:  >= 1.10
 
 extra-source-files:
     README.md
-    swagger.json
+    swagger.yaml
 
 library
   hs-source-dirs:

@@ -19,10 +19,8 @@ import io.swagger.codegen.CodegenModel;
 import io.swagger.codegen.CodegenOperation;
 import io.swagger.codegen.CodegenProperty;
 import io.swagger.codegen.SupportingFile;
-import io.swagger.util.Json;
-
-import java.io.IOException;
-import java.io.File;
+import io.swagger.util.Yaml;
+import com.fasterxml.jackson.core.JsonProcessingException;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.StringEscapeUtils;
@@ -399,6 +397,7 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
 
         // root
         supportingFiles.add(new SupportingFile("haskell-http-client.cabal.mustache", "", cabalName + ".cabal"));
+        supportingFiles.add(new SupportingFile("swagger.mustache", "", "swagger.yaml"));
 
         // lib
         supportingFiles.add(new SupportingFile("TopLevel.mustache", "lib/", apiName + ".hs"));
@@ -428,9 +427,20 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
         additionalProperties.put("configType", apiName + "Config");
         additionalProperties.put("swaggerVersion", swagger.getSwagger());
 
-        WriteInputSwaggerToFile(swagger);
-
         super.preprocessSwagger(swagger);
+    }
+
+    @Override
+    public Map<String, Object> postProcessSupportingFileData(Map<String, Object> objs) {
+        Swagger swagger = (Swagger)objs.get("swagger");
+        if(swagger != null) {
+            try {
+                objs.put("swagger-yaml", Yaml.mapper().writeValueAsString(swagger));
+            } catch (JsonProcessingException e) {
+                LOGGER.error(e.getMessage(), e);
+            }
+        }
+        return super.postProcessSupportingFileData(objs);
     }
 
 
@@ -646,16 +656,6 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
     @Override
     public boolean isDataTypeBinary(final String dataType) {
         return dataType != null && dataType.equals("B.ByteString");
-    }
-
-    //copy input swagger to output folder
-    private void WriteInputSwaggerToFile(Swagger swagger) {
-        try {
-            String swaggerJson = Json.pretty(swagger);
-            FileUtils.writeStringToFile(new File(outputFolder + File.separator + "swagger.json"), swaggerJson);
-        } catch (IOException e) {
-            throw new RuntimeException(e.getMessage(), e.getCause());
-        }
     }
 
     private void processReturnType(CodegenOperation op) {
