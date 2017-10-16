@@ -961,29 +961,48 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
                 else
                     return "True";
             }
-        } else if (p instanceof DoubleProperty) {
-            DoubleProperty dp = (DoubleProperty) p;
-            if (dp.getDefault() != null) {
-                return dp.getDefault().toString();
-            }
-        } else if (p instanceof FloatProperty) {
-            FloatProperty dp = (FloatProperty) p;
-            if (dp.getDefault() != null) {
-                return dp.getDefault().toString();
-            }
-        } else if (p instanceof IntegerProperty) {
-            IntegerProperty dp = (IntegerProperty) p;
-            if (dp.getDefault() != null) {
-                return dp.getDefault().toString();
-            }
-        } else if (p instanceof LongProperty) {
-            LongProperty dp = (LongProperty) p;
-            if (dp.getDefault() != null) {
-                return dp.getDefault().toString();
-            }
         }
 
         return null;
+    }
+
+    @Override
+    public String toEnumName(CodegenProperty property) {
+        return "Enum'" + toTypeName("", property.name);
+    }
+
+    @Override
+    public String toEnumVarName(String value, String datatype) {
+        List<String> num = new ArrayList<>(Arrays.asList("integer","int","double","long","float"));
+        if (value.length() == 0) {
+            return "E'Empty";
+        }
+
+        // for symbol, e.g. $, #
+        if (getSymbolName(value) != null) {
+            return "E'" + sanitizeName(getSymbolName(value));
+        }
+
+        // number
+        if (num.contains(datatype.toLowerCase())) {
+            String varName = "Num" + value;
+            varName = varName.replaceAll("-", "Minus_");
+            varName = varName.replaceAll("\\+", "Plus_");
+            varName = varName.replaceAll("\\.", "_Dot_");
+            return "E'" + sanitizeName(varName);
+        }
+
+        return "E'" + sanitizeName(value);
+    }
+
+    @Override
+    public String toEnumValue(String value, String datatype) {
+        List<String> num = new ArrayList<>(Arrays.asList("integer","int","double","long","float"));
+        if(num.contains(datatype.toLowerCase())) {
+            return value;
+        } else {
+            return "\"" + escapeText(value) + "\"";
+        }
     }
 
     // override with any special text escaping logic
