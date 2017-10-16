@@ -93,9 +93,10 @@ instance ApproxEq TI.Day where
 {{#model}}
 instance Arbitrary {{classname}} where
   arbitrary =
-    {{^hasVars}}pure {{/hasVars}}{{classname}}
+    {{#isAlias}}{{classname}} <$> arbitrary{{/isAlias}}{{^isAlias}}{{^hasVars}}
+    pure {{/hasVars}}{{classname}}
     {{#hasVars}}  <$>{{/hasVars}} {{#vars}}arbitrary -- {{name}} :: {{^required}}Maybe {{/required}}{{datatype}}
-    {{#hasMore}}  <*> {{/hasMore}}{{/vars}}
+    {{#hasMore}}  <*> {{/hasMore}}{{/vars}}{{/isAlias}}
 
 {{/model}}
 {{/models}}

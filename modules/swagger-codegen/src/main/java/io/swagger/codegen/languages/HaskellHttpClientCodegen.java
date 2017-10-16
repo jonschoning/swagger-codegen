@@ -204,7 +204,6 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
         knownMimeDataTypes.put("*/*", "MimeAny");
 
         importMapping.clear();
-        importMapping.put("Map", "qualified Data.Map as Map");
 
         cliOptions.add(CliOption.newString(CodegenConstants.MODEL_PACKAGE, CodegenConstants.MODEL_PACKAGE_DESC));
         cliOptions.add(CliOption.newString(CodegenConstants.API_PACKAGE, CodegenConstants.API_PACKAGE_DESC));
@@ -461,15 +460,11 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
     @Override
     public String getSwaggerType(Property p) {
         String swaggerType = super.getSwaggerType(p);
-        String type = null;
+
         if (typeMapping.containsKey(swaggerType)) {
             return typeMapping.get(swaggerType);
-        } else if (languageSpecificPrimitives.contains(type)) {
-            return type;
         } else if (swaggerType == "object") {
             return "A.Value";
-//        } else if (typeMapping.containsValue(swaggerType)) {
-//            return toModelName(swaggerType) + "_";
         } else {
             return toModelName(swaggerType);
         }

@@ -56,14 +56,16 @@ import qualified Prelude as P
 -- | {{classname}}{{#title}}
 -- {{{.}}}
 -- {{/title}}{{#description}}
--- {{{.}}}{{/description}}
+-- {{{.}}}{{/description}}{{#isAlias}}
+newtype {{classname}} = {{classname}}
+  { un{{classname}} :: {{{dataType}}}
+  } deriving (P.Eq, P.Show, P.Typeable, A.ToJSON, A.FromJSON, WH.ToHttpApiData, WH.FromHttpApiData{{#modelDeriving}}, {{modelDeriving}}{{/modelDeriving}}){{/isAlias}}{{^isAlias}}
 data {{classname}} = {{classname}}
   { {{#vars}}{{name}} :: {{#x-strictFields}}!({{/x-strictFields}}{{^required}}Maybe {{/required}}{{datatype}}{{#x-strictFields}}){{/x-strictFields}} -- ^ {{#required}}/Required/ {{/required}}{{#readOnly}}/ReadOnly/ {{/readOnly}}"{{baseName}}"{{#description}} - {{description}}{{/description}}{{#hasMore}}
   , {{/hasMore}}{{/vars}}
-  } deriving (P.Show,P.Eq,P.Typeable{{#modelDeriving}},{{modelDeriving}}{{/modelDeriving}})
+  } deriving (P.Show, P.Eq, P.Typeable{{#modelDeriving}}, {{modelDeriving}}{{/modelDeriving}}){{/isAlias}}
 
-
--- | FromJSON {{classname}}
+{{^isAlias}}-- | FromJSON {{classname}}
 instance A.FromJSON {{classname}} where
   parseJSON = A.withObject "{{classname}}" $ \o ->
     {{^hasVars}}pure {{/hasVars}}{{classname}}
@@ -106,7 +108,8 @@ mk{{classname}} {{#requiredVars}}{{name}} {{/requiredVars}}=
   , {{/hasMore}}{{/vars}}
   }
 {{/generateModelConstructors}}
-  
+{{/isAlias}}  
+
 {{/model}}
 {{/models}}
 

@@ -63,8 +63,7 @@ import qualified Prelude as P
 data AdditionalPropertiesClass = AdditionalPropertiesClass
   { additionalPropertiesClassMapProperty :: !(Maybe (Map.Map String Text)) -- ^ "map_property"
   , additionalPropertiesClassMapOfMapProperty :: !(Maybe (Map.Map String (Map.Map String Text))) -- ^ "map_of_map_property"
-  } deriving (P.Show,P.Eq,P.Typeable)
-
+  } deriving (P.Show, P.Eq, P.Typeable)
 
 -- | FromJSON AdditionalPropertiesClass
 instance A.FromJSON AdditionalPropertiesClass where
@@ -90,15 +89,14 @@ mkAdditionalPropertiesClass =
   { additionalPropertiesClassMapProperty = Nothing
   , additionalPropertiesClassMapOfMapProperty = Nothing
   }
-  
+
 
 -- ** Animal
 -- | Animal
 data Animal = Animal
   { animalClassName :: !(Text) -- ^ /Required/ "className"
   , animalColor :: !(Maybe Text) -- ^ "color"
-  } deriving (P.Show,P.Eq,P.Typeable)
-
+  } deriving (P.Show, P.Eq, P.Typeable)
 
 -- | FromJSON Animal
 instance A.FromJSON Animal where
@@ -125,14 +123,13 @@ mkAnimal animalClassName =
   { animalClassName
   , animalColor = Nothing
   }
-  
+
 
 -- ** AnimalFarm
 -- | AnimalFarm
 data AnimalFarm = AnimalFarm
   { 
-  } deriving (P.Show,P.Eq,P.Typeable)
-
+  } deriving (P.Show, P.Eq, P.Typeable)
 
 -- | FromJSON AnimalFarm
 instance A.FromJSON AnimalFarm where
@@ -155,7 +152,7 @@ mkAnimalFarm =
   AnimalFarm
   { 
   }
-  
+
 
 -- ** ApiResponse
 -- | ApiResponse
@@ -163,8 +160,7 @@ data ApiResponse = ApiResponse
   { apiResponseCode :: !(Maybe Int) -- ^ "code"
   , apiResponseType :: !(Maybe Text) -- ^ "type"
   , apiResponseMessage :: !(Maybe Text) -- ^ "message"
-  } deriving (P.Show,P.Eq,P.Typeable)
-
+  } deriving (P.Show, P.Eq, P.Typeable)
 
 -- | FromJSON ApiResponse
 instance A.FromJSON ApiResponse where
@@ -193,14 +189,13 @@ mkApiResponse =
   , apiResponseType = Nothing
   , apiResponseMessage = Nothing
   }
-  
+
 
 -- ** ArrayOfArrayOfNumberOnly
 -- | ArrayOfArrayOfNumberOnly
 data ArrayOfArrayOfNumberOnly = ArrayOfArrayOfNumberOnly
   { arrayOfArrayOfNumberOnlyArrayArrayNumber :: !(Maybe [[Double]]) -- ^ "ArrayArrayNumber"
-  } deriving (P.Show,P.Eq,P.Typeable)
-
+  } deriving (P.Show, P.Eq, P.Typeable)
 
 -- | FromJSON ArrayOfArrayOfNumberOnly
 instance A.FromJSON ArrayOfArrayOfNumberOnly where
@@ -223,14 +218,13 @@ mkArrayOfArrayOfNumberOnly =
   ArrayOfArrayOfNumberOnly
   { arrayOfArrayOfNumberOnlyArrayArrayNumber = Nothing
   }
-  
+
 
 -- ** ArrayOfNumberOnly
 -- | ArrayOfNumberOnly
 data ArrayOfNumberOnly = ArrayOfNumberOnly
   { arrayOfNumberOnlyArrayNumber :: !(Maybe [Double]) -- ^ "ArrayNumber"
-  } deriving (P.Show,P.Eq,P.Typeable)
-
+  } deriving (P.Show, P.Eq, P.Typeable)
 
 -- | FromJSON ArrayOfNumberOnly
 instance A.FromJSON ArrayOfNumberOnly where
@@ -253,7 +247,7 @@ mkArrayOfNumberOnly =
   ArrayOfNumberOnly
   { arrayOfNumberOnlyArrayNumber = Nothing
   }
-  
+
 
 -- ** ArrayTest
 -- | ArrayTest
@@ -261,8 +255,7 @@ data ArrayTest = ArrayTest
   { arrayTestArrayOfString :: !(Maybe [Text]) -- ^ "array_of_string"
   , arrayTestArrayArrayOfInteger :: !(Maybe [[Integer]]) -- ^ "array_array_of_integer"
   , arrayTestArrayArrayOfModel :: !(Maybe [[ReadOnlyFirst]]) -- ^ "array_array_of_model"
-  } deriving (P.Show,P.Eq,P.Typeable)
-
+  } deriving (P.Show, P.Eq, P.Typeable)
 
 -- | FromJSON ArrayTest
 instance A.FromJSON ArrayTest where
@@ -291,7 +284,7 @@ mkArrayTest =
   , arrayTestArrayArrayOfInteger = Nothing
   , arrayTestArrayArrayOfModel = Nothing
   }
-  
+
 
 -- ** Capitalization
 -- | Capitalization
@@ -302,8 +295,7 @@ data Capitalization = Capitalization
   , capitalizationCapitalSnake :: !(Maybe Text) -- ^ "Capital_Snake"
   , capitalizationScaEthFlowPoints :: !(Maybe Text) -- ^ "SCA_ETH_Flow_Points"
   , capitalizationAttName :: !(Maybe Text) -- ^ "ATT_NAME" - Name of the pet 
-  } deriving (P.Show,P.Eq,P.Typeable)
-
+  } deriving (P.Show, P.Eq, P.Typeable)
 
 -- | FromJSON Capitalization
 instance A.FromJSON Capitalization where
@@ -341,15 +333,14 @@ mkCapitalization =
   , capitalizationScaEthFlowPoints = Nothing
   , capitalizationAttName = Nothing
   }
-  
+
 
 -- ** Category
 -- | Category
 data Category = Category
   { categoryId :: !(Maybe Integer) -- ^ "id"
   , categoryName :: !(Maybe Text) -- ^ "name"
-  } deriving (P.Show,P.Eq,P.Typeable)
-
+  } deriving (P.Show, P.Eq, P.Typeable)
 
 -- | FromJSON Category
 instance A.FromJSON Category where
@@ -375,15 +366,14 @@ mkCategory =
   { categoryId = Nothing
   , categoryName = Nothing
   }
-  
+
 
 -- ** ClassModel
 -- | ClassModel
 -- Model for testing model with \"_class\" property
 data ClassModel = ClassModel
   { classModelClass :: !(Maybe Text) -- ^ "_class"
-  } deriving (P.Show,P.Eq,P.Typeable)
-
+  } deriving (P.Show, P.Eq, P.Typeable)
 
 -- | FromJSON ClassModel
 instance A.FromJSON ClassModel where
@@ -406,14 +396,13 @@ mkClassModel =
   ClassModel
   { classModelClass = Nothing
   }
-  
+
 
 -- ** Client
 -- | Client
 data Client = Client
   { clientClient :: !(Maybe Text) -- ^ "client"
-  } deriving (P.Show,P.Eq,P.Typeable)
-
+  } deriving (P.Show, P.Eq, P.Typeable)
 
 -- | FromJSON Client
 instance A.FromJSON Client where
@@ -436,15 +425,14 @@ mkClient =
   Client
   { clientClient = Nothing
   }
-  
+
 
 -- ** EnumArrays
 -- | EnumArrays
 data EnumArrays = EnumArrays
   { enumArraysJustSymbol :: !(Maybe Text) -- ^ "just_symbol"
   , enumArraysArrayEnum :: !(Maybe [Text]) -- ^ "array_enum"
-  } deriving (P.Show,P.Eq,P.Typeable)
-
+  } deriving (P.Show, P.Eq, P.Typeable)
 
 -- | FromJSON EnumArrays
 instance A.FromJSON EnumArrays where
@@ -470,14 +458,13 @@ mkEnumArrays =
   { enumArraysJustSymbol = Nothing
   , enumArraysArrayEnum = Nothing
   }
-  
+
 
 -- ** EnumClass
 -- | EnumClass
 data EnumClass = EnumClass
   { 
-  } deriving (P.Show,P.Eq,P.Typeable)
-
+  } deriving (P.Show, P.Eq, P.Typeable)
 
 -- | FromJSON EnumClass
 instance A.FromJSON EnumClass where
@@ -500,7 +487,7 @@ mkEnumClass =
   EnumClass
   { 
   }
-  
+
 
 -- ** EnumTest
 -- | EnumTest
@@ -509,8 +496,7 @@ data EnumTest = EnumTest
   , enumTestEnumInteger :: !(Maybe Int) -- ^ "enum_integer"
   , enumTestEnumNumber :: !(Maybe Double) -- ^ "enum_number"
   , enumTestOuterEnum :: !(Maybe OuterEnum) -- ^ "outerEnum"
-  } deriving (P.Show,P.Eq,P.Typeable)
-
+  } deriving (P.Show, P.Eq, P.Typeable)
 
 -- | FromJSON EnumTest
 instance A.FromJSON EnumTest where
@@ -542,7 +528,7 @@ mkEnumTest =
   , enumTestEnumNumber = Nothing
   , enumTestOuterEnum = Nothing
   }
-  
+
 
 -- ** FormatTest
 -- | FormatTest
@@ -560,8 +546,7 @@ data FormatTest = FormatTest
   , formatTestDateTime :: !(Maybe DateTime) -- ^ "dateTime"
   , formatTestUuid :: !(Maybe Text) -- ^ "uuid"
   , formatTestPassword :: !(Text) -- ^ /Required/ "password"
-  } deriving (P.Show,P.Eq,P.Typeable)
-
+  } deriving (P.Show, P.Eq, P.Typeable)
 
 -- | FromJSON FormatTest
 instance A.FromJSON FormatTest where
@@ -624,15 +609,14 @@ mkFormatTest formatTestNumber formatTestByte formatTestDate formatTestPassword =
   , formatTestUuid = Nothing
   , formatTestPassword
   }
-  
+
 
 -- ** HasOnlyReadOnly
 -- | HasOnlyReadOnly
 data HasOnlyReadOnly = HasOnlyReadOnly
   { hasOnlyReadOnlyBar :: !(Maybe Text) -- ^ "bar"
   , hasOnlyReadOnlyFoo :: !(Maybe Text) -- ^ "foo"
-  } deriving (P.Show,P.Eq,P.Typeable)
-
+  } deriving (P.Show, P.Eq, P.Typeable)
 
 -- | FromJSON HasOnlyReadOnly
 instance A.FromJSON HasOnlyReadOnly where
@@ -658,15 +642,14 @@ mkHasOnlyReadOnly =
   { hasOnlyReadOnlyBar = Nothing
   , hasOnlyReadOnlyFoo = Nothing
   }
-  
+
 
 -- ** MapTest
 -- | MapTest
 data MapTest = MapTest
   { mapTestMapMapOfString :: !(Maybe (Map.Map String (Map.Map String Text))) -- ^ "map_map_of_string"
   , mapTestMapOfEnumString :: !(Maybe (Map.Map String Text)) -- ^ "map_of_enum_string"
-  } deriving (P.Show,P.Eq,P.Typeable)
-
+  } deriving (P.Show, P.Eq, P.Typeable)
 
 -- | FromJSON MapTest
 instance A.FromJSON MapTest where
@@ -692,7 +675,7 @@ mkMapTest =
   { mapTestMapMapOfString = Nothing
   , mapTestMapOfEnumString = Nothing
   }
-  
+
 
 -- ** MixedPropertiesAndAdditionalPropertiesClass
 -- | MixedPropertiesAndAdditionalPropertiesClass
@@ -700,8 +683,7 @@ data MixedPropertiesAndAdditionalPropertiesClass = MixedPropertiesAndAdditionalP
   { mixedPropertiesAndAdditionalPropertiesClassUuid :: !(Maybe Text) -- ^ "uuid"
   , mixedPropertiesAndAdditionalPropertiesClassDateTime :: !(Maybe DateTime) -- ^ "dateTime"
   , mixedPropertiesAndAdditionalPropertiesClassMap :: !(Maybe (Map.Map String Animal)) -- ^ "map"
-  } deriving (P.Show,P.Eq,P.Typeable)
-
+  } deriving (P.Show, P.Eq, P.Typeable)
 
 -- | FromJSON MixedPropertiesAndAdditionalPropertiesClass
 instance A.FromJSON MixedPropertiesAndAdditionalPropertiesClass where
@@ -730,7 +712,7 @@ mkMixedPropertiesAndAdditionalPropertiesClass =
   , mixedPropertiesAndAdditionalPropertiesClassDateTime = Nothing
   , mixedPropertiesAndAdditionalPropertiesClassMap = Nothing
   }
-  
+
 
 -- ** Model200Response
 -- | Model200Response
@@ -738,8 +720,7 @@ mkMixedPropertiesAndAdditionalPropertiesClass =
 data Model200Response = Model200Response
   { model200ResponseName :: !(Maybe Int) -- ^ "name"
   , model200ResponseClass :: !(Maybe Text) -- ^ "class"
-  } deriving (P.Show,P.Eq,P.Typeable)
-
+  } deriving (P.Show, P.Eq, P.Typeable)
 
 -- | FromJSON Model200Response
 instance A.FromJSON Model200Response where
@@ -765,14 +746,13 @@ mkModel200Response =
   { model200ResponseName = Nothing
   , model200ResponseClass = Nothing
   }
-  
+
 
 -- ** ModelList
 -- | ModelList
 data ModelList = ModelList
   { modelList123List :: !(Maybe Text) -- ^ "123-list"
-  } deriving (P.Show,P.Eq,P.Typeable)
-
+  } deriving (P.Show, P.Eq, P.Typeable)
 
 -- | FromJSON ModelList
 instance A.FromJSON ModelList where
@@ -795,15 +775,14 @@ mkModelList =
   ModelList
   { modelList123List = Nothing
   }
-  
+
 
 -- ** ModelReturn
 -- | ModelReturn
 -- Model for testing reserved words
 data ModelReturn = ModelReturn
   { modelReturnReturn :: !(Maybe Int) -- ^ "return"
-  } deriving (P.Show,P.Eq,P.Typeable)
-
+  } deriving (P.Show, P.Eq, P.Typeable)
 
 -- | FromJSON ModelReturn
 instance A.FromJSON ModelReturn where
@@ -826,7 +805,7 @@ mkModelReturn =
   ModelReturn
   { modelReturnReturn = Nothing
   }
-  
+
 
 -- ** Name
 -- | Name
@@ -836,8 +815,7 @@ data Name = Name
   , nameSnakeCase :: !(Maybe Int) -- ^ "snake_case"
   , nameProperty :: !(Maybe Text) -- ^ "property"
   , name123Number :: !(Maybe Int) -- ^ "123Number"
-  } deriving (P.Show,P.Eq,P.Typeable)
-
+  } deriving (P.Show, P.Eq, P.Typeable)
 
 -- | FromJSON Name
 instance A.FromJSON Name where
@@ -870,14 +848,13 @@ mkName nameName =
   , nameProperty = Nothing
   , name123Number = Nothing
   }
-  
+
 
 -- ** NumberOnly
 -- | NumberOnly
 data NumberOnly = NumberOnly
   { numberOnlyJustNumber :: !(Maybe Double) -- ^ "JustNumber"
-  } deriving (P.Show,P.Eq,P.Typeable)
-
+  } deriving (P.Show, P.Eq, P.Typeable)
 
 -- | FromJSON NumberOnly
 instance A.FromJSON NumberOnly where
@@ -900,7 +877,7 @@ mkNumberOnly =
   NumberOnly
   { numberOnlyJustNumber = Nothing
   }
-  
+
 
 -- ** Order
 -- | Order
@@ -911,8 +888,7 @@ data Order = Order
   , orderShipDate :: !(Maybe DateTime) -- ^ "shipDate"
   , orderStatus :: !(Maybe Text) -- ^ "status" - Order Status
   , orderComplete :: !(Maybe Bool) -- ^ "complete"
-  } deriving (P.Show,P.Eq,P.Typeable)
-
+  } deriving (P.Show, P.Eq, P.Typeable)
 
 -- | FromJSON Order
 instance A.FromJSON Order where
@@ -950,37 +926,15 @@ mkOrder =
   , orderStatus = Nothing
   , orderComplete = Nothing
   }
-  
+
 
 -- ** OuterBoolean
 -- | OuterBoolean
-data OuterBoolean = OuterBoolean
-  { 
-  } deriving (P.Show,P.Eq,P.Typeable)
+newtype OuterBoolean = OuterBoolean
+  { unOuterBoolean :: Bool
+  } deriving (P.Eq, P.Show, P.Typeable, A.ToJSON, A.FromJSON, WH.ToHttpApiData, WH.FromHttpApiData)
 
 
--- | FromJSON OuterBoolean
-instance A.FromJSON OuterBoolean where
-  parseJSON = A.withObject "OuterBoolean" $ \o ->
-    pure OuterBoolean
-      
-
--- | ToJSON OuterBoolean
-instance A.ToJSON OuterBoolean where
-  toJSON OuterBoolean  =
-   _omitNulls
-      [ 
-      ]
-
-
--- | Construct a value of type 'OuterBoolean' (by applying it's required fields, if any)
-mkOuterBoolean
-  :: OuterBoolean
-mkOuterBoolean =
-  OuterBoolean
-  { 
-  }
-  
 
 -- ** OuterComposite
 -- | OuterComposite
@@ -988,8 +942,7 @@ data OuterComposite = OuterComposite
   { outerCompositeMyNumber :: !(Maybe OuterNumber) -- ^ "my_number"
   , outerCompositeMyString :: !(Maybe OuterString) -- ^ "my_string"
   , outerCompositeMyBoolean :: !(Maybe OuterBoolean) -- ^ "my_boolean"
-  } deriving (P.Show,P.Eq,P.Typeable)
-
+  } deriving (P.Show, P.Eq, P.Typeable)
 
 -- | FromJSON OuterComposite
 instance A.FromJSON OuterComposite where
@@ -1018,14 +971,13 @@ mkOuterComposite =
   , outerCompositeMyString = Nothing
   , outerCompositeMyBoolean = Nothing
   }
-  
+
 
 -- ** OuterEnum
 -- | OuterEnum
 data OuterEnum = OuterEnum
   { 
-  } deriving (P.Show,P.Eq,P.Typeable)
-
+  } deriving (P.Show, P.Eq, P.Typeable)
 
 -- | FromJSON OuterEnum
 instance A.FromJSON OuterEnum where
@@ -1048,67 +1000,23 @@ mkOuterEnum =
   OuterEnum
   { 
   }
-  
+
 
 -- ** OuterNumber
 -- | OuterNumber
-data OuterNumber = OuterNumber
-  { 
-  } deriving (P.Show,P.Eq,P.Typeable)
+newtype OuterNumber = OuterNumber
+  { unOuterNumber :: Double
+  } deriving (P.Eq, P.Show, P.Typeable, A.ToJSON, A.FromJSON, WH.ToHttpApiData, WH.FromHttpApiData)
 
 
--- | FromJSON OuterNumber
-instance A.FromJSON OuterNumber where
-  parseJSON = A.withObject "OuterNumber" $ \o ->
-    pure OuterNumber
-      
-
--- | ToJSON OuterNumber
-instance A.ToJSON OuterNumber where
-  toJSON OuterNumber  =
-   _omitNulls
-      [ 
-      ]
-
-
--- | Construct a value of type 'OuterNumber' (by applying it's required fields, if any)
-mkOuterNumber
-  :: OuterNumber
-mkOuterNumber =
-  OuterNumber
-  { 
-  }
-  
 
 -- ** OuterString
 -- | OuterString
-data OuterString = OuterString
-  { 
-  } deriving (P.Show,P.Eq,P.Typeable)
+newtype OuterString = OuterString
+  { unOuterString :: Text
+  } deriving (P.Eq, P.Show, P.Typeable, A.ToJSON, A.FromJSON, WH.ToHttpApiData, WH.FromHttpApiData)
 
 
--- | FromJSON OuterString
-instance A.FromJSON OuterString where
-  parseJSON = A.withObject "OuterString" $ \o ->
-    pure OuterString
-      
-
--- | ToJSON OuterString
-instance A.ToJSON OuterString where
-  toJSON OuterString  =
-   _omitNulls
-      [ 
-      ]
-
-
--- | Construct a value of type 'OuterString' (by applying it's required fields, if any)
-mkOuterString
-  :: OuterString
-mkOuterString =
-  OuterString
-  { 
-  }
-  
 
 -- ** Pet
 -- | Pet
@@ -1119,8 +1027,7 @@ data Pet = Pet
   , petPhotoUrls :: !([Text]) -- ^ /Required/ "photoUrls"
   , petTags :: !(Maybe [Tag]) -- ^ "tags"
   , petStatus :: !(Maybe Text) -- ^ "status" - pet status in the store
-  } deriving (P.Show,P.Eq,P.Typeable)
-
+  } deriving (P.Show, P.Eq, P.Typeable)
 
 -- | FromJSON Pet
 instance A.FromJSON Pet where
@@ -1160,15 +1067,14 @@ mkPet petName petPhotoUrls =
   , petTags = Nothing
   , petStatus = Nothing
   }
-  
+
 
 -- ** ReadOnlyFirst
 -- | ReadOnlyFirst
 data ReadOnlyFirst = ReadOnlyFirst
   { readOnlyFirstBar :: !(Maybe Text) -- ^ "bar"
   , readOnlyFirstBaz :: !(Maybe Text) -- ^ "baz"
-  } deriving (P.Show,P.Eq,P.Typeable)
-
+  } deriving (P.Show, P.Eq, P.Typeable)
 
 -- | FromJSON ReadOnlyFirst
 instance A.FromJSON ReadOnlyFirst where
@@ -1194,14 +1100,13 @@ mkReadOnlyFirst =
   { readOnlyFirstBar = Nothing
   , readOnlyFirstBaz = Nothing
   }
-  
+
 
 -- ** SpecialModelName
 -- | SpecialModelName
 data SpecialModelName = SpecialModelName
   { specialModelNameSpecialPropertyName :: !(Maybe Integer) -- ^ "$special[property.name]"
-  } deriving (P.Show,P.Eq,P.Typeable)
-
+  } deriving (P.Show, P.Eq, P.Typeable)
 
 -- | FromJSON SpecialModelName
 instance A.FromJSON SpecialModelName where
@@ -1224,15 +1129,14 @@ mkSpecialModelName =
   SpecialModelName
   { specialModelNameSpecialPropertyName = Nothing
   }
-  
+
 
 -- ** Tag
 -- | Tag
 data Tag = Tag
   { tagId :: !(Maybe Integer) -- ^ "id"
   , tagName :: !(Maybe Text) -- ^ "name"
-  } deriving (P.Show,P.Eq,P.Typeable)
-
+  } deriving (P.Show, P.Eq, P.Typeable)
 
 -- | FromJSON Tag
 instance A.FromJSON Tag where
@@ -1258,7 +1162,7 @@ mkTag =
   { tagId = Nothing
   , tagName = Nothing
   }
-  
+
 
 -- ** User
 -- | User
@@ -1271,8 +1175,7 @@ data User = User
   , userPassword :: !(Maybe Text) -- ^ "password"
   , userPhone :: !(Maybe Text) -- ^ "phone"
   , userUserStatus :: !(Maybe Int) -- ^ "userStatus" - User Status
-  } deriving (P.Show,P.Eq,P.Typeable)
-
+  } deriving (P.Show, P.Eq, P.Typeable)
 
 -- | FromJSON User
 instance A.FromJSON User where
@@ -1316,7 +1219,7 @@ mkUser =
   , userPhone = Nothing
   , userUserStatus = Nothing
   }
-  
+
 
 -- ** Cat
 -- | Cat
@@ -1324,8 +1227,7 @@ data Cat = Cat
   { catClassName :: !(Text) -- ^ /Required/ "className"
   , catColor :: !(Maybe Text) -- ^ "color"
   , catDeclawed :: !(Maybe Bool) -- ^ "declawed"
-  } deriving (P.Show,P.Eq,P.Typeable)
-
+  } deriving (P.Show, P.Eq, P.Typeable)
 
 -- | FromJSON Cat
 instance A.FromJSON Cat where
@@ -1355,7 +1257,7 @@ mkCat catClassName =
   , catColor = Nothing
   , catDeclawed = Nothing
   }
-  
+
 
 -- ** Dog
 -- | Dog
@@ -1363,8 +1265,7 @@ data Dog = Dog
   { dogClassName :: !(Text) -- ^ /Required/ "className"
   , dogColor :: !(Maybe Text) -- ^ "color"
   , dogBreed :: !(Maybe Text) -- ^ "breed"
-  } deriving (P.Show,P.Eq,P.Typeable)
-
+  } deriving (P.Show, P.Eq, P.Typeable)
 
 -- | FromJSON Dog
 instance A.FromJSON Dog where
@@ -1394,6 +1295,6 @@ mkDog dogClassName =
   , dogColor = Nothing
   , dogBreed = Nothing
   }
-  
+
 
 

@@ -105,6 +105,7 @@ instance Arbitrary Animal where
 
 instance Arbitrary AnimalFarm where
   arbitrary =
+    
     pure AnimalFarm
      
 
@@ -175,6 +176,7 @@ instance Arbitrary EnumArrays where
 
 instance Arbitrary EnumClass where
   arbitrary =
+    
     pure EnumClass
      
 
@@ -274,8 +276,7 @@ instance Arbitrary Order where
 
 instance Arbitrary OuterBoolean where
   arbitrary =
-    pure OuterBoolean
-     
+    OuterBoolean <$> arbitrary
 
 instance Arbitrary OuterComposite where
   arbitrary =
@@ -287,18 +288,17 @@ instance Arbitrary OuterComposite where
 
 instance Arbitrary OuterEnum where
   arbitrary =
+    
     pure OuterEnum
      
 
 instance Arbitrary OuterNumber where
   arbitrary =
-    pure OuterNumber
-     
+    OuterNumber <$> arbitrary
 
 instance Arbitrary OuterString where
   arbitrary =
-    pure OuterString
-     
+    OuterString <$> arbitrary
 
 instance Arbitrary Pet where
   arbitrary =
