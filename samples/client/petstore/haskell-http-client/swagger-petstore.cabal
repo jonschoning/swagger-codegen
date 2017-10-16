@@ -57,6 +57,11 @@ library
     , case-insensitive
     , microlens >= 0.4.3 && <0.5
     , deepseq >= 1.4 && <1.6
+    , conduit >= 1.1
+    , conduit-extra >= 1.1
+    , xml-conduit >= 1.2
+    , xml-types >= 0.3.4
+    , attoparsec >= 0.11.3
   exposed-modules:
       SwaggerPetstore
       SwaggerPetstore.API
@@ -66,6 +71,7 @@ library
       SwaggerPetstore.MimeTypes
       SwaggerPetstore.Model
       SwaggerPetstore.ModelLens
+      SwaggerPetstore.XML
   other-modules:
       Paths_swagger_petstore
   default-language: Haskell2010

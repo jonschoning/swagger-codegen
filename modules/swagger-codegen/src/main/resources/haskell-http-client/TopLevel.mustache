@@ -10,7 +10,8 @@ module {{title}}
   , module {{title}}.Logging
   , module {{title}}.MimeTypes
   , module {{title}}.Model
-  , module {{title}}.ModelLens
+  , module {{title}}.ModelLens{{#generateXMLInstances}}
+  , module {{title}}.XML{{/generateXMLInstances}}
   ) where
 
 import {{title}}.API
@@ -19,4 +20,5 @@ import {{title}}.Core
 import {{title}}.Logging
 import {{title}}.MimeTypes
 import {{title}}.Model
-import {{title}}.ModelLens
+import {{title}}.ModelLens{{#generateXMLInstances}}
+import {{title}}.XML{{/generateXMLInstances}}

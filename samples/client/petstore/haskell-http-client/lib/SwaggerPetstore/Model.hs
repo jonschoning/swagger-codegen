@@ -28,6 +28,7 @@ Module : SwaggerPetstore.Model
 module SwaggerPetstore.Model where
 
 import SwaggerPetstore.Core
+import SwaggerPetstore.XML
 
 import Data.Aeson ((.:),(.:!),(.:?),(.=))
 
@@ -307,6 +308,27 @@ instance A.FromJSON Capitalization where
       <*> (o .:? "Capital_Snake")
       <*> (o .:? "SCA_ETH_Flow_Points")
       <*> (o .:? "ATT_NAME")
+
+instance FromXML Capitalization where
+  parseXML o = 
+    Capitalization
+      <$> (o .@? "smallCamel")
+      <*> (o .@? "CapitalCamel")
+      <*> (o .@? "small_Snake")
+      <*> (o .@? "Capital_Snake")
+      <*> (o .@? "SCA_ETH_Flow_Points")
+      <*> (o .@? "ATT_NAME")
+
+instance ToXML Capitalization where
+  toXML Capitalization {..} =
+    P.mconcat
+      [ "smallCamel" @= capitalizationSmallCamel
+      , "CapitalCamel" @= capitalizationCapitalCamel
+      , "small_Snake" @= capitalizationSmallSnake
+      , "Capital_Snake" @= capitalizationCapitalSnake
+      , "SCA_ETH_Flow_Points" @= capitalizationScaEthFlowPoints
+      , "ATT_NAME" @= capitalizationAttName
+      ]
 
 -- | ToJSON Capitalization
 instance A.ToJSON Capitalization where

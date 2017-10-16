@@ -21,6 +21,7 @@ module SwaggerPetstore
   , module SwaggerPetstore.MimeTypes
   , module SwaggerPetstore.Model
   , module SwaggerPetstore.ModelLens
+  , module SwaggerPetstore.XML
   ) where
 
 import SwaggerPetstore.API
@@ -30,3 +31,4 @@ import SwaggerPetstore.Logging
 import SwaggerPetstore.MimeTypes
 import SwaggerPetstore.Model
 import SwaggerPetstore.ModelLens
+import SwaggerPetstore.XML

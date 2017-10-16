@@ -60,7 +60,9 @@ library
     , safe-exceptions <0.2
     , case-insensitive
     , microlens >= 0.4.3 && <0.5
-    , deepseq >= 1.4 && <1.6
+    , deepseq >= 1.4 && <1.6{{#generateXMLInstances}}
+    , xml-conduit >= 1.2
+    , xml-types   >= 0.3.4{{/generateXMLInstances}}
   exposed-modules:
       {{title}}
       {{title}}.API
@@ -69,7 +71,8 @@ library
       {{title}}.Logging
       {{title}}.MimeTypes
       {{title}}.Model
-      {{title}}.ModelLens
+      {{title}}.ModelLens{{#generateXMLInstances}}
+      {{title}}.XML{{/generateXMLInstances}}
   other-modules:
       Paths_{{pathsName}}
   default-language: Haskell2010

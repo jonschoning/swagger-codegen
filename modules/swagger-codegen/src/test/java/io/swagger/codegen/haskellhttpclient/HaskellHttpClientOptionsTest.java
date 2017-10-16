@@ -38,6 +38,8 @@ public class HaskellHttpClientOptionsTest extends AbstractOptionsTest {
             times = 1;
             clientCodegen.setGenerateFormUrlEncodedInstances(Boolean.valueOf(HaskellHttpClientOptionsProvider.GENERATE_FORM_URLENCODED_INSTANCES));
             times = 1;
+            clientCodegen.setGenerateXmlInstances(Boolean.valueOf(HaskellHttpClientOptionsProvider.GENERATE_XML_INSTANCES));
+            times = 1;
             clientCodegen.setGenerateLenses(Boolean.valueOf(HaskellHttpClientOptionsProvider.GENERATE_LENSES));
             times = 1;
             clientCodegen.setInlineConsumesContentTypes(Boolean.valueOf(HaskellHttpClientOptionsProvider.INLINE_CONSUMES_CONTENT_TYPES));
