@@ -29,6 +29,7 @@ Module : SwaggerPetstore.Core
 module SwaggerPetstore.Core where
 
 import SwaggerPetstore.MimeTypes
+import SwaggerPetstore.Logging
 
 import qualified Control.Arrow as P (left)
 import qualified Control.DeepSeq as NF
@@ -56,13 +57,76 @@ import qualified Network.HTTP.Types as NH
 import qualified Prelude as P
 import qualified Web.FormUrlEncoded as WH
 import qualified Web.HttpApiData as WH
+import qualified Text.Printf as T
 
 import Control.Applicative ((<|>))
 import Control.Applicative (Alternative)
 import Data.Function ((&))
+import Data.Foldable(foldlM)
 import Data.Monoid ((<>))
 import Data.Text (Text)
-import Prelude (($), (.), (<$>), (<*>), Maybe(..), Bool(..), Char, String, fmap, mempty, pure, Monad, Functor)
+import Prelude (($), (.), (<$>), (<*>), Maybe(..), Bool(..), Char, String, fmap, mempty, pure, return, show, IO, Monad, Functor)
+
+-- * SwaggerPetstoreConfig
+
+-- | 
+data SwaggerPetstoreConfig = SwaggerPetstoreConfig
+  { configHost  :: BCL.ByteString -- ^ host supplied in the Request
+  , configUserAgent :: Text -- ^ user-agent supplied in the Request
+  , configLogExecWithContext :: LogExecWithContext -- ^ Run a block using a Logger instance
+  , configLogContext :: LogContext -- ^ Configures the logger
+  , configAuthMethods :: [AnyAuthMethod] -- ^ List of configured auth methods
+  }
+
+-- | display the config
+instance P.Show SwaggerPetstoreConfig where
+  show c =
+    T.printf
+      "{ configHost = %v, configUserAgent = %v, ..}"
+      (show (configHost c))
+      (show (configUserAgent c))
+
+-- | constructs a default SwaggerPetstoreConfig
+--
+-- configHost:
+--
+-- @http://petstore.swagger.io:80/v2@
+--
+-- configUserAgent:
+--
+-- @"swagger-haskell-http-client/1.0.0"@
+--
+newConfig :: IO SwaggerPetstoreConfig
+newConfig = do
+    logCxt <- initLogContext
+    return $ SwaggerPetstoreConfig
+        { configHost = "http://petstore.swagger.io:80/v2"
+        , configUserAgent = "swagger-haskell-http-client/1.0.0"
+        , configLogExecWithContext = runDefaultLogExecWithContext
+        , configLogContext = logCxt
+        , configAuthMethods = []
+        }  
+
+-- | updates config use AuthMethod on matching requests
+addAuthMethod :: AuthMethod auth => SwaggerPetstoreConfig -> auth -> SwaggerPetstoreConfig
+addAuthMethod config@SwaggerPetstoreConfig {configAuthMethods = as} a =
+  config { configAuthMethods = AnyAuthMethod a : as}
+
+-- | updates the config to use stdout logging
+withStdoutLogging :: SwaggerPetstoreConfig -> IO SwaggerPetstoreConfig
+withStdoutLogging p = do
+    logCxt <- stdoutLoggingContext (configLogContext p)
+    return $ p { configLogExecWithContext = stdoutLoggingExec, configLogContext = logCxt }
+
+-- | updates the config to use stderr logging
+withStderrLogging :: SwaggerPetstoreConfig -> IO SwaggerPetstoreConfig
+withStderrLogging p = do
+    logCxt <- stderrLoggingContext (configLogContext p)
+    return $ p { configLogExecWithContext = stderrLoggingExec, configLogContext = logCxt }
+
+-- | updates the config to disable logging
+withNoLogging :: SwaggerPetstoreConfig -> SwaggerPetstoreConfig
+withNoLogging p = p { configLogExecWithContext =  runNullLogExec}
  
 -- * SwaggerPetstoreRequest
 
@@ -291,17 +355,28 @@ _toCollA' c encode one xs = case c of
 -- * AuthMethods
 
 -- | Provides a method to apply auth methods to requests
-class P.Typeable a => AuthMethod a where
-  applyAuthMethod :: SwaggerPetstoreRequest req contentType res -> a -> SwaggerPetstoreRequest req contentType res
+class P.Typeable a =>
+      AuthMethod a  where
+  applyAuthMethod
+    :: SwaggerPetstoreConfig
+    -> a
+    -> SwaggerPetstoreRequest req contentType res
+    -> IO (SwaggerPetstoreRequest req contentType res)
 
 -- | An existential wrapper for any AuthMethod
 data AnyAuthMethod = forall a. AuthMethod a => AnyAuthMethod a deriving (P.Typeable)
 
-instance AuthMethod AnyAuthMethod where applyAuthMethod req (AnyAuthMethod a) = applyAuthMethod req a
+instance AuthMethod AnyAuthMethod where applyAuthMethod config (AnyAuthMethod a) req = applyAuthMethod config a req
 
-
-
-
+-- | apply all matching AuthMethods in config to request
+_applyAuthMethods
+  :: SwaggerPetstoreRequest req contentType res
+  -> SwaggerPetstoreConfig
+  -> IO (SwaggerPetstoreRequest req contentType res)
+_applyAuthMethods req config@(SwaggerPetstoreConfig {configAuthMethods = as}) =
+  foldlM go req as
+  where
+    go r (AnyAuthMethod a) = applyAuthMethod config a r
   
 -- * Utils
 

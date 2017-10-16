@@ -19,6 +19,7 @@ Module : {{title}}.Core
 module {{title}}.Core where
 
 import {{title}}.MimeTypes
+import {{title}}.Logging
 
 import qualified Control.Arrow as P (left)
 import qualified Control.DeepSeq as NF
@@ -46,13 +47,76 @@ import qualified Network.HTTP.Types as NH
 import qualified Prelude as P
 import qualified Web.FormUrlEncoded as WH
 import qualified Web.HttpApiData as WH
+import qualified Text.Printf as T
 
 import Control.Applicative ((<|>))
 import Control.Applicative (Alternative)
 import Data.Function ((&))
+import Data.Foldable(foldlM)
 import Data.Monoid ((<>))
 import Data.Text (Text)
-import Prelude (($), (.), (<$>), (<*>), Maybe(..), Bool(..), Char, String, fmap, mempty, pure, Monad, Functor)
+import Prelude (($), (.), (<$>), (<*>), Maybe(..), Bool(..), Char, String, fmap, mempty, pure, return, show, IO, Monad, Functor)
+
+-- * {{configType}}
+
+-- | 
+data {{configType}} = {{configType}}
+  { configHost  :: BCL.ByteString -- ^ host supplied in the Request
+  , configUserAgent :: Text -- ^ user-agent supplied in the Request
+  , configLogExecWithContext :: LogExecWithContext -- ^ Run a block using a Logger instance
+  , configLogContext :: LogContext -- ^ Configures the logger
+  , configAuthMethods :: [AnyAuthMethod] -- ^ List of configured auth methods
+  }
+
+-- | display the config
+instance P.Show {{configType}} where
+  show c =
+    T.printf
+      "{ configHost = %v, configUserAgent = %v, ..}"
+      (show (configHost c))
+      (show (configUserAgent c))
+
+-- | constructs a default {{configType}}
+--
+-- configHost:
+--
+-- @{{basePath}}@
+--
+-- configUserAgent:
+--
+-- @"{{#httpUserAgent}}{{{.}}}{{/httpUserAgent}}{{^httpUserAgent}}{{{artifactId}}}/{{{artifactVersion}}}{{/httpUserAgent}}"@
+--
+newConfig :: IO {{configType}}
+newConfig = do
+    logCxt <- initLogContext
+    return $ {{configType}}
+        { configHost = "{{{basePath}}}"
+        , configUserAgent = "{{#httpUserAgent}}{{{.}}}{{/httpUserAgent}}{{^httpUserAgent}}{{{artifactId}}}/{{{artifactVersion}}}{{/httpUserAgent}}"
+        , configLogExecWithContext = runDefaultLogExecWithContext
+        , configLogContext = logCxt
+        , configAuthMethods = []
+        }  
+
+-- | updates config use AuthMethod on matching requests
+addAuthMethod :: AuthMethod auth => {{configType}} -> auth -> {{configType}}
+addAuthMethod config@{{configType}} {configAuthMethods = as} a =
+  config { configAuthMethods = AnyAuthMethod a : as}
+
+-- | updates the config to use stdout logging
+withStdoutLogging :: {{configType}} -> IO {{configType}}
+withStdoutLogging p = do
+    logCxt <- stdoutLoggingContext (configLogContext p)
+    return $ p { configLogExecWithContext = stdoutLoggingExec, configLogContext = logCxt }
+
+-- | updates the config to use stderr logging
+withStderrLogging :: {{configType}} -> IO {{configType}}
+withStderrLogging p = do
+    logCxt <- stderrLoggingContext (configLogContext p)
+    return $ p { configLogExecWithContext = stderrLoggingExec, configLogContext = logCxt }
+
+-- | updates the config to disable logging
+withNoLogging :: {{configType}} -> {{configType}}
+withNoLogging p = p { configLogExecWithContext =  runNullLogExec}
  
 -- * {{requestType}}
 
@@ -281,17 +345,28 @@ _toCollA' c encode one xs = case c of
 -- * AuthMethods
 
 -- | Provides a method to apply auth methods to requests
-class P.Typeable a => AuthMethod a where
-  applyAuthMethod :: SwaggerPetstoreRequest req contentType res -> a -> SwaggerPetstoreRequest req contentType res
+class P.Typeable a =>
+      AuthMethod a  where
+  applyAuthMethod
+    :: {{configType}}
+    -> a
+    -> {{requestType}} req contentType res
+    -> IO ({{requestType}} req contentType res)
 
 -- | An existential wrapper for any AuthMethod
 data AnyAuthMethod = forall a. AuthMethod a => AnyAuthMethod a deriving (P.Typeable)
 
-instance AuthMethod AnyAuthMethod where applyAuthMethod req (AnyAuthMethod a) = applyAuthMethod req a
+instance AuthMethod AnyAuthMethod where applyAuthMethod config (AnyAuthMethod a) req = applyAuthMethod config a req
 
-
-
-
+-- | apply all matching AuthMethods in config to request
+_applyAuthMethods
+  :: {{requestType}} req contentType res
+  -> {{configType}}
+  -> IO ({{requestType}} req contentType res)
+_applyAuthMethods req config@({{configType}} {configAuthMethods = as}) =
+  foldlM go req as
+  where
+    go r (AnyAuthMethod a) = applyAuthMethod config a r
   
 -- * Utils
 

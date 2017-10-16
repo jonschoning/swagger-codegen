@@ -1030,7 +1030,8 @@ data AuthApiKeyApiKey =
   deriving (P.Eq, P.Show, P.Typeable)
 
 instance AuthMethod AuthApiKeyApiKey where
-  applyAuthMethod req a@(AuthApiKeyApiKey secret) =
+  applyAuthMethod _ a@(AuthApiKeyApiKey secret) req =
+    P.pure $
     if (P.typeOf a `P.elem` rAuthTypes req)
       then req `setHeader` toHeader ("api_key", secret)
       else req
@@ -1041,7 +1042,8 @@ data AuthApiKeyApiKeyQuery =
   deriving (P.Eq, P.Show, P.Typeable)
 
 instance AuthMethod AuthApiKeyApiKeyQuery where
-  applyAuthMethod req a@(AuthApiKeyApiKeyQuery secret) =
+  applyAuthMethod _ a@(AuthApiKeyApiKeyQuery secret) req =
+    P.pure $
     if (P.typeOf a `P.elem` rAuthTypes req)
       then req `setQuery` toQuery ("api_key_query", Just secret)
       else req
@@ -1052,7 +1054,8 @@ data AuthBasicHttpBasicTest =
   deriving (P.Eq, P.Show, P.Typeable)
 
 instance AuthMethod AuthBasicHttpBasicTest where
-  applyAuthMethod req a@(AuthBasicHttpBasicTest user pw) =
+  applyAuthMethod _ a@(AuthBasicHttpBasicTest user pw) req =
+    P.pure $
     if (P.typeOf a `P.elem` rAuthTypes req)
       then req `setHeader` toHeader ("Authorization", T.decodeUtf8 cred)
       else req
@@ -1064,7 +1067,8 @@ data AuthOAuthPetstoreAuth =
   deriving (P.Eq, P.Show, P.Typeable)
 
 instance AuthMethod AuthOAuthPetstoreAuth where
-  applyAuthMethod req a@(AuthOAuthPetstoreAuth secret) =
+  applyAuthMethod _ a@(AuthOAuthPetstoreAuth secret) req =
+    P.pure $
     if (P.typeOf a `P.elem` rAuthTypes req)
       then req `setHeader` toHeader ("Authorization", "Bearer " <> secret) 
       else req
