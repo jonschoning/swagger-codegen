@@ -31,6 +31,7 @@ import SwaggerPetstore.MimeTypes
 
 import qualified Control.Exception.Safe as E
 import qualified Control.Monad.IO.Class as P
+import qualified Control.Monad as P
 import qualified Data.Aeson.Types as A
 import qualified Data.ByteString.Char8 as BC
 import qualified Data.ByteString.Lazy as BL
@@ -44,7 +45,6 @@ import qualified Network.HTTP.Types as NH
 import qualified Web.FormUrlEncoded as WH
 import qualified Web.HttpApiData as WH
 
-import Control.Monad.Catch (MonadThrow)
 import Data.Function ((&))
 import Data.Monoid ((<>))
 import Data.Text (Text)
@@ -171,24 +171,28 @@ _toInitRequest
   -> SwaggerPetstoreRequest req contentType res -- ^ request
   -> accept -- ^ "accept" 'MimeType'
   -> IO (InitRequest req contentType res accept) -- ^ initialized request
-_toInitRequest config req0 accept = do
-  parsedReq <- NH.parseRequest $ BCL.unpack $ BCL.append (configHost config) (BCL.concat (rUrlPath req0))
-  req1 <- _applyAuthMethods req0 config
-  let req2 = req1 & _setContentTypeHeader & flip _setAcceptHeader accept
-      reqHeaders = ("User-Agent", WH.toHeader (configUserAgent config)) : paramsHeaders (rParams req2)
-      reqQuery = NH.renderQuery True (paramsQuery (rParams req2))
-      pReq = parsedReq { NH.method = (rMethod req2)
-                       , NH.requestHeaders = reqHeaders
-                       , NH.queryString = reqQuery
-                       }
-  outReq <- case paramsBody (rParams req2) of
-    ParamBodyNone -> pure (pReq { NH.requestBody = mempty })
-    ParamBodyB bs -> pure (pReq { NH.requestBody = NH.RequestBodyBS bs })
-    ParamBodyBL bl -> pure (pReq { NH.requestBody = NH.RequestBodyLBS bl })
-    ParamBodyFormUrlEncoded form -> pure (pReq { NH.requestBody = NH.RequestBodyLBS (WH.urlEncodeForm form) })
-    ParamBodyMultipartFormData parts -> NH.formDataBody parts pReq
+_toInitRequest config req0 accept = 
+  runConfigLogWithExceptions "Client" config $ do
+    parsedReq <- P.liftIO $ NH.parseRequest $ BCL.unpack $ BCL.append (configHost config) (BCL.concat (rUrlPath req0))
+    req1 <- P.liftIO $ _applyAuthMethods req0 config
+    P.when
+        (configValidateAuthMethods config && (not . null . rAuthTypes) req1)
+        (E.throwString $ "AuthMethod not configured: " <> (show . head . rAuthTypes) req1)
+    let req2 = req1 & _setContentTypeHeader & flip _setAcceptHeader accept
+        reqHeaders = ("User-Agent", WH.toHeader (configUserAgent config)) : paramsHeaders (rParams req2)
+        reqQuery = NH.renderQuery True (paramsQuery (rParams req2))
+        pReq = parsedReq { NH.method = (rMethod req2)
+                        , NH.requestHeaders = reqHeaders
+                        , NH.queryString = reqQuery
+                        }
+    outReq <- case paramsBody (rParams req2) of
+        ParamBodyNone -> pure (pReq { NH.requestBody = mempty })
+        ParamBodyB bs -> pure (pReq { NH.requestBody = NH.RequestBodyBS bs })
+        ParamBodyBL bl -> pure (pReq { NH.requestBody = NH.RequestBodyLBS bl })
+        ParamBodyFormUrlEncoded form -> pure (pReq { NH.requestBody = NH.RequestBodyLBS (WH.urlEncodeForm form) })
+        ParamBodyMultipartFormData parts -> NH.formDataBody parts pReq
 
-  pure (InitRequest outReq)
+    pure (InitRequest outReq)
 
 -- | modify the underlying Request
 modifyInitRequest :: InitRequest req contentType res accept -> (NH.Request -> NH.Request) -> InitRequest req contentType res accept 

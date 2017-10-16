@@ -1034,6 +1034,7 @@ instance AuthMethod AuthApiKeyApiKey where
     P.pure $
     if (P.typeOf a `P.elem` rAuthTypes req)
       then req `setHeader` toHeader ("api_key", secret)
+           & L.over rAuthTypesL (P.filter (/= P.typeOf a))
       else req
 
 -- ** AuthApiKeyApiKeyQuery
@@ -1046,6 +1047,7 @@ instance AuthMethod AuthApiKeyApiKeyQuery where
     P.pure $
     if (P.typeOf a `P.elem` rAuthTypes req)
       then req `setQuery` toQuery ("api_key_query", Just secret)
+           & L.over rAuthTypesL (P.filter (/= P.typeOf a))
       else req
 
 -- ** AuthBasicHttpBasicTest
@@ -1058,6 +1060,7 @@ instance AuthMethod AuthBasicHttpBasicTest where
     P.pure $
     if (P.typeOf a `P.elem` rAuthTypes req)
       then req `setHeader` toHeader ("Authorization", T.decodeUtf8 cred)
+           & L.over rAuthTypesL (P.filter (/= P.typeOf a))
       else req
     where cred = BC.append "Basic " (B64.encode $ BC.concat [ user, ":", pw ])
 
@@ -1071,6 +1074,7 @@ instance AuthMethod AuthOAuthPetstoreAuth where
     P.pure $
     if (P.typeOf a `P.elem` rAuthTypes req)
       then req `setHeader` toHeader ("Authorization", "Bearer " <> secret) 
+           & L.over rAuthTypesL (P.filter (/= P.typeOf a))
       else req
 
 
@@ -1098,4 +1102,5 @@ instance MimeType MimeXmlCharsetutf8 where
   mimeType _ = Just $ P.fromString "application/xml; charset=utf-8"
 -- instance MimeRender MimeXmlCharsetutf8 T.Text where mimeRender _ = undefined
 -- instance MimeUnrender MimeXmlCharsetutf8 T.Text where mimeUnrender _ = undefined
+
 

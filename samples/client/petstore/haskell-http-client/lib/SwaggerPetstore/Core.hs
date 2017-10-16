@@ -76,6 +76,7 @@ data SwaggerPetstoreConfig = SwaggerPetstoreConfig
   , configLogExecWithContext :: LogExecWithContext -- ^ Run a block using a Logger instance
   , configLogContext :: LogContext -- ^ Configures the logger
   , configAuthMethods :: [AnyAuthMethod] -- ^ List of configured auth methods
+  , configValidateAuthMethods :: Bool -- ^ throw exceptions if auth methods are not configured
   }
 
 -- | display the config
@@ -105,6 +106,7 @@ newConfig = do
         , configLogExecWithContext = runDefaultLogExecWithContext
         , configLogContext = logCxt
         , configAuthMethods = []
+        , configValidateAuthMethods = True
         }  
 
 -- | updates config use AuthMethod on matching requests
