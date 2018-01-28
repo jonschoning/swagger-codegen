@@ -3,6 +3,7 @@ build:
   haddock-arguments:
     haddock-args:
     - "--odir=./docs"
+    - "--quickjump"
 extra-deps: []
 packages:
 - '.'
